@@ -41,7 +41,8 @@ Thumbs.db
 ###########
 **/__pychace__
 **/tsdst.egg-info
-**/evolutionary_search_024
 **/backup
 **/.ipynb_checkpoints
 **/cdsf.py
+**/build
+**/dist
