@@ -11,9 +11,8 @@
 
 <meta name="author" content="Tom Werner" />
 
-<meta name="date" content="2020-12-10" />
 
-<title>Bayesian Reliability Code Descriptions</title>
+<title>Tom’s Statistics and Data Science Toolkit (tsdst)</title>
 
 <script>/*! jQuery v1.11.3 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
 !function(a,b){"object"==typeof module&&"object"==typeof module.exports?module.exports=a.document?b(a,!0):function(a){if(!a.document)throw new Error("jQuery requires a window with a document");return b(a)}:b(a)}("undefined"!=typeof window?window:this,function(a,b){var c=[],d=c.slice,e=c.concat,f=c.push,g=c.indexOf,h={},i=h.toString,j=h.hasOwnProperty,k={},l="1.11.3",m=function(a,b){return new m.fn.init(a,b)},n=/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,o=/^-ms-/,p=/-([\da-z])/gi,q=function(a,b){return b.toUpperCase()};m.fn=m.prototype={jquery:l,constructor:m,selector:"",length:0,toArray:function(){return d.call(this)},get:function(a){return null!=a?0>a?this[a+this.length]:this[a]:d.call(this)},pushStack:function(a){var b=m.merge(this.constructor(),a);return b.prevObject=this,b.context=this.context,b},each:function(a,b){return m.each(this,a,b)},map:function(a){return this.pushStack(m.map(this,function(b,c){return a.call(b,c,b)}))},slice:function(){return this.pushStack(d.apply(this,arguments))},first:function(){return this.eq(0)},last:function(){return this.eq(-1)},eq:function(a){var b=this.length,c=+a+(0>a?b:0);return this.pushStack(c>=0&&b>c?[this[c]]:[])},end:function(){return this.prevObject||this.constructor(null)},push:f,sort:c.sort,splice:c.splice},m.extend=m.fn.extend=function(){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g},m.extend({expando:"jQuery"+(l+Math.random()).replace(/\D/g,""),isReady:!0,error:function(a){throw new Error(a)},noop:function(){},isFunction:function(a){return"function"===m.type(a)},isArray:Array.isArray||function(a){return"array"===m.type(a)},isWindow:function(a){return null!=a&&a==a.window},isNumeric:function(a){return!m.isArray(a)&&a-parseFloat(a)+1>=0},isEmptyObject:function(a){var b;for(b in a)return!1;return!0},isPlainObject:function(a){var b;if(!a||"object"!==m.type(a)||a.nodeType||m.isWindow(a))return!1;try{if(a.constructor&&!j.call(a,"constructor")&&!j.call(a.constructor.prototype,"isPrototypeOf"))return!1}catch(c){return!1}if(k.ownLast)for(b in a)return j.call(a,b);for(b in a);return void 0===b||j.call(a,b)},type:function(a){return null==a?a+"":"object"==typeof a||"function"==typeof a?h[i.call(a)]||"object":typeof a},globalEval:function(b){b&&m.trim(b)&&(a.execScript||function(b){a.eval.call(a,b)})(b)},camelCase:function(a){return a.replace(o,"ms-").replace(p,q)},nodeName:function(a,b){return a.nodeName&&a.nodeName.toLowerCase()===b.toLowerCase()},each:function(a,b,c){var d,e=0,f=a.length,g=r(a);if(c){if(g){for(;f>e;e++)if(d=b.apply(a[e],c),d===!1)break}else for(e in a)if(d=b.apply(a[e],c),d===!1)break}else if(g){for(;f>e;e++)if(d=b.call(a[e],e,a[e]),d===!1)break}else for(e in a)if(d=b.call(a[e],e,a[e]),d===!1)break;return a},trim:function(a){return null==a?"":(a+"").replace(n,"")},makeArray:function(a,b){var c=b||[];return null!=a&&(r(Object(a))?m.merge(c,"string"==typeof a?[a]:a):f.call(c,a)),c},inArray:function(a,b,c){var d;if(b){if(g)return g.call(b,a,c);for(d=b.length,c=c?0>c?Math.max(0,d+c):c:0;d>c;c++)if(c in b&&b[c]===a)return c}return-1},merge:function(a,b){var c=+b.length,d=0,e=a.length;while(c>d)a[e++]=b[d++];if(c!==c)while(void 0!==b[d])a[e++]=b[d++];return a.length=e,a},grep:function(a,b,c){for(var d,e=[],f=0,g=a.length,h=!c;g>f;f++)d=!b(a[f],f),d!==h&&e.push(a[f]);return e},map:function(a,b,c){var d,f=0,g=a.length,h=r(a),i=[];if(h)for(;g>f;f++)d=b(a[f],f,c),null!=d&&i.push(d);else for(f in a)d=b(a[f],f,c),null!=d&&i.push(d);return e.apply([],i)},guid:1,proxy:function(a,b){var c,e,f;return"string"==typeof b&&(f=a[b],b=a,a=f),m.isFunction(a)?(c=d.call(arguments,2),e=function(){return a.apply(b||this,c.concat(d.call(arguments)))},e.guid=a.guid=a.guid||m.guid++,e):void 0},now:function(){return+new Date},support:k}),m.each("Boolean Number String Function Array Date RegExp Object Error".split(" "),function(a,b){h["[object "+b+"]"]=b.toLowerCase()});function r(a){var b="length"in a&&a.length,c=m.type(a);return"function"===c||m.isWindow(a)?!1:1===a.nodeType&&b?!0:"array"===c||0===b||"number"==typeof b&&b>0&&b-1 in a}var s=function(a){var b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u="sizzle"+1*new Date,v=a.document,w=0,x=0,y=ha(),z=ha(),A=ha(),B=function(a,b){return a===b&&(l=!0),0},C=1<<31,D={}.hasOwnProperty,E=[],F=E.pop,G=E.push,H=E.push,I=E.slice,J=function(a,b){for(var c=0,d=a.length;d>c;c++)if(a[c]===b)return c;return-1},K="checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",L="[\\x20\\t\\r\\n\\f]",M="(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",N=M.replace("w","w#"),O="\\["+L+"*("+M+")(?:"+L+"*([*^$|!~]?=)"+L+"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|("+N+"))|)"+L+"*\\]",P=":("+M+")(?:\\((('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|((?:\\\\.|[^\\\\()[\\]]|"+O+")*)|.*)\\)|)",Q=new RegExp(L+"+","g"),R=new RegExp("^"+L+"+|((?:^|[^\\\\])(?:\\\\.)*)"+L+"+$","g"),S=new RegExp("^"+L+"*,"+L+"*"),T=new RegExp("^"+L+"*([>+~]|"+L+")"+L+"*"),U=new RegExp("="+L+"*([^\\]'\"]*?)"+L+"*\\]","g"),V=new RegExp(P),W=new RegExp("^"+N+"$"),X={ID:new RegExp("^#("+M+")"),CLASS:new RegExp("^\\.("+M+")"),TAG:new RegExp("^("+M.replace("w","w*")+")"),ATTR:new RegExp("^"+O),PSEUDO:new RegExp("^"+P),CHILD:new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\("+L+"*(even|odd|(([+-]|)(\\d*)n|)"+L+"*(?:([+-]|)"+L+"*(\\d+)|))"+L+"*\\)|)","i"),bool:new RegExp("^(?:"+K+")$","i"),needsContext:new RegExp("^"+L+"*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\("+L+"*((?:-\\d)?\\d*)"+L+"*\\)|)(?=[^-]|$)","i")},Y=/^(?:input|select|textarea|button)$/i,Z=/^h\d$/i,$=/^[^{]+\{\s*\[native \w/,_=/^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,aa=/[+~]/,ba=/'|\\/g,ca=new RegExp("\\\\([\\da-f]{1,6}"+L+"?|("+L+")|.)","ig"),da=function(a,b,c){var d="0x"+b-65536;return d!==d||c?b:0>d?String.fromCharCode(d+65536):String.fromCharCode(d>>10|55296,1023&d|56320)},ea=function(){m()};try{H.apply(E=I.call(v.childNodes),v.childNodes),E[v.childNodes.length].nodeType}catch(fa){H={apply:E.length?function(a,b){G.apply(a,I.call(b))}:function(a,b){var c=a.length,d=0;while(a[c++]=b[d++]);a.length=c-1}}}function ga(a,b,d,e){var f,h,j,k,l,o,r,s,w,x;if((b?b.ownerDocument||b:v)!==n&&m(b),b=b||n,d=d||[],k=b.nodeType,"string"!=typeof a||!a||1!==k&&9!==k&&11!==k)return d;if(!e&&p){if(11!==k&&(f=_.exec(a)))if(j=f[1]){if(9===k){if(h=b.getElementById(j),!h||!h.parentNode)return d;if(h.id===j)return d.push(h),d}else if(b.ownerDocument&&(h=b.ownerDocument.getElementById(j))&&t(b,h)&&h.id===j)return d.push(h),d}else{if(f[2])return H.apply(d,b.getElementsByTagName(a)),d;if((j=f[3])&&c.getElementsByClassName)return H.apply(d,b.getElementsByClassName(j)),d}if(c.qsa&&(!q||!q.test(a))){if(s=r=u,w=b,x=1!==k&&a,1===k&&"object"!==b.nodeName.toLowerCase()){o=g(a),(r=b.getAttribute("id"))?s=r.replace(ba,"\\$&"):b.setAttribute("id",s),s="[id='"+s+"'] ",l=o.length;while(l--)o[l]=s+ra(o[l]);w=aa.test(a)&&pa(b.parentNode)||b,x=o.join(",")}if(x)try{return H.apply(d,w.querySelectorAll(x)),d}catch(y){}finally{r||b.removeAttribute("id")}}}return i(a.replace(R,"$1"),b,d,e)}function ha(){var a=[];function b(c,e){return a.push(c+" ")>d.cacheLength&&delete b[a.shift()],b[c+" "]=e}return b}function ia(a){return a[u]=!0,a}function ja(a){var b=n.createElement("div");try{return!!a(b)}catch(c){return!1}finally{b.parentNode&&b.parentNode.removeChild(b),b=null}}function ka(a,b){var c=a.split("|"),e=a.length;while(e--)d.attrHandle[c[e]]=b}function la(a,b){var c=b&&a,d=c&&1===a.nodeType&&1===b.nodeType&&(~b.sourceIndex||C)-(~a.sourceIndex||C);if(d)return d;if(c)while(c=c.nextSibling)if(c===b)return-1;return a?1:-1}function ma(a){return function(b){var c=b.nodeName.toLowerCase();return"input"===c&&b.type===a}}function na(a){return function(b){var c=b.nodeName.toLowerCase();return("input"===c||"button"===c)&&b.type===a}}function oa(a){return ia(function(b){return b=+b,ia(function(c,d){var e,f=a([],c.length,b),g=f.length;while(g--)c[e=f[g]]&&(c[e]=!(d[e]=c[e]))})})}function pa(a){return a&&"undefined"!=typeof a.getElementsByTagName&&a}c=ga.support={},f=ga.isXML=function(a){var b=a&&(a.ownerDocument||a).documentElement;return b?"HTML"!==b.nodeName:!1},m=ga.setDocument=function(a){var b,e,g=a?a.ownerDocument||a:v;return g!==n&&9===g.nodeType&&g.documentElement?(n=g,o=g.documentElement,e=g.defaultView,e&&e!==e.top&&(e.addEventListener?e.addEventListener("unload",ea,!1):e.attachEvent&&e.attachEvent("onunload",ea)),p=!f(g),c.attributes=ja(function(a){return a.className="i",!a.getAttribute("className")}),c.getElementsByTagName=ja(function(a){return a.appendChild(g.createComment("")),!a.getElementsByTagName("*").length}),c.getElementsByClassName=$.test(g.getElementsByClassName),c.getById=ja(function(a){return o.appendChild(a).id=u,!g.getElementsByName||!g.getElementsByName(u).length}),c.getById?(d.find.ID=function(a,b){if("undefined"!=typeof b.getElementById&&p){var c=b.getElementById(a);return c&&c.parentNode?[c]:[]}},d.filter.ID=function(a){var b=a.replace(ca,da);return function(a){return a.getAttribute("id")===b}}):(delete d.find.ID,d.filter.ID=function(a){var b=a.replace(ca,da);return function(a){var c="undefined"!=typeof a.getAttributeNode&&a.getAttributeNode("id");return c&&c.value===b}}),d.find.TAG=c.getElementsByTagName?function(a,b){return"undefined"!=typeof b.getElementsByTagName?b.getElementsByTagName(a):c.qsa?b.querySelectorAll(a):void 0}:function(a,b){var c,d=[],e=0,f=b.getElementsByTagName(a);if("*"===a){while(c=f[e++])1===c.nodeType&&d.push(c);return d}return f},d.find.CLASS=c.getElementsByClassName&&function(a,b){return p?b.getElementsByClassName(a):void 0},r=[],q=[],(c.qsa=$.test(g.querySelectorAll))&&(ja(function(a){o.appendChild(a).innerHTML="<a id='"+u+"'></a><select id='"+u+"-\f]' msallowcapture=''><option selected=''></option></select>",a.querySelectorAll("[msallowcapture^='']").length&&q.push("[*^$]="+L+"*(?:''|\"\")"),a.querySelectorAll("[selected]").length||q.push("\\["+L+"*(?:value|"+K+")"),a.querySelectorAll("[id~="+u+"-]").length||q.push("~="),a.querySelectorAll(":checked").length||q.push(":checked"),a.querySelectorAll("a#"+u+"+*").length||q.push(".#.+[+~]")}),ja(function(a){var b=g.createElement("input");b.setAttribute("type","hidden"),a.appendChild(b).setAttribute("name","D"),a.querySelectorAll("[name=d]").length&&q.push("name"+L+"*[*^$|!~]?="),a.querySelectorAll(":enabled").length||q.push(":enabled",":disabled"),a.querySelectorAll("*,:x"),q.push(",.*:")})),(c.matchesSelector=$.test(s=o.matches||o.webkitMatchesSelector||o.mozMatchesSelector||o.oMatchesSelector||o.msMatchesSelector))&&ja(function(a){c.disconnectedMatch=s.call(a,"div"),s.call(a,"[s!='']:x"),r.push("!=",P)}),q=q.length&&new RegExp(q.join("|")),r=r.length&&new RegExp(r.join("|")),b=$.test(o.compareDocumentPosition),t=b||$.test(o.contains)?function(a,b){var c=9===a.nodeType?a.documentElement:a,d=b&&b.parentNode;return a===d||!(!d||1!==d.nodeType||!(c.contains?c.contains(d):a.compareDocumentPosition&&16&a.compareDocumentPosition(d)))}:function(a,b){if(b)while(b=b.parentNode)if(b===a)return!0;return!1},B=b?function(a,b){if(a===b)return l=!0,0;var d=!a.compareDocumentPosition-!b.compareDocumentPosition;return d?d:(d=(a.ownerDocument||a)===(b.ownerDocument||b)?a.compareDocumentPosition(b):1,1&d||!c.sortDetached&&b.compareDocumentPosition(a)===d?a===g||a.ownerDocument===v&&t(v,a)?-1:b===g||b.ownerDocument===v&&t(v,b)?1:k?J(k,a)-J(k,b):0:4&d?-1:1)}:function(a,b){if(a===b)return l=!0,0;var c,d=0,e=a.parentNode,f=b.parentNode,h=[a],i=[b];if(!e||!f)return a===g?-1:b===g?1:e?-1:f?1:k?J(k,a)-J(k,b):0;if(e===f)return la(a,b);c=a;while(c=c.parentNode)h.unshift(c);c=b;while(c=c.parentNode)i.unshift(c);while(h[d]===i[d])d++;return d?la(h[d],i[d]):h[d]===v?-1:i[d]===v?1:0},g):n},ga.matches=function(a,b){return ga(a,null,null,b)},ga.matchesSelector=function(a,b){if((a.ownerDocument||a)!==n&&m(a),b=b.replace(U,"='$1']"),!(!c.matchesSelector||!p||r&&r.test(b)||q&&q.test(b)))try{var d=s.call(a,b);if(d||c.disconnectedMatch||a.document&&11!==a.document.nodeType)return d}catch(e){}return ga(b,n,null,[a]).length>0},ga.contains=function(a,b){return(a.ownerDocument||a)!==n&&m(a),t(a,b)},ga.attr=function(a,b){(a.ownerDocument||a)!==n&&m(a);var e=d.attrHandle[b.toLowerCase()],f=e&&D.call(d.attrHandle,b.toLowerCase())?e(a,b,!p):void 0;return void 0!==f?f:c.attributes||!p?a.getAttribute(b):(f=a.getAttributeNode(b))&&f.specified?f.value:null},ga.error=function(a){throw new Error("Syntax error, unrecognized expression: "+a)},ga.uniqueSort=function(a){var b,d=[],e=0,f=0;if(l=!c.detectDuplicates,k=!c.sortStable&&a.slice(0),a.sort(B),l){while(b=a[f++])b===a[f]&&(e=d.push(f));while(e--)a.splice(d[e],1)}return k=null,a},e=ga.getText=function(a){var b,c="",d=0,f=a.nodeType;if(f){if(1===f||9===f||11===f){if("string"==typeof a.textContent)return a.textContent;for(a=a.firstChild;a;a=a.nextSibling)c+=e(a)}else if(3===f||4===f)return a.nodeValue}else while(b=a[d++])c+=e(b);return c},d=ga.selectors={cacheLength:50,createPseudo:ia,match:X,attrHandle:{},find:{},relative:{">":{dir:"parentNode",first:!0}," ":{dir:"parentNode"},"+":{dir:"previousSibling",first:!0},"~":{dir:"previousSibling"}},preFilter:{ATTR:function(a){return a[1]=a[1].replace(ca,da),a[3]=(a[3]||a[4]||a[5]||"").replace(ca,da),"~="===a[2]&&(a[3]=" "+a[3]+" "),a.slice(0,4)},CHILD:function(a){return a[1]=a[1].toLowerCase(),"nth"===a[1].slice(0,3)?(a[3]||ga.error(a[0]),a[4]=+(a[4]?a[5]+(a[6]||1):2*("even"===a[3]||"odd"===a[3])),a[5]=+(a[7]+a[8]||"odd"===a[3])):a[3]&&ga.error(a[0]),a},PSEUDO:function(a){var b,c=!a[6]&&a[2];return X.CHILD.test(a[0])?null:(a[3]?a[2]=a[4]||a[5]||"":c&&V.test(c)&&(b=g(c,!0))&&(b=c.indexOf(")",c.length-b)-c.length)&&(a[0]=a[0].slice(0,b),a[2]=c.slice(0,b)),a.slice(0,3))}},filter:{TAG:function(a){var b=a.replace(ca,da).toLowerCase();return"*"===a?function(){return!0}:function(a){return a.nodeName&&a.nodeName.toLowerCase()===b}},CLASS:function(a){var b=y[a+" "];return b||(b=new RegExp("(^|"+L+")"+a+"("+L+"|$)"))&&y(a,function(a){return b.test("string"==typeof a.className&&a.className||"undefined"!=typeof a.getAttribute&&a.getAttribute("class")||"")})},ATTR:function(a,b,c){return function(d){var e=ga.attr(d,a);return null==e?"!="===b:b?(e+="","="===b?e===c:"!="===b?e!==c:"^="===b?c&&0===e.indexOf(c):"*="===b?c&&e.indexOf(c)>-1:"$="===b?c&&e.slice(-c.length)===c:"~="===b?(" "+e.replace(Q," ")+" ").indexOf(c)>-1:"|="===b?e===c||e.slice(0,c.length+1)===c+"-":!1):!0}},CHILD:function(a,b,c,d,e){var f="nth"!==a.slice(0,3),g="last"!==a.slice(-4),h="of-type"===b;return 1===d&&0===e?function(a){return!!a.parentNode}:function(b,c,i){var j,k,l,m,n,o,p=f!==g?"nextSibling":"previousSibling",q=b.parentNode,r=h&&b.nodeName.toLowerCase(),s=!i&&!h;if(q){if(f){while(p){l=b;while(l=l[p])if(h?l.nodeName.toLowerCase()===r:1===l.nodeType)return!1;o=p="only"===a&&!o&&"nextSibling"}return!0}if(o=[g?q.firstChild:q.lastChild],g&&s){k=q[u]||(q[u]={}),j=k[a]||[],n=j[0]===w&&j[1],m=j[0]===w&&j[2],l=n&&q.childNodes[n];while(l=++n&&l&&l[p]||(m=n=0)||o.pop())if(1===l.nodeType&&++m&&l===b){k[a]=[w,n,m];break}}else if(s&&(j=(b[u]||(b[u]={}))[a])&&j[0]===w)m=j[1];else while(l=++n&&l&&l[p]||(m=n=0)||o.pop())if((h?l.nodeName.toLowerCase()===r:1===l.nodeType)&&++m&&(s&&((l[u]||(l[u]={}))[a]=[w,m]),l===b))break;return m-=e,m===d||m%d===0&&m/d>=0}}},PSEUDO:function(a,b){var c,e=d.pseudos[a]||d.setFilters[a.toLowerCase()]||ga.error("unsupported pseudo: "+a);return e[u]?e(b):e.length>1?(c=[a,a,"",b],d.setFilters.hasOwnProperty(a.toLowerCase())?ia(function(a,c){var d,f=e(a,b),g=f.length;while(g--)d=J(a,f[g]),a[d]=!(c[d]=f[g])}):function(a){return e(a,0,c)}):e}},pseudos:{not:ia(function(a){var b=[],c=[],d=h(a.replace(R,"$1"));return d[u]?ia(function(a,b,c,e){var f,g=d(a,null,e,[]),h=a.length;while(h--)(f=g[h])&&(a[h]=!(b[h]=f))}):function(a,e,f){return b[0]=a,d(b,null,f,c),b[0]=null,!c.pop()}}),has:ia(function(a){return function(b){return ga(a,b).length>0}}),contains:ia(function(a){return a=a.replace(ca,da),function(b){return(b.textContent||b.innerText||e(b)).indexOf(a)>-1}}),lang:ia(function(a){return W.test(a||"")||ga.error("unsupported lang: "+a),a=a.replace(ca,da).toLowerCase(),function(b){var c;do if(c=p?b.lang:b.getAttribute("xml:lang")||b.getAttribute("lang"))return c=c.toLowerCase(),c===a||0===c.indexOf(a+"-");while((b=b.parentNode)&&1===b.nodeType);return!1}}),target:function(b){var c=a.location&&a.location.hash;return c&&c.slice(1)===b.id},root:function(a){return a===o},focus:function(a){return a===n.activeElement&&(!n.hasFocus||n.hasFocus())&&!!(a.type||a.href||~a.tabIndex)},enabled:function(a){return a.disabled===!1},disabled:function(a){return a.disabled===!0},checked:function(a){var b=a.nodeName.toLowerCase();return"input"===b&&!!a.checked||"option"===b&&!!a.selected},selected:function(a){return a.parentNode&&a.parentNode.selectedIndex,a.selected===!0},empty:function(a){for(a=a.firstChild;a;a=a.nextSibling)if(a.nodeType<6)return!1;return!0},parent:function(a){return!d.pseudos.empty(a)},header:function(a){return Z.test(a.nodeName)},input:function(a){return Y.test(a.nodeName)},button:function(a){var b=a.nodeName.toLowerCase();return"input"===b&&"button"===a.type||"button"===b},text:function(a){var b;return"input"===a.nodeName.toLowerCase()&&"text"===a.type&&(null==(b=a.getAttribute("type"))||"text"===b.toLowerCase())},first:oa(function(){return[0]}),last:oa(function(a,b){return[b-1]}),eq:oa(function(a,b,c){return[0>c?c+b:c]}),even:oa(function(a,b){for(var c=0;b>c;c+=2)a.push(c);return a}),odd:oa(function(a,b){for(var c=1;b>c;c+=2)a.push(c);return a}),lt:oa(function(a,b,c){for(var d=0>c?c+b:c;--d>=0;)a.push(d);return a}),gt:oa(function(a,b,c){for(var d=0>c?c+b:c;++d<b;)a.push(d);return a})}},d.pseudos.nth=d.pseudos.eq;for(b in{radio:!0,checkbox:!0,file:!0,password:!0,image:!0})d.pseudos[b]=ma(b);for(b in{submit:!0,reset:!0})d.pseudos[b]=na(b);function qa(){}qa.prototype=d.filters=d.pseudos,d.setFilters=new qa,g=ga.tokenize=function(a,b){var c,e,f,g,h,i,j,k=z[a+" "];if(k)return b?0:k.slice(0);h=a,i=[],j=d.preFilter;while(h){(!c||(e=S.exec(h)))&&(e&&(h=h.slice(e[0].length)||h),i.push(f=[])),c=!1,(e=T.exec(h))&&(c=e.shift(),f.push({value:c,type:e[0].replace(R," ")}),h=h.slice(c.length));for(g in d.filter)!(e=X[g].exec(h))||j[g]&&!(e=j[g](e))||(c=e.shift(),f.push({value:c,type:g,matches:e}),h=h.slice(c.length));if(!c)break}return b?h.length:h?ga.error(a):z(a,i).slice(0)};function ra(a){for(var b=0,c=a.length,d="";c>b;b++)d+=a[b].value;return d}function sa(a,b,c){var d=b.dir,e=c&&"parentNode"===d,f=x++;return b.first?function(b,c,f){while(b=b[d])if(1===b.nodeType||e)return a(b,c,f)}:function(b,c,g){var h,i,j=[w,f];if(g){while(b=b[d])if((1===b.nodeType||e)&&a(b,c,g))return!0}else while(b=b[d])if(1===b.nodeType||e){if(i=b[u]||(b[u]={}),(h=i[d])&&h[0]===w&&h[1]===f)return j[2]=h[2];if(i[d]=j,j[2]=a(b,c,g))return!0}}}function ta(a){return a.length>1?function(b,c,d){var e=a.length;while(e--)if(!a[e](b,c,d))return!1;return!0}:a[0]}function ua(a,b,c){for(var d=0,e=b.length;e>d;d++)ga(a,b[d],c);return c}function va(a,b,c,d,e){for(var f,g=[],h=0,i=a.length,j=null!=b;i>h;h++)(f=a[h])&&(!c||c(f,d,e))&&(g.push(f),j&&b.push(h));return g}function wa(a,b,c,d,e,f){return d&&!d[u]&&(d=wa(d)),e&&!e[u]&&(e=wa(e,f)),ia(function(f,g,h,i){var j,k,l,m=[],n=[],o=g.length,p=f||ua(b||"*",h.nodeType?[h]:h,[]),q=!a||!f&&b?p:va(p,m,a,h,i),r=c?e||(f?a:o||d)?[]:g:q;if(c&&c(q,r,h,i),d){j=va(r,n),d(j,[],h,i),k=j.length;while(k--)(l=j[k])&&(r[n[k]]=!(q[n[k]]=l))}if(f){if(e||a){if(e){j=[],k=r.length;while(k--)(l=r[k])&&j.push(q[k]=l);e(null,r=[],j,i)}k=r.length;while(k--)(l=r[k])&&(j=e?J(f,l):m[k])>-1&&(f[j]=!(g[j]=l))}}else r=va(r===g?r.splice(o,r.length):r),e?e(null,g,r,i):H.apply(g,r)})}function xa(a){for(var b,c,e,f=a.length,g=d.relative[a[0].type],h=g||d.relative[" "],i=g?1:0,k=sa(function(a){return a===b},h,!0),l=sa(function(a){return J(b,a)>-1},h,!0),m=[function(a,c,d){var e=!g&&(d||c!==j)||((b=c).nodeType?k(a,c,d):l(a,c,d));return b=null,e}];f>i;i++)if(c=d.relative[a[i].type])m=[sa(ta(m),c)];else{if(c=d.filter[a[i].type].apply(null,a[i].matches),c[u]){for(e=++i;f>e;e++)if(d.relative[a[e].type])break;return wa(i>1&&ta(m),i>1&&ra(a.slice(0,i-1).concat({value:" "===a[i-2].type?"*":""})).replace(R,"$1"),c,e>i&&xa(a.slice(i,e)),f>e&&xa(a=a.slice(e)),f>e&&ra(a))}m.push(c)}return ta(m)}function ya(a,b){var c=b.length>0,e=a.length>0,f=function(f,g,h,i,k){var l,m,o,p=0,q="0",r=f&&[],s=[],t=j,u=f||e&&d.find.TAG("*",k),v=w+=null==t?1:Math.random()||.1,x=u.length;for(k&&(j=g!==n&&g);q!==x&&null!=(l=u[q]);q++){if(e&&l){m=0;while(o=a[m++])if(o(l,g,h)){i.push(l);break}k&&(w=v)}c&&((l=!o&&l)&&p--,f&&r.push(l))}if(p+=q,c&&q!==p){m=0;while(o=b[m++])o(r,s,g,h);if(f){if(p>0)while(q--)r[q]||s[q]||(s[q]=F.call(i));s=va(s)}H.apply(i,s),k&&!f&&s.length>0&&p+b.length>1&&ga.uniqueSort(i)}return k&&(w=v,j=t),r};return c?ia(f):f}return h=ga.compile=function(a,b){var c,d=[],e=[],f=A[a+" "];if(!f){b||(b=g(a)),c=b.length;while(c--)f=xa(b[c]),f[u]?d.push(f):e.push(f);f=A(a,ya(e,d)),f.selector=a}return f},i=ga.select=function(a,b,e,f){var i,j,k,l,m,n="function"==typeof a&&a,o=!f&&g(a=n.selector||a);if(e=e||[],1===o.length){if(j=o[0]=o[0].slice(0),j.length>2&&"ID"===(k=j[0]).type&&c.getById&&9===b.nodeType&&p&&d.relative[j[1].type]){if(b=(d.find.ID(k.matches[0].replace(ca,da),b)||[])[0],!b)return e;n&&(b=b.parentNode),a=a.slice(j.shift().value.length)}i=X.needsContext.test(a)?0:j.length;while(i--){if(k=j[i],d.relative[l=k.type])break;if((m=d.find[l])&&(f=m(k.matches[0].replace(ca,da),aa.test(j[0].type)&&pa(b.parentNode)||b))){if(j.splice(i,1),a=f.length&&ra(j),!a)return H.apply(e,f),e;break}}}return(n||h(a,o))(f,b,!p,e,aa.test(a)&&pa(b.parentNode)||b),e},c.sortStable=u.split("").sort(B).join("")===u,c.detectDuplicates=!!l,m(),c.sortDetached=ja(function(a){return 1&a.compareDocumentPosition(n.createElement("div"))}),ja(function(a){return a.innerHTML="<a href='#'></a>","#"===a.firstChild.getAttribute("href")})||ka("type|href|height|width",function(a,b,c){return c?void 0:a.getAttribute(b,"type"===b.toLowerCase()?1:2)}),c.attributes&&ja(function(a){return a.innerHTML="<input/>",a.firstChild.setAttribute("value",""),""===a.firstChild.getAttribute("value")})||ka("value",function(a,b,c){return c||"input"!==a.nodeName.toLowerCase()?void 0:a.defaultValue}),ja(function(a){return null==a.getAttribute("disabled")})||ka(K,function(a,b,c){var d;return c?void 0:a[b]===!0?b.toLowerCase():(d=a.getAttributeNode(b))&&d.specified?d.value:null}),ga}(a);m.find=s,m.expr=s.selectors,m.expr[":"]=m.expr.pseudos,m.unique=s.uniqueSort,m.text=s.getText,m.isXMLDoc=s.isXML,m.contains=s.contains;var t=m.expr.match.needsContext,u=/^<(\w+)\s*\/?>(?:<\/\1>|)$/,v=/^.[^:#\[\.,]*$/;function w(a,b,c){if(m.isFunction(b))return m.grep(a,function(a,d){return!!b.call(a,d,a)!==c});if(b.nodeType)return m.grep(a,function(a){return a===b!==c});if("string"==typeof b){if(v.test(b))return m.filter(b,a,c);b=m.filter(b,a)}return m.grep(a,function(a){return m.inArray(a,b)>=0!==c})}m.filter=function(a,b,c){var d=b[0];return c&&(a=":not("+a+")"),1===b.length&&1===d.nodeType?m.find.matchesSelector(d,a)?[d]:[]:m.find.matches(a,m.grep(b,function(a){return 1===a.nodeType}))},m.fn.extend({find:function(a){var b,c=[],d=this,e=d.length;if("string"!=typeof a)return this.pushStack(m(a).filter(function(){for(b=0;e>b;b++)if(m.contains(d[b],this))return!0}));for(b=0;e>b;b++)m.find(a,d[b],c);return c=this.pushStack(e>1?m.unique(c):c),c.selector=this.selector?this.selector+" "+a:a,c},filter:function(a){return this.pushStack(w(this,a||[],!1))},not:function(a){return this.pushStack(w(this,a||[],!0))},is:function(a){return!!w(this,"string"==typeof a&&t.test(a)?m(a):a||[],!1).length}});var x,y=a.document,z=/^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,A=m.fn.init=function(a,b){var c,d;if(!a)return this;if("string"==typeof a){if(c="<"===a.charAt(0)&&">"===a.charAt(a.length-1)&&a.length>=3?[null,a,null]:z.exec(a),!c||!c[1]&&b)return!b||b.jquery?(b||x).find(a):this.constructor(b).find(a);if(c[1]){if(b=b instanceof m?b[0]:b,m.merge(this,m.parseHTML(c[1],b&&b.nodeType?b.ownerDocument||b:y,!0)),u.test(c[1])&&m.isPlainObject(b))for(c in b)m.isFunction(this[c])?this[c](b[c]):this.attr(c,b[c]);return this}if(d=y.getElementById(c[2]),d&&d.parentNode){if(d.id!==c[2])return x.find(a);this.length=1,this[0]=d}return this.context=y,this.selector=a,this}return a.nodeType?(this.context=this[0]=a,this.length=1,this):m.isFunction(a)?"undefined"!=typeof x.ready?x.ready(a):a(m):(void 0!==a.selector&&(this.selector=a.selector,this.context=a.context),m.makeArray(a,this))};A.prototype=m.fn,x=m(y);var B=/^(?:parents|prev(?:Until|All))/,C={children:!0,contents:!0,next:!0,prev:!0};m.extend({dir:function(a,b,c){var d=[],e=a[b];while(e&&9!==e.nodeType&&(void 0===c||1!==e.nodeType||!m(e).is(c)))1===e.nodeType&&d.push(e),e=e[b];return d},sibling:function(a,b){for(var c=[];a;a=a.nextSibling)1===a.nodeType&&a!==b&&c.push(a);return c}}),m.fn.extend({has:function(a){var b,c=m(a,this),d=c.length;return this.filter(function(){for(b=0;d>b;b++)if(m.contains(this,c[b]))return!0})},closest:function(a,b){for(var c,d=0,e=this.length,f=[],g=t.test(a)||"string"!=typeof a?m(a,b||this.context):0;e>d;d++)for(c=this[d];c&&c!==b;c=c.parentNode)if(c.nodeType<11&&(g?g.index(c)>-1:1===c.nodeType&&m.find.matchesSelector(c,a))){f.push(c);break}return this.pushStack(f.length>1?m.unique(f):f)},index:function(a){return a?"string"==typeof a?m.inArray(this[0],m(a)):m.inArray(a.jquery?a[0]:a,this):this[0]&&this[0].parentNode?this.first().prevAll().length:-1},add:function(a,b){return this.pushStack(m.unique(m.merge(this.get(),m(a,b))))},addBack:function(a){return this.add(null==a?this.prevObject:this.prevObject.filter(a))}});function D(a,b){do a=a[b];while(a&&1!==a.nodeType);return a}m.each({parent:function(a){var b=a.parentNode;return b&&11!==b.nodeType?b:null},parents:function(a){return m.dir(a,"parentNode")},parentsUntil:function(a,b,c){return m.dir(a,"parentNode",c)},next:function(a){return D(a,"nextSibling")},prev:function(a){return D(a,"previousSibling")},nextAll:function(a){return m.dir(a,"nextSibling")},prevAll:function(a){return m.dir(a,"previousSibling")},nextUntil:function(a,b,c){return m.dir(a,"nextSibling",c)},prevUntil:function(a,b,c){return m.dir(a,"previousSibling",c)},siblings:function(a){return m.sibling((a.parentNode||{}).firstChild,a)},children:function(a){return m.sibling(a.firstChild)},contents:function(a){return m.nodeName(a,"iframe")?a.contentDocument||a.contentWindow.document:m.merge([],a.childNodes)}},function(a,b){m.fn[a]=function(c,d){var e=m.map(this,b,c);return"Until"!==a.slice(-5)&&(d=c),d&&"string"==typeof d&&(e=m.filter(d,e)),this.length>1&&(C[a]||(e=m.unique(e)),B.test(a)&&(e=e.reverse())),this.pushStack(e)}});var E=/\S+/g,F={};function G(a){var b=F[a]={};return m.each(a.match(E)||[],function(a,c){b[c]=!0}),b}m.Callbacks=function(a){a="string"==typeof a?F[a]||G(a):m.extend({},a);var b,c,d,e,f,g,h=[],i=!a.once&&[],j=function(l){for(c=a.memory&&l,d=!0,f=g||0,g=0,e=h.length,b=!0;h&&e>f;f++)if(h[f].apply(l[0],l[1])===!1&&a.stopOnFalse){c=!1;break}b=!1,h&&(i?i.length&&j(i.shift()):c?h=[]:k.disable())},k={add:function(){if(h){var d=h.length;!function f(b){m.each(b,function(b,c){var d=m.type(c);"function"===d?a.unique&&k.has(c)||h.push(c):c&&c.length&&"string"!==d&&f(c)})}(arguments),b?e=h.length:c&&(g=d,j(c))}return this},remove:function(){return h&&m.each(arguments,function(a,c){var d;while((d=m.inArray(c,h,d))>-1)h.splice(d,1),b&&(e>=d&&e--,f>=d&&f--)}),this},has:function(a){return a?m.inArray(a,h)>-1:!(!h||!h.length)},empty:function(){return h=[],e=0,this},disable:function(){return h=i=c=void 0,this},disabled:function(){return!h},lock:function(){return i=void 0,c||k.disable(),this},locked:function(){return!i},fireWith:function(a,c){return!h||d&&!i||(c=c||[],c=[a,c.slice?c.slice():c],b?i.push(c):j(c)),this},fire:function(){return k.fireWith(this,arguments),this},fired:function(){return!!d}};return k},m.extend({Deferred:function(a){var b=[["resolve","done",m.Callbacks("once memory"),"resolved"],["reject","fail",m.Callbacks("once memory"),"rejected"],["notify","progress",m.Callbacks("memory")]],c="pending",d={state:function(){return c},always:function(){return e.done(arguments).fail(arguments),this},then:function(){var a=arguments;return m.Deferred(function(c){m.each(b,function(b,f){var g=m.isFunction(a[b])&&a[b];e[f[1]](function(){var a=g&&g.apply(this,arguments);a&&m.isFunction(a.promise)?a.promise().done(c.resolve).fail(c.reject).progress(c.notify):c[f[0]+"With"](this===d?c.promise():this,g?[a]:arguments)})}),a=null}).promise()},promise:function(a){return null!=a?m.extend(a,d):d}},e={};return d.pipe=d.then,m.each(b,function(a,f){var g=f[2],h=f[3];d[f[1]]=g.add,h&&g.add(function(){c=h},b[1^a][2].disable,b[2][2].lock),e[f[0]]=function(){return e[f[0]+"With"](this===e?d:this,arguments),this},e[f[0]+"With"]=g.fireWith}),d.promise(e),a&&a.call(e,e),e},when:function(a){var b=0,c=d.call(arguments),e=c.length,f=1!==e||a&&m.isFunction(a.promise)?e:0,g=1===f?a:m.Deferred(),h=function(a,b,c){return function(e){b[a]=this,c[a]=arguments.length>1?d.call(arguments):e,c===i?g.notifyWith(b,c):--f||g.resolveWith(b,c)}},i,j,k;if(e>1)for(i=new Array(e),j=new Array(e),k=new Array(e);e>b;b++)c[b]&&m.isFunction(c[b].promise)?c[b].promise().done(h(b,k,c)).fail(g.reject).progress(h(b,j,i)):--f;return f||g.resolveWith(k,c),g.promise()}});var H;m.fn.ready=function(a){return m.ready.promise().done(a),this},m.extend({isReady:!1,readyWait:1,holdReady:function(a){a?m.readyWait++:m.ready(!0)},ready:function(a){if(a===!0?!--m.readyWait:!m.isReady){if(!y.body)return setTimeout(m.ready);m.isReady=!0,a!==!0&&--m.readyWait>0||(H.resolveWith(y,[m]),m.fn.triggerHandler&&(m(y).triggerHandler("ready"),m(y).off("ready")))}}});function I(){y.addEventListener?(y.removeEventListener("DOMContentLoaded",J,!1),a.removeEventListener("load",J,!1)):(y.detachEvent("onreadystatechange",J),a.detachEvent("onload",J))}function J(){(y.addEventListener||"load"===event.type||"complete"===y.readyState)&&(I(),m.ready())}m.ready.promise=function(b){if(!H)if(H=m.Deferred(),"complete"===y.readyState)setTimeout(m.ready);else if(y.addEventListener)y.addEventListener("DOMContentLoaded",J,!1),a.addEventListener("load",J,!1);else{y.attachEvent("onreadystatechange",J),a.attachEvent("onload",J);var c=!1;try{c=null==a.frameElement&&y.documentElement}catch(d){}c&&c.doScroll&&!function e(){if(!m.isReady){try{c.doScroll("left")}catch(a){return setTimeout(e,50)}I(),m.ready()}}()}return H.promise(b)};var K="undefined",L;for(L in m(k))break;k.ownLast="0"!==L,k.inlineBlockNeedsLayout=!1,m(function(){var a,b,c,d;c=y.getElementsByTagName("body")[0],c&&c.style&&(b=y.createElement("div"),d=y.createElement("div"),d.style.cssText="position:absolute;border:0;width:0;height:0;top:0;left:-9999px",c.appendChild(d).appendChild(b),typeof b.style.zoom!==K&&(b.style.cssText="display:inline;margin:0;border:0;padding:1px;width:1px;zoom:1",k.inlineBlockNeedsLayout=a=3===b.offsetWidth,a&&(c.style.zoom=1)),c.removeChild(d))}),function(){var a=y.createElement("div");if(null==k.deleteExpando){k.deleteExpando=!0;try{delete a.test}catch(b){k.deleteExpando=!1}}a=null}(),m.acceptData=function(a){var b=m.noData[(a.nodeName+" ").toLowerCase()],c=+a.nodeType||1;return 1!==c&&9!==c?!1:!b||b!==!0&&a.getAttribute("classid")===b};var M=/^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,N=/([A-Z])/g;function O(a,b,c){if(void 0===c&&1===a.nodeType){var d="data-"+b.replace(N,"-$1").toLowerCase();if(c=a.getAttribute(d),"string"==typeof c){try{c="true"===c?!0:"false"===c?!1:"null"===c?null:+c+""===c?+c:M.test(c)?m.parseJSON(c):c}catch(e){}m.data(a,b,c)}else c=void 0}return c}function P(a){var b;for(b in a)if(("data"!==b||!m.isEmptyObject(a[b]))&&"toJSON"!==b)return!1;
@@ -2829,33 +2828,26 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Bayesian Reliability Code Descriptions</h1>
-<h3 class="subtitle">And some other things…</h3>
+<h1 class="title toc-ignore">Tom’s Statistics and Data Science Toolkit (tsdst)</h1>
 <h4 class="author">Tom Werner</h4>
-<h4 class="date">10 December 2020</h4>
+<h4 class="date">Last Updated: 10 December 2020</h4>
 
 </div>
 
 
-<pre><code>[&#39;&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst\\python37.zip&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst\\DLLs&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst\\lib&#39;, &#39;C:\\PROGRA~1\\R\\R-36~1.3\\bin\\x64&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst\\lib\\site-packages&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst\\lib\\site-packages\\win32&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst\\lib\\site-packages\\win32\\lib&#39;, &#39;C:\\Users\\J76747\\Anaconda3\\envs\\tsdst\\lib\\site-packages\\Pythonwin&#39;, &#39;C:/Users/J76747/Documents/R/win-library/3.6/reticulate/python&#39;, &#39;C:/Users/J76747/Documents/DataScienceProj/Python/tsdst/tsdst-source/&#39;]</code></pre>
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
-<p>This document outlines the classes, functions, methods, and other code used to perform Bayesian Reliability Data Analysis. It is organized in alphabetical order by object type and name. Many of the methods discussed have general uses, however, most of the examples will be directly relatable to the reliability of mechanical systems. This document assumes a basic knowledge Bayesian Probability Theory. For more info, see the following <a href="https://en.wikipedia.org/wiki/Bayes%27_theorem" title="Bayes&#39; theorem">Wikipedia article.</a></p>
-<p>For more in-depth examples, see the code samples <code>weibull_implementation.py</code>, <code>MLE_implementation.py</code>, or <code>NHPP_implementaion.py</code> that go along with this document.</p>
+<p>This document covers all the functions, classes, and methods contained in the <code>tsdst</code> package. It is organized in alphabetical order, first by module name, and then by object name. Many of the methods discussed have general uses, however, most of the examples will be directly related to the reliability of mechanical systems. This document assumes a basic knowledge Bayesian Probability Theory. For more info, see the following <a href="https://en.wikipedia.org/wiki/Bayes%27_theorem" title="Bayes&#39; theorem">Wikipedia article.</a></p>
 <div id="acknowledgments" class="section level2">
 <h2><span class="header-section-number">1.1</span> Acknowledgments</h2>
-<p>Much of this work could not have been done without the help of Joel Linford and Mark Lyman. They have helped conceptualize, code, correct, and author several functions in this document.</p>
+<p>I’d like to thank all my friends and colleagues over the years who have helped me put this together, namely: - Mark Lyman - Joel Linford - Darren Maynard</p>
 </div>
-</div>
-<div id="classes" class="section level1">
-<h1><span class="header-section-number">2</span> Classes</h1>
-<p>Currently, there is only one class, the mcmcObject.</p>
 <div id="mcmcobject" class="section level2">
-<h2><span class="header-section-number">2.1</span> mcmcObject</h2>
+<h2><span class="header-section-number">1.2</span> mcmcObject</h2>
 <pre class="python"><code>mcmcObject(name=&quot;MCMC Object&quot;)</code></pre>
 <p>The purpose of this class was to be a one-stop-shop for an MCMC chain. While algorithms or methods to produce or utilize chains may vary significantly, I have found that the methods to shape, trim, store, burn-in, or continue runs of a chain are easily generalized, and thus belong in a class.</p>
 <div id="initialize" class="section level3">
-<h3><span class="header-section-number">2.1.1</span> Initialize</h3>
+<h3><span class="header-section-number">1.2.1</span> Initialize</h3>
 <p>When called, this class initializes the following properties:</p>
 <table>
 <thead>
@@ -2892,26 +2884,26 @@ div.tocify {
 <p>The three dictionaries have similar properties. The <code>chains</code> property can store any given MCMC run as a key-value pair, where the chain name is the key and the chain is the value (see <a href="#addchain">addChain</a> or <a href="#mcmcwithraftery">mcmcWithRaftery</a> for more info). The <code>diagnostic_values</code> and <code>previous_values</code> properties store other information about the chain, which are the diagnostic tests and the ending values of the last run, respectively.</p>
 </div>
 <div id="addchain" class="section level3">
-<h3><span class="header-section-number">2.1.2</span> addChain</h3>
+<h3><span class="header-section-number">1.2.2</span> addChain</h3>
 <pre class="python"><code>mcmcObject.addChain(newChain, chainName=None, concat=True)</code></pre>
 <p>This method adds a chain to the <code>chains</code> property. If no other name is provided, the default for chainName is ‘Chain_x’, where ‘x’ is a number reflecting how many chains exist in the object. This function checks whether <code>newChain</code> is an object that can be converted to a numpy array, and if not already a numpy array, performs the conversion. Beyond that, it is up to the user to make sure what is being added has the right shape/size of your chain.</p>
 <p>If <code>concat</code> is set to true, it searches for a chain named <code>chainName</code>, and if found, appends <code>newChain</code> to the existing chain. Otherwise, a new chain is created.</p>
 </div>
 <div id="bestraftery" class="section level3">
-<h3><span class="header-section-number">2.1.3</span> bestRaftery</h3>
+<h3><span class="header-section-number">1.2.3</span> bestRaftery</h3>
 <pre class="python"><code>bestRaftery(chainName, q=[0.025, 0.5, 0.975],
             r=0.005, s=0.90, converge_eps=0.001, thin=1,
             print_each=False, print_final=False)</code></pre>
 <p>This function is just a wrapper for <a href="#raftery">_raftery</a> that performs the Raftery diagnostic for each value of <code>q</code>. The <code>print_each</code> and <code>print_final</code> functions will display the output of each run of <a href="#raftery">_raftery</a>, as well as the combined result of all the runs. The combined result is simply the maximum of all the runs (see <a href="#raftery">_raftery</a> for more details).</p>
 </div>
 <div id="burnin" class="section level3">
-<h3><span class="header-section-number">2.1.4</span> burnin</h3>
+<h3><span class="header-section-number">1.2.4</span> burnin</h3>
 <pre class="python"><code>burnin(chainName, burninVal=3000)</code></pre>
 <p>This method removes the first <code>burninVal</code> number of samples from the chain. The default is 3000.</p>
 <p>Some people argue that burn-in is not necessary, or even practical, since the target distribution reflects a probability distribution where those burn-in values, no matter how unlikely, are still possible to obtain as valid samples. They argue that even a parameter value that has 0.0000001% chance of being drawn is still not zero, and therefore helps make up the target distribution. From another view, you can argue that if your chain is “long enough”, these values average out to be representative of the target distribution. However, the author believes that burn-in values are still useful for a similar reason. For example, it isn’t always possible to run really long chains (due to hardware or software constraints, the number of functions/objects needing MCMC samples, etc.). Therefore, if someone happen to get a chain that is mixing slowly (but after looking at the plots decided it did “converge” towards the end), then the quantiles of the sampled distribution with those burn-in values included will be different, and in that case the stationary distribution may not reflect the target distribution. Furthermore, if your chain is “long enough”, removing burn-in values should have little effect on the chain as a whole, and is likely to be harmless.</p>
 </div>
 <div id="mcmcwithraftery" class="section level3">
-<h3><span class="header-section-number">2.1.5</span> mcmcWithRaftery</h3>
+<h3><span class="header-section-number">1.2.5</span> mcmcWithRaftery</h3>
 <pre class="python"><code>mcmcWithRaftery(start, initSampleSize, lpost, algo,
                 algoOpts=None, chainName=None, maxTries=100,
                 sd=0.02, prev_vals=None, plot_t=False,
@@ -2972,28 +2964,28 @@ div.tocify {
 </table>
 </div>
 <div id="plottrace" class="section level3">
-<h3><span class="header-section-number">2.1.6</span> plotTrace</h3>
+<h3><span class="header-section-number">1.2.6</span> plotTrace</h3>
 <pre class="python"><code>plotTrace(chainName, CTres=None, write=True, pdir=&quot;./Plots/&quot;)</code></pre>
 <p><code>plotTrace</code> plots the MCMC chain of each parameter as a function of time, with each iteration on the x-axis and the sampled values on the y-axis. One benefit of looking at a trace plot is to check if the MCMC method has begun sampling around some stationary distribution. Some statisticians will say the chain “converges”, but this is technically incorrect since MCMC methods are a sampling problem (jumping around a range of values) and not an optimization problem (moving to a single value around some local or global optimum), although it could be argued that the samples converge to a distribution as a whole.</p>
 </div>
 <div id="plotdensity" class="section level3">
-<h3><span class="header-section-number">2.1.7</span> plotDensity</h3>
+<h3><span class="header-section-number">1.2.7</span> plotDensity</h3>
 <pre class="python"><code>plotDensity(self, chainName, smoothing=0.05, write=True,
             pdir=&quot;./Plots/&quot;, vlines=None)</code></pre>
 <p><code>plotDensity</code> plots the posterior density of each chain parameter. This will give the user a good idea of the shape and credible bounds of each parameter, and in some cases can help diagnose convergence (for example, when the density appears jagged rather than rounded, or appears bimodal when you suspect it shouldn’t be).</p>
 </div>
 <div id="removechain" class="section level3">
-<h3><span class="header-section-number">2.1.8</span> removeChain</h3>
+<h3><span class="header-section-number">1.2.8</span> removeChain</h3>
 <pre class="python"><code>removeChain(chainName)</code></pre>
 <p><code>removeChain</code> searches for a chain labeled ‘chainName’ and removes it from the <code>chain</code> dictionary.</p>
 </div>
 <div id="showchain" class="section level3">
-<h3><span class="header-section-number">2.1.9</span> showChain</h3>
+<h3><span class="header-section-number">1.2.9</span> showChain</h3>
 <pre class="python"><code>showChain(chainName)</code></pre>
 <p>This method may be redundant. It prints the chain to the console using the python print method. It has the same effect as calling <code>mcmcObject.chains[&#39;chainName&#39;]</code>, except that the chain can’t be stored from the <code>showChain</code> method.</p>
 </div>
 <div id="tj_convergence_test" class="section level3">
-<h3><span class="header-section-number">2.1.10</span> TJ_Convergence_test</h3>
+<h3><span class="header-section-number">1.2.10</span> TJ_Convergence_test</h3>
 <pre class="python"><code>TJ_Convergence_test(self, chainName, eps=0.025, quantiles=[0.05, 0.95],
                     window_size=None, num_windows=5, slide=50,
                     window_space=0, bin_limit=0.6, print_final=False)</code></pre>
@@ -3011,10 +3003,10 @@ div.tocify {
 </ol>
 </div>
 <div id="supporting-functions-mcmcobject" class="section level3">
-<h3><span class="header-section-number">2.1.11</span> Supporting Functions (mcmcObject)</h3>
+<h3><span class="header-section-number">1.2.11</span> Supporting Functions (mcmcObject)</h3>
 <p>The following methods are not part of the mcmcObject class. Instead, they are supporting functions that are imported as part of <code>import MCMC</code>.</p>
 <div id="raftery" class="section level4">
-<h4><span class="header-section-number">2.1.11.1</span> _raftery</h4>
+<h4><span class="header-section-number">1.2.11.1</span> _raftery</h4>
 <pre class="python"><code>_raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001,
          thin=1, pr=False)</code></pre>
 <p>This function is made to be to used internally, but can be called using <code>MCMC._raftery()</code>. This computes the Raftery-Lewis diagnostic for a single chain, where <code>q</code> is the quantile of interest, <code>r</code> is the desired accuracy of the quantile of interest, and <code>s</code> is the probability. In other words, <code>s</code> is saying that if you were to take a sample of millions of quantiles from chains using the same methods, <span class="math inline">\(s\)</span>% of the quantiles would reflect the <span class="math inline">\(q^{th}\)</span> quantile of the target distribution to within <span class="math inline">\(\pm r\)</span>.</p>
@@ -3043,19 +3035,19 @@ div.tocify {
 <p>See <span class="citation">(Raftery and Lewis 1992)</span> or <span class="citation">(Raftery and Lewis 1995)</span> for more information.</p>
 </div>
 <div id="applymcmc" class="section level4">
-<h4><span class="header-section-number">2.1.11.2</span> applyMcmc</h4>
+<h4><span class="header-section-number">1.2.11.2</span> applyMcmc</h4>
 <pre class="python"><code>applyMcmc(st, ni, lp, algo, algoOpts=None, sd=0.02,
           max_tries=100, prev_vals=None, **args,)</code></pre>
 <p>Due to some randomness that causes errors when computing the square root of a matrix (using Cholesky decomposition in most cases), this method will run the MCMC algorithms until the computation succeeds. The default is to try 100 times, and jitter the starting values with random decimals every 5 iterations. For example, at every 5th iteration, <code>st</code> is jittered by <span class="math inline">\(RV\)</span> where <span class="math inline">\(RV ~ N(0, sd)\)</span>, therefore <span class="math inline">\(st := st + RV\)</span>.</p>
 </div>
 <div id="miness" class="section level4">
-<h4><span class="header-section-number">2.1.11.3</span> minESS</h4>
+<h4><span class="header-section-number">1.2.11.3</span> minESS</h4>
 <pre class="python"><code>minESS(p, alpha=0.05, eps=0.05, ess=None)</code></pre>
 <p>Calculates the minimum Effective Sample Size of an MCMC chain for the given parameters. <code>alpha</code> is the confidence level, <code>eps</code> is the tolerance level (ignored when <code>ess is not None</code>), and <code>ess</code> is the effective sample size. When <code>ess is not None</code>, the function returns the confidence level needed to obtain that ESS.</p>
 <p>see <a href="#mulitess">mulitESS</a> for more information.</p>
 </div>
 <div id="mulitess" class="section level4">
-<h4><span class="header-section-number">2.1.11.4</span> mulitESS</h4>
+<h4><span class="header-section-number">1.2.11.4</span> mulitESS</h4>
 <pre class="python"><code>multiESS(chain, covmat=None, g=None, **args)</code></pre>
 <p>This function computes the Effective Sample Size of an MCMC chain. Due to correlation between MCMC samples, it is sometimes unclear how much information about the parameters has been obtained. If all of the MCMC samples were independent, we would need less samples to get accurate information about the posterior than when the samples are correlated. ESS measures the amount of independent samples that have actually been obtained in the MCMC chain, and mESS is a special case for multivariate posteriors. In other words, this method is a way to test if your chain has gone far enough.</p>
 <p>This information can used in conjunction with <a href="#miness">minESS</a>, such that the chain has sampled enough when <span class="math inline">\(multiESS &gt;= minESS\)</span>.</p>
@@ -3063,7 +3055,7 @@ div.tocify {
 <p>See <span class="citation">(Vats, M. Flegal, and Jones 2015)</span>, <span class="citation">(Vats, Flegal, and Jones 2015)</span>, or <span class="citation">(Vats, Flegal, and Jones 2015)</span> for more technical information.</p>
 </div>
 <div id="samp_size_calc_raftery" class="section level4">
-<h4><span class="header-section-number">2.1.11.5</span> samp_size_calc_raftery</h4>
+<h4><span class="header-section-number">1.2.11.5</span> samp_size_calc_raftery</h4>
 <pre class="python"><code>samp_size_calc_raftery(q=0.025, r=0.005, s=0.95)</code></pre>
 <p>This function calculates <span class="math inline">\(N_{min}\)</span> (see <a href="#raftery">_raftery</a>).</p>
 </div>
@@ -3071,13 +3063,13 @@ div.tocify {
 </div>
 </div>
 <div id="functions" class="section level1">
-<h1><span class="header-section-number">3</span> Functions</h1>
+<h1><span class="header-section-number">2</span> Functions</h1>
 <p>This section contains functions that don’t serve a specific class or object. These functions are mostly organized by their module</p>
 <div id="adaptive-mcmc-functions" class="section level2">
-<h2><span class="header-section-number">3.1</span> Adaptive MCMC Functions</h2>
+<h2><span class="header-section-number">2.1</span> Adaptive MCMC Functions</h2>
 <p>In practice, it is rare that a person knows the covariance matrix to use in sampling from the proposal distribution. Therefore, adaptive methods have begun popular because the algorithms can “learn” the covariance matrix needed.</p>
 <div id="adaptivenmorbrent" class="section level3">
-<h3><span class="header-section-number">3.1.1</span> AdaptiveNMorBrent</h3>
+<h3><span class="header-section-number">2.1.1</span> AdaptiveNMorBrent</h3>
 <pre class="python"><code>AdaptiveNMorBrent(fun, start=None, opt=None, print_=True,
                   *args)</code></pre>
 <p>An adaptive Nelder-Mead method for finding the max/min of functions. This is good for high-dimensional optimization problems. This is similar to scipy.optimize.minimize (see <span class="citation">(Community, n.d.)</span>). The default behavior is minimization. For maximization, pass the negative of <code>fun</code>. In one dimension, it performs the Brent method (see <span class="citation">(Gao and Han 2012)</span> and <span class="citation">(Brent 1973)</span>).</p>
@@ -3117,7 +3109,7 @@ div.tocify {
 <p>Note that in the Brent method, <code>fun_tol</code> is not used, and in the NM method, <code>bounds</code> is not used.</p>
 </div>
 <div id="adaptive_mcmc" class="section level3">
-<h3><span class="header-section-number">3.1.2</span> adaptive_mcmc</h3>
+<h3><span class="header-section-number">2.1.2</span> adaptive_mcmc</h3>
 <pre class="python"><code>adaptive_mcmc(start, niter, lpost, options=None, **args)</code></pre>
 <p>This method is identical to a Random Walk Metropolis algorithm, except that it adapts the covariance matrix after each iteration based on the sample covariance of the entire chain up to the current iteration. The candidate values in the MCMC chain are then sampled from a mixed density distribution defined as follows:</p>
 <p><span class="math display">\[ Q_{n}(x, \cdot) = (1 - \beta)N(x, (2.38)^{2} \Sigma_{n}/d) + \beta N(x, (0.1)^{2} I_{d} / d)\]</span></p>
@@ -3166,12 +3158,12 @@ div.tocify {
 <p>See <span class="citation">(Bai and Rosenthal 2009)</span>, <span class="citation">(Haario and Saksman 1998)</span>, <span class="citation">(Haario, Saksman, and Tamminen 2001)</span>, or <span class="citation">(O. Roberts and Rosenthal 2009)</span> for more information.</p>
 </div>
 <div id="aiccalc" class="section level3">
-<h3><span class="header-section-number">3.1.3</span> aicCalc</h3>
+<h3><span class="header-section-number">2.1.3</span> aicCalc</h3>
 <pre class="python"><code>aicCalc(loglik, num_model_parms, sample_size)</code></pre>
 <p>Calculates the AIC, AICc, and BIC of a model given the log-likelihood, the number of parameters in the model, and the number of observations.</p>
 </div>
 <div id="brent_1droot" class="section level3">
-<h3><span class="header-section-number">3.1.4</span> Brent_1DRoot</h3>
+<h3><span class="header-section-number">2.1.4</span> Brent_1DRoot</h3>
 <pre class="python"><code>Brent_1DRoot(fun, opt=None, print_=True, *args)</code></pre>
 <p>Evaluates the roots of a function using Brent’s method (see <span class="citation">(Brent 1973)</span>). This function is meant to be used with the <a href="#signintervals">signIntervals</a> function.</p>
 <p>The options for this algorithm are passed as a dictionary and are defined as follows:</p>
@@ -3217,22 +3209,22 @@ for i in bds:
     Brent_1DRoot(func, opt={&#39;bounds&#39;: i})</code></pre>
 </div>
 <div id="cholupdate" class="section level3">
-<h3><span class="header-section-number">3.1.5</span> cholupdate</h3>
+<h3><span class="header-section-number">2.1.5</span> cholupdate</h3>
 <pre class="python"><code>cholupdate(L, x, update=True)</code></pre>
 <p>Performs a rank 1 update of a Cholesky decomposition. If <code>update=False</code>, then it performs a downdate. It’s mainly used in <a href="#adaptive_mcmc">adaptive_mcmc</a> to help generate the covariance matrix (see <a href="#adaptive_mcmc">adaptive_mcmc</a> for details). An update will add x to L while a downdate will subtract x from L.</p>
 </div>
 <div id="exactmle_exp" class="section level3">
-<h3><span class="header-section-number">3.1.6</span> ExactMLE_exp</h3>
+<h3><span class="header-section-number">2.1.6</span> ExactMLE_exp</h3>
 <pre class="python"><code>ExactMLE_exp(data, censored)</code></pre>
 <p>Calculates the exact solution to the maximum likelihood of the exponential distribution (see <a href="#appendix">Appendix</a> for more details). This function also allows for type I right-censored data. The <code>censored</code> variable is defined as whether the data was successfully observed or not. For example, if a failure occurred for a certain data point, then <code>censored=1</code>, otherwise if no failure was observed, <code>censored=0</code>. Therefore, <code>censored</code> is an array of 1s and 0s.</p>
 </div>
 <div id="initial_params" class="section level3">
-<h3><span class="header-section-number">3.1.7</span> initial_params</h3>
+<h3><span class="header-section-number">2.1.7</span> initial_params</h3>
 <pre class="python"><code>initial_params(dist, x, s=0)</code></pre>
 <p>Calculates plausible starting values for a given distribution to be used in MLE or MCMC. Uses a modified method of moments calculation. Currently supports log-normal (passed as lnorm), weibull, exponential, and gamma distributions.</p>
 </div>
 <div id="latinhypercube1d" class="section level3">
-<h3><span class="header-section-number">3.1.8</span> latinHypercube1D</h3>
+<h3><span class="header-section-number">2.1.8</span> latinHypercube1D</h3>
 <pre class="python"><code>latinHypercube1D(data, nSamp=5000, rand_seed=None,
                  pre_sorted=False, sort_col=0,
                  stratified=True, bin_placement=&quot;random&quot;)</code></pre>
@@ -3241,12 +3233,12 @@ for i in bds:
 <p>Setting <code>stratified=True</code> ensures that (in classification examples) the class balance remains the same in the sub-sample. Otherwise, you may be slightly under or over representated in one of the classes. In cases where there is not an even division of <span class="math inline">\(\frac{N_{Observations}}{N_{Samples}}\)</span>, <code>bin_placement=&quot;random&quot;</code> will distribute the bins randomly. For example, if I have 13 observations and desire 5 samples, then when <code>stratified=False</code>, <code>bin_location_and_size = [3, 3, 3, 2, 2]</code>. When <code>stratified=True</code> and <code>bin_placement=&quot;spaced&quot;</code>, <code>bin_location_and_size = [3, 2, 3, 2, 3]</code>. If <code>bin_placement=&quot;random&quot;</code>, then the location of the bins is chosen at random.</p>
 </div>
 <div id="load_sql_data" class="section level3">
-<h3><span class="header-section-number">3.1.9</span> load_sql_data</h3>
+<h3><span class="header-section-number">2.1.9</span> load_sql_data</h3>
 <pre class="python"><code>load_sql_data(sql, db, serv, dr=&quot;SQL Server Native Client 11.0&quot;, tc=&quot;Yes&quot;)</code></pre>
 <p>This function uses <code>pyodbc</code> to connect to a sql server database. It generates the connection string, queries the database, and returns the result of the query.</p>
 </div>
 <div id="max_like" class="section level3">
-<h3><span class="header-section-number">3.1.10</span> max_like</h3>
+<h3><span class="header-section-number">2.1.10</span> max_like</h3>
 <pre class="python"><code>max_like(start, lf, opt=None, pr=True, *args)</code></pre>
 <p><code>max_like</code> evaluates the maximum likelihood of a numeric function. It also computes the standard errors from the observed fisher information criteria. It uses <a href="#adaptivenmorbrent">AdaptiveNMorBrent</a> as the optimization function. It returns the MLE of the parameters, the standard error for each parameter, and a matrix representing the confidence intervals of the parameters (The author can’t remember if the rows or the columns separate the parameters…).</p>
 <p>The options for this algorithm are passed as a dictionary and are defined as follows:</p>
@@ -3273,7 +3265,7 @@ for i in bds:
 </table>
 </div>
 <div id="parallel_process" class="section level3">
-<h3><span class="header-section-number">3.1.11</span> parallel_process</h3>
+<h3><span class="header-section-number">2.1.11</span> parallel_process</h3>
 <pre class="python"><code>parallel_process(array, function, n_jobs=16,
                  use_kwargs=False, front_num=1)</code></pre>
 <p>This function allows you to see a progress bar when running parallel processes. <code>array</code> is a list of function arguments, <code>function</code> is the function you want parallelize over, <code>n_jobs</code> is how many processes you want to generate, <code>use_kwargs</code> is a toggle between one or many function arguments, and <code>front_num</code> evaluates the function n times to check for errors before forcing it into parallel. <code>use_kwargs</code> needs to be true if you are passing more than one argument, otherwise <code>array</code> can be a simple list of the single function parameter. To use this function, the user must setup the arguments into a list of dictionaries where the dictionary key values are the function arguments. Use like so:</p>
@@ -3285,7 +3277,7 @@ failDF = parallel_process(arr, compute_all, n_jobs=num_cores,
                           use_kwargs=True, front_num=1)</code></pre>
 </div>
 <div id="pretty_print_time" class="section level3">
-<h3><span class="header-section-number">3.1.12</span> pretty_print_time</h3>
+<h3><span class="header-section-number">2.1.12</span> pretty_print_time</h3>
 <pre class="python"><code>pretty_print_time(ts, te=None)</code></pre>
 <p>This function creates a pretty output of an arbitrary time (in seconds). Observe:</p>
 <pre class="python"><code>from tsdst.utils import pretty_print_time
@@ -3297,7 +3289,7 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 <pre><code>00:03:09</code></pre>
 </div>
 <div id="rwm" class="section level3">
-<h3><span class="header-section-number">3.1.13</span> rwm</h3>
+<h3><span class="header-section-number">2.1.13</span> rwm</h3>
 <pre class="python"><code>rwm(start, niter, lpost, options=None, **args)</code></pre>
 <p>This is a basic random walk metropolis algorithm. It requires a covariance matrix to work properly, but if not supplied, it will use <span class="math inline">\(\frac{2.38^{2}}{n}\Sigma_{I_n}\)</span> where <span class="math inline">\(n\)</span> is the number of parameters and <span class="math inline">\(\Sigma\)</span> is the <span class="math inline">\(n \times n\)</span> identity matrix. The options for this algorithm are passed as a dictionary and are defined as follows:</p>
 <table>
@@ -3328,7 +3320,7 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 </table>
 </div>
 <div id="rwm_with_lap" class="section level3">
-<h3><span class="header-section-number">3.1.14</span> rwm_with_lap</h3>
+<h3><span class="header-section-number">2.1.14</span> rwm_with_lap</h3>
 <pre class="python"><code>rwm_with_lap(start, niter, lpost, options=None, **args)</code></pre>
 <p>This is a random walk metropolis algorithm with a log-adaptive proposal distribution. It functions similar to <a href="#adaptive_mcmc">adaptive_mcmc</a>, except that it updates the covariance matrix every <span class="math inline">\(k\)</span> samples.</p>
 <p>The options for this algorithm are passed as a dictionary and are defined as follows:</p>
@@ -3370,23 +3362,23 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 </table>
 </div>
 <div id="signintervals" class="section level3">
-<h3><span class="header-section-number">3.1.15</span> signIntervals</h3>
+<h3><span class="header-section-number">2.1.15</span> signIntervals</h3>
 <pre class="python"><code>signIntervals(fun, lower=-50, upper=50, step=0.01, *args)</code></pre>
 <p>This returns a list of tuples, where each tuple is a range of values that have the same sign. This helps <a href="#brent_1droot">Brent_1DRoot</a> find the points where <span class="math inline">\(f(x) = 0\)</span></p>
 </div>
 <div id="sumfunc" class="section level3">
-<h3><span class="header-section-number">3.1.16</span> sumfunc</h3>
+<h3><span class="header-section-number">2.1.16</span> sumfunc</h3>
 <pre class="python"><code>sumfunc(x, quant=(5, 50, 90))</code></pre>
 <p>This function creates a quantile summary of an array, <code>x</code>. It also includes the mean and median in the output.</p>
 </div>
 </div>
 <div id="distribution-functions" class="section level2">
-<h2><span class="header-section-number">3.2</span> Distribution Functions</h2>
+<h2><span class="header-section-number">2.2</span> Distribution Functions</h2>
 <p>This section contains statistical functions for various distributions for a wide range of purposes.</p>
 <div id="likelihood-functions" class="section level3">
-<h3><span class="header-section-number">3.2.1</span> likelihood functions</h3>
+<h3><span class="header-section-number">2.2.1</span> likelihood functions</h3>
 <div id="dwrap" class="section level4">
-<h4><span class="header-section-number">3.2.1.1</span> dwrap</h4>
+<h4><span class="header-section-number">2.2.1.1</span> dwrap</h4>
 <pre class="python"><code>dwrap(data, params, disttype, funct, log=False)</code></pre>
 <p>dwrap is intended to function much like the R distribution functions, and is mostly a wrapper for different SciPy functions. <code>data</code> represents the random variable going into the distribution. <code>params</code> is an array of parameter values for the distribution, (generally in the order of (shape, scale) or (mu, sigma)). <code>disttype</code> lets you pick between ‘pdf’ for the probability density function, ‘cdf’ for the cumulative density function, or ‘sf’ for the survival function. Weibull is the exception and also includes ‘inv-cdf’ for the inverse cdf, ‘left-truncated-cdf’, and ‘left-truncated-inv-cdf’. Distributions included are:</p>
 <ul>
@@ -3398,42 +3390,42 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 </ul>
 </div>
 <div id="qnorm_aprox" class="section level4">
-<h4><span class="header-section-number">3.2.1.2</span> qnorm_aprox</h4>
+<h4><span class="header-section-number">2.2.1.2</span> qnorm_aprox</h4>
 <pre class="python"><code>qnorm_aprox(q, mu=0, sigma=1, lt=True)</code></pre>
 <p>This is a fast approximation of the normal quantile function, or inverse cdf. Accurate to 2 or 3 digits. For exact solutions, use <a href="#dwrap">dwrap</a> or SciPy.</p>
 </div>
 <div id="pnorm_aprox" class="section level4">
-<h4><span class="header-section-number">3.2.1.3</span> pnorm_aprox</h4>
+<h4><span class="header-section-number">2.2.1.3</span> pnorm_aprox</h4>
 <pre class="python"><code>pnorm_aprox(q, mu=0, sigma=1, lt=True, log=False)</code></pre>
 <p>This is a fast approximation of the normal cdf, accurate to 1.5e-7. For exact solutions, use <a href="#dwrap">dwrap</a> or SciPy</p>
 </div>
 <div id="dpoibin_pa" class="section level4">
-<h4><span class="header-section-number">3.2.1.4</span> dpoibin_PA</h4>
+<h4><span class="header-section-number">2.2.1.4</span> dpoibin_PA</h4>
 <pre class="python"><code>dpoibin_PA(probs, count)</code></pre>
 <p>Poisson approximation of Poisson-Binomial. Fast, but inaccurate.</p>
 </div>
 <div id="dpoibin_ft" class="section level4">
-<h4><span class="header-section-number">3.2.1.5</span> dpoibin_FT</h4>
+<h4><span class="header-section-number">2.2.1.5</span> dpoibin_FT</h4>
 <pre class="python"><code>dpoibin_FT(k, p)</code></pre>
 <p>This is also an exact solution, written by the author, which uses the Fourier transform. It is slower than <a href="#dpoibin_exact">dpoibin_exact</a>, and only computes the pdf</p>
 </div>
 <div id="dpoibin_exact" class="section level4">
-<h4><span class="header-section-number">3.2.1.6</span> dpoibin_exact</h4>
+<h4><span class="header-section-number">2.2.1.6</span> dpoibin_exact</h4>
 <pre class="python"><code>dpoibin_exact(k, p, cdf=False)</code></pre>
 <p>This function is adapted from Mark Lodato of StackExchange, Nov 7’16. It’s fast, but runs slower than 1 second once p &gt; 25000. Computes both the pdf and the cdf. See <span class="citation">(Hong 2013)</span> or <span class="citation">(Lodato 2016)</span> for more information.</p>
 </div>
 <div id="ppoibin_rna" class="section level4">
-<h4><span class="header-section-number">3.2.1.7</span> ppoibin_RNA</h4>
+<h4><span class="header-section-number">2.2.1.7</span> ppoibin_RNA</h4>
 <pre class="python"><code>ppoibin_RNA(k, p, p_weight=None)</code></pre>
 <p>Refined normal approximation of Poisson-Binomial. This code is adapted from the R package ‘poibin’. Very fast for p &gt; 10000.</p>
 </div>
 <div id="nhpp_neg_loglike" class="section level4">
-<h4><span class="header-section-number">3.2.1.8</span> NHPP_neg_loglike</h4>
+<h4><span class="header-section-number">2.2.1.8</span> NHPP_neg_loglike</h4>
 <pre class="python"><code>NHPP_neg_loglike(lparm, tints, tbar, obs)</code></pre>
 <p>The negative log-likelihood of the Non-homogenous Poisson Process. See Joel Linford for more details.</p>
 </div>
 <div id="lf_select" class="section level4">
-<h4><span class="header-section-number">3.2.1.9</span> lf_select</h4>
+<h4><span class="header-section-number">2.2.1.9</span> lf_select</h4>
 <pre class="python"><code>lf_select(dist)</code></pre>
 <p>This selects a negative log-likelihood function if supplied a distribution. Possible distributions are:</p>
 <ul>
@@ -3445,38 +3437,38 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 </div>
 </div>
 <div id="posterior-functions" class="section level3">
-<h3><span class="header-section-number">3.2.2</span> Posterior Functions</h3>
+<h3><span class="header-section-number">2.2.2</span> Posterior Functions</h3>
 <div id="exp_lpost" class="section level4">
-<h4><span class="header-section-number">3.2.2.1</span> exp_lpost</h4>
+<h4><span class="header-section-number">2.2.2.1</span> exp_lpost</h4>
 <pre class="python"><code>exp_lpost(param, fails, cens)</code></pre>
 <p>A function to compute the log-posterior of a censored exponential distribution. <code>param</code> is a 1-D array containing the rate. <code>fails</code> is an array of the known failure times and <code>cens</code> is an array of the censored failure times.</p>
 <p>This posterior assumes an uninformative gamma prior distribution on the rate.</p>
 </div>
 <div id="nhpp_lpost_math" class="section level4">
-<h4><span class="header-section-number">3.2.2.2</span> NHPP_lpost_math</h4>
+<h4><span class="header-section-number">2.2.2.2</span> NHPP_lpost_math</h4>
 <pre class="python"><code>NHPP_lpost_Math(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False)</code></pre>
 <p>A posterior distribution of the Non-homogenous Poisson Process. See Joel Linford for more details.</p>
 </div>
 <div id="pois_lpost" class="section level4">
-<h4><span class="header-section-number">3.2.2.3</span> pois_lpost</h4>
+<h4><span class="header-section-number">2.2.2.3</span> pois_lpost</h4>
 <pre class="python"><code>exp_lpost(param, count)</code></pre>
 <p>A function to compute the log-posterior of a Poisson distribution. <code>param</code> is a 1-D array containing the rate. <code>count</code> is an array of the counts for each period.</p>
 <p>This posterior assumes an uninformative uniform prior distribution on the rate.</p>
 </div>
 <div id="weibull_lpost" class="section level4">
-<h4><span class="header-section-number">3.2.2.4</span> weibull_lpost</h4>
+<h4><span class="header-section-number">2.2.2.4</span> weibull_lpost</h4>
 <pre class="python"><code>weibull_lpost(param, time, status, neg=False)</code></pre>
 <p>A function to compute the log-posterior of a censored weibull distribution. <code>param</code> is an array containing shape and scale, respectively. <code>time</code> represents a random variable, which in most reliability cases will be a time to failure. <code>status</code> is an array of 1s and 0s where 1 is a success and 0 is censored. <code>neg</code> is a toggle to return either the negative log-posterior or not.</p>
 <p>This posterior assumes an uninformative gamma prior distribution on the scale and an uninformative uniform prior on the shape.</p>
 </div>
 <div id="weibull_lpost_optim" class="section level4">
-<h4><span class="header-section-number">3.2.2.5</span> weibull_lpost_optim</h4>
+<h4><span class="header-section-number">2.2.2.5</span> weibull_lpost_optim</h4>
 <pre class="python"><code>weibull_lpost_optim(param, fails, cens)</code></pre>
 <p>This function is identical to <a href="#weibull_lpost">weibull_lpost</a>, with the exception that it has been hyper-optimized to help produce faster MCMC runs. Also note that it takes an array of the known failure times and an array of the censored failure times, instead of an array of all times and all censored statuses.</p>
 </div>
 </div>
 <div id="mahalanobis" class="section level3">
-<h3><span class="header-section-number">3.2.3</span> mahalanobis</h3>
+<h3><span class="header-section-number">2.2.3</span> mahalanobis</h3>
 <pre class="python"><code>mahalanobis(data, produce=None)</code></pre>
 <p>Calculates the Mahalanobis distance of a dataframe/matrix. If <code>produce=&quot;squared&quot;</code>, it returns the squared Mahalanobis distance. If <code>produce=&quot;leverage&quot;</code>, it returns the leverage statistic.</p>
 <p>The Mahalanobis distance is the distance of a test point from the center of mass divided by the width of the ellipsoid in the direction of the test point. In other words, it is a multidimensional generalization of the Z-score statistic, and represents how many “standard deviations” the test point is from the center (or dimensional means, i.e. for columns <span class="math inline">\(i = 1,2,...,m\)</span>, <span class="math inline">\(\pmb\mu_{center} = (\mu_1, \mu_2, ..., \mu_m)\)</span>. Mahalanobis distance is related to Euclidean distance, but it better suited for non-standard shapes (i.e. non-normal, non-linear, etc.). This is because Mahalanobis distance accounts for the fact that a set of points may be more variable in one dimension and less variable in another. This means that an extreme value may not be detected using a Euclidean distance measure because the spread of the data is not equal amoung dimensions (<span class="math inline">\(var(X_1) \ne var(X_2)\)</span>). Mahalanobis distance uses the covariance matrix in its calculation to acocunt for this, where the covariance matrix contains information about the spread of each variable (i.e. the variance on the diagonals) and about directional similarity between variables, or the tendency for two variables to move in the same direction (i.e. the covariance on the off diagonals). If the covaraince matrix is equal to the identity matrix (and the covariance matrix is substituted and simplified in the equation), then Mahalanobis distance simplifies to the Euclidean distance. If the covariance matrix is diagonal, then the Mahalanobis distance simplifies to a standardized version of the Euclidean distance.</p>
@@ -3500,28 +3492,28 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 <p>where the diagonal of <span class="math inline">\(\textbf{H}\)</span> (<span class="math inline">\([\textbf{H}]_{ii} = H_i\)</span>) is the leverage statistic. Note the similarities to the least squares solution in linear regression. Also note that centering <span class="math inline">\(X\)</span> is only required since the <span class="math inline">\(X\)</span> in <span class="math display">\[\textbf{H} = X (X^{T} X)^{-1}X^T\]</span> typically contains an intercept column (the corresponding <span class="math inline">\(\beta_0\)</span> column of ones added to <span class="math inline">\(X\)</span> in the regression equation). If this column of ones is missing, then centering is required before calculating leverage from <span class="math inline">\(X\)</span> using the diagonal of <span class="math inline">\(X (X^{T} X)^{-1}X^T\)</span>. Otherwise, the two methods for calculating leverage are equivalent. <span class="math inline">\(\textbf{H}\)</span> is sometimes called the hat matrix because it is typically displayed with a hat such that <span class="math inline">\(\hat{y} = \hat{H}y\)</span>, where <span class="math inline">\(\hat{y}\)</span> represents the predicted values in linear regression. <span class="math inline">\(\textbf{H}\)</span> is also called the projection matrix. See <a href="#appendix">appendix</a> for more details.</p>
 </div>
 <div id="scaling" class="section level3">
-<h3><span class="header-section-number">3.2.4</span> scaling</h3>
+<h3><span class="header-section-number">2.2.4</span> scaling</h3>
 <pre class="python"><code>scaling(x, a=0, b=1, percentile=(0, 100),
         center=None, scale=None, ddof=0)</code></pre>
 <p>A scaling function to scale a single column or vector of data. It can perform min-max scaling and robust scaling of various forms. The values <code>a, b</code> convert the resulting array to the scale given by <code>a</code> and <code>b</code>. For example, in <a href="#min-max-scaling">Min-Max Scaling</a>, the range of scaled values is between 0 and 1, but can easily be adjusted to any other minimum and maximum value by setting <code>a, b</code>. <code>percentile</code> controls the amount <code>x</code> is scaled by when <code>scale=None</code> by obtaining an upper and lower value in the range of x. <code>ddof</code> is used when scale is provided either <code>np.var</code> or <code>np.std</code>. A general form of the function is provided below:</p>
 <p><span class="math display">\[x := \frac{(b - a)(x - center)}{scale} + a\]</span></p>
 <p>In this function, the default value for <code>scale</code> is <span class="math inline">\(UQ - LQ\)</span>, where <span class="math inline">\(UQ, LQ\)</span> represent the upper and lower quartiles of x (defined by <code>percentile</code>), and the default values are 0 and 100% (or the min and max). The default value for <code>center</code> is the lower quartile. To have the function skip either centering or scaling for any configuration, set <code>center=0</code> or <code>scale=1</code>.</p>
 <div id="max-absolute-value" class="section level4">
-<h4><span class="header-section-number">3.2.4.1</span> Max Absolute Value</h4>
+<h4><span class="header-section-number">2.2.4.1</span> Max Absolute Value</h4>
 <p>Calculation:</p>
 <p><span class="math display">\[x := \frac{x}{\max{|x|}}\]</span></p>
 <p>Function Inputs:</p>
 <pre class="python"><code>scaling(X, center=0, scale=&quot;maxAbs&quot;)</code></pre>
 </div>
 <div id="min-max-scaling" class="section level4">
-<h4><span class="header-section-number">3.2.4.2</span> Min-Max Scaling</h4>
+<h4><span class="header-section-number">2.2.4.2</span> Min-Max Scaling</h4>
 <p>Calculation:</p>
 <p><span class="math display">\[x := \frac{x - \min{x}}{\max{x} - \min{x}}\]</span></p>
 <p>Function Inputs:</p>
 <pre class="python"><code>scaling(X)</code></pre>
 </div>
 <div id="robust-scaler" class="section level4">
-<h4><span class="header-section-number">3.2.4.3</span> Robust Scaler</h4>
+<h4><span class="header-section-number">2.2.4.3</span> Robust Scaler</h4>
 <p>This scaler can be used with any percentile range (that is equivalent distance from the center on both sides), but the most common is to use the IQR ranges (i.e. median for centering, and 25/75% for the scaling).</p>
 <p>Calculation:</p>
 <p><span class="math inline">\(m_x\)</span>: measure of center (such as the median) <span class="math inline">\(UQ, LQ\)</span>: upper and lower quartile</p>
@@ -3530,7 +3522,7 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 <pre class="python"><code>scaling(X, center=&quot;median&quot;, percentile=(25, 75))</code></pre>
 </div>
 <div id="standard-scaler" class="section level4">
-<h4><span class="header-section-number">3.2.4.4</span> Standard Scaler</h4>
+<h4><span class="header-section-number">2.2.4.4</span> Standard Scaler</h4>
 <p>Calculation:</p>
 <p><span class="math display">\[x := \frac{x - \mu_{x}}{\sigma_x}\]</span></p>
 <p>Function Inputs:</p>
@@ -3538,16 +3530,16 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 </div>
 </div>
 <div id="t_xlogy" class="section level3">
-<h3><span class="header-section-number">3.2.5</span> t_xlogy</h3>
+<h3><span class="header-section-number">2.2.5</span> t_xlogy</h3>
 <pre class="python"><code>t_xlogy(x, y, do_log=True)</code></pre>
 <p>This function multiplies <code>x</code> by <code>y</code>. The reason this function is useful is that x*log(y) when x is zero sometimes resolves to a <code>NaN</code> when it should be zero. <code>x</code> and <code>y</code> should be arrays, but it may also work with matrices (not tested).</p>
 </div>
 </div>
 </div>
 <div id="appendix" class="section level1">
-<h1><span class="header-section-number">4</span> Appendix</h1>
+<h1><span class="header-section-number">3</span> Appendix</h1>
 <div id="reliability-basics" class="section level2">
-<h2><span class="header-section-number">4.1</span> Reliability Basics</h2>
+<h2><span class="header-section-number">3.1</span> Reliability Basics</h2>
 <p>Reliability: Probability of components, parts, or systems to perform their required functions for a desired period of time</p>
 <ul>
 <li>In the general sense, Reliability does not account for repairs
@@ -3573,16 +3565,16 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 </ul>
 </div>
 <div id="hazard-function" class="section level2">
-<h2><span class="header-section-number">4.2</span> Hazard Function</h2>
+<h2><span class="header-section-number">3.2</span> Hazard Function</h2>
 <p>The hazard function is defined as the instantaneous failure rate, which is the propensity for the item to fail in the next shortest instant of time.</p>
 <p><span class="math display">\[ \lim_{\Delta t \rightarrow 0}{\frac{F(t + \Delta t) - F(t)}{\Delta t}}\frac{1}{R(t)} = \frac{f(t)}{R(t)}\]</span></p>
 </div>
 <div id="mean-residual-life" class="section level2">
-<h2><span class="header-section-number">4.3</span> Mean Residual Life</h2>
+<h2><span class="header-section-number">3.3</span> Mean Residual Life</h2>
 <p>The expected TTF of a device that has survived to time t</p>
 <p><span class="math display">\[M(t) = \frac{1}{R(t)} \int_{t}^{\infty}sf(t + s)ds\]</span></p>
 <div id="censoring" class="section level3">
-<h3><span class="header-section-number">4.3.1</span> Censoring</h3>
+<h3><span class="header-section-number">3.3.1</span> Censoring</h3>
 <p>Let <span class="math inline">\(t_a\)</span> be uncensored, and let <span class="math inline">\(t_b\)</span> be censored. Then:</p>
 <p><span class="math display">\[L(\theta | t) = \prod f(t | \theta)\]</span></p>
 <p>Uncensored: <span class="math inline">\(L(\theta | t) = \prod f(t_a | \theta) \prod f(t_b | \theta) = \prod f(t | \theta)\)</span></p>
@@ -3592,9 +3584,9 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 </div>
 </div>
 <div id="derivations" class="section level2">
-<h2><span class="header-section-number">4.4</span> Derivations</h2>
+<h2><span class="header-section-number">3.4</span> Derivations</h2>
 <div id="some-notes-on-linear-regression" class="section level3">
-<h3><span class="header-section-number">4.4.1</span> Some Notes on Linear Regression</h3>
+<h3><span class="header-section-number">3.4.1</span> Some Notes on Linear Regression</h3>
 <p>In linear algebra, there is a common equation at the center of most problems, which is <span class="math inline">\(Ax = b\)</span>. For more common use with statistis, we will rewrite this as <span class="math inline">\(X\beta = y\)</span>. If <span class="math inline">\(X\)</span> and <span class="math inline">\(\beta\)</span> are known, the two matrices can be multiplied together to get an exact solution of <span class="math inline">\(y\)</span>. If <span class="math inline">\(X\)</span> and <span class="math inline">\(y\)</span> are known (and <span class="math inline">\(y\)</span> is a linear combination of <span class="math inline">\(X\beta\)</span>), <span class="math inline">\(\beta\)</span> can be solved using row reduction. Sometimes this results in an exact solution (i.e. zero residual error), however, in practice, the system will either be inconsistent (the usual, since there are usually more observations than features) or have infinite solutions (happens when there’s more features than observations). In the latter scenerio, linear regression is usually avoided since this causes some weights to be free variables (any set of values could produce the same answer). If the system is inconsistent (which when we gather data, we typically assume from the beginning), then a “least squares” solution for <span class="math inline">\(\beta\)</span> can be obtained by rearranging the equation and solving for <span class="math inline">\(\beta\)</span></p>
 <p><span class="math display">\[X\beta = y\]</span> <span class="math display">\[X^T X \beta = X^T y\]</span> <span class="math display">\[(X^T X)^{-1} X^T X \beta = (X^T X)^{-1} X^T y\]</span> <span class="math display">\[\beta = (X^T X)^{-1} X^T y\]</span></p>
 <p>Note that <span class="math inline">\((X^T X)^{-1} X^T\)</span> is the pseudo-inverse of <span class="math inline">\(X\)</span> (<span class="math inline">\((X^T X)^{-1} X^{T}\)</span> ~ <span class="math inline">\(\frac{X^T}{X^T X}\)</span> ~ <span class="math inline">\(\frac{X}{X^2}\)</span> ~ <span class="math inline">\(\frac{1}{X}\)</span>). If the matrix <span class="math inline">\(X\)</span> was square, a solution of the form <span class="math inline">\(\beta = X^{-1}y\)</span> might be possible (i.e. if <span class="math inline">\(X\)</span> was invertible), but this is rarely the case in practise (hence, the pseudo-inverse). Since in practice we know that we probably won’t find a <span class="math inline">\(\beta\)</span> such that <span class="math inline">\(X\beta = y\)</span>, we can still find <span class="math inline">\(\beta \approx (X^T X)^{-1} X^T y\)</span> since we know <span class="math inline">\(X\)</span> and <span class="math inline">\(y\)</span>. When we solve it this way, it’s just matrix multiplication (instead of row reduction), but it’s not guarenteeing the theoretical solution we were hoping for in <span class="math inline">\(X\beta = y\)</span>, i.e. we still don’t know if the system is inconsistent or exactly one solution exists. Knowing that the <span class="math inline">\(\beta\)</span> calculated from <span class="math inline">\((X^T X)^{-1} X^T y\)</span> is approximate, we can better rewrite the equation as <span class="math inline">\(\hat{\beta} = (X^T X)^{-1} X^T y\)</span>. Once we calculate <span class="math inline">\(\hat{\beta}\)</span>, we can also calculate some approximate <span class="math inline">\(y\)</span>s to match the approximate <span class="math inline">\(\beta\)</span>s, as <span class="math inline">\(\hat{y} = X\hat{\beta}\)</span>. <span class="math inline">\(\epsilon = y - \hat{y}\)</span> can then be used to represent the error or difference of the estimated solution <span class="math inline">\(X\hat{\beta} = \hat{y}\)</span> and the observed solution <span class="math inline">\(X\hat{\beta} + \epsilon = y\)</span>. Note also how we derive the leverage statistic from here:</p>
@@ -3602,7 +3594,7 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 <p>For a more detailed explanation of Linear Algebra, see <span class="citation">(D. C. Lay, n.d.)</span>.</p>
 </div>
 <div id="truncated-distributions" class="section level3">
-<h3><span class="header-section-number">4.4.2</span> Truncated Distributions</h3>
+<h3><span class="header-section-number">3.4.2</span> Truncated Distributions</h3>
 <p>With respect to reliability,</p>
 <p>Let A: Experiencing a failure between <span class="math inline">\(t_1\)</span> and <span class="math inline">\(t_n\)</span>, where n is the future time of failure</p>
 <p>Let B: Lived to time <span class="math inline">\(t_0\)</span></p>
@@ -3617,7 +3609,7 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 <p>CDF: <span class="math inline">\(\frac{\int^{x}_{a}{g(t)dt}}{F(b)-F(a)} = \frac{F(x) - F(a)}{F(b) - F(a)}\)</span></p>
 </div>
 <div id="mle-derivation" class="section level3">
-<h3><span class="header-section-number">4.4.3</span> MLE derivation</h3>
+<h3><span class="header-section-number">3.4.3</span> MLE derivation</h3>
 <p>Derivation of the MLE of a right censored exponential distribution:</p>
 <p>Let:</p>
 <ul>
@@ -3639,7 +3631,7 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 </div>
 </div>
 <div id="nhpp-functions" class="section level2">
-<h2><span class="header-section-number">4.5</span> NHPP Functions</h2>
+<h2><span class="header-section-number">3.5</span> NHPP Functions</h2>
 <p>Power Law Intensity function: <span class="math inline">\(\lambda(t) = \frac{\phi}{\eta} \Big(\frac{t}{\eta} \Big)^{\phi - 1}\)</span></p>
 <p>Mean number of failures up to time <span class="math inline">\(t\)</span>: <span class="math inline">\(\Lambda (t) = \int_{-\infty}^{t} \lambda(t) dt = \Big( \frac{t}{\eta} \Big) ^{\phi}\)</span></p>
 <p>Likelihood (PLP):</p>
@@ -3653,11 +3645,11 @@ print(pretty_print_time(ts=when_i_started, te=when_i_stopped))</code></pre>
 <p>See <span class="citation">(M. S. Hamada 2008)</span> for more information.</p>
 </div>
 <div id="general-stats-information" class="section level2">
-<h2><span class="header-section-number">4.6</span> General Stats Information</h2>
+<h2><span class="header-section-number">3.6</span> General Stats Information</h2>
 <div id="classification" class="section level3">
-<h3><span class="header-section-number">4.6.1</span> Classification</h3>
+<h3><span class="header-section-number">3.6.1</span> Classification</h3>
 <div id="confusion-matrices" class="section level4">
-<h4><span class="header-section-number">4.6.1.1</span> Confusion Matrices</h4>
+<h4><span class="header-section-number">3.6.1.1</span> Confusion Matrices</h4>
 <p>A typical confusion matrix is as follows:</p>
 <table>
 <colgroup>
