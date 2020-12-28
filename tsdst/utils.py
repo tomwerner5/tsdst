@@ -13,92 +13,150 @@ from sqlalchemy import create_engine
 from timeit import default_timer as dt
 
 
-def pde_getTable(sql, user, pw=None, convert_unicode=False, pool_recyle=10,
-                 pool_size=20, echo=False, dsn=None):
-                 #max_identifier_length=128):
-    if dsn is None:
-	# The default is oracle, since that's what I was using at the time
-        dsn = """
-                (DESCRIPTION =
-                    (ADDRESS =
-                        (PROTOCOL = TCP)
-                    (HOST = 10.10.10.10)
-                    (PORT = 1234)
-                )
-                (CONNECT_DATA =
-                    (SERVICE_NAME = someschema)
-                ))
-            """
+def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args={},
+                 read_sql_args={}):
+    '''
+    Load data into python from a sql database. 
     
+    Requires a DSN or connection string. Uses sqlAlchemy to make the
+    connection, and closes the connection on completion.
+    See https://docs.sqlalchemy.org/en/13/core/engines.html for
+    help building connection strings.
+
+    Parameters
+    ----------
+    sql : str, or list
+        A string containing the sql statement to be ran (It should be something
+        that returns a table), or a list of sql statements to return multiple
+        tables (tables are returned as a list of pandas dataframes, in this
+        case).
+    user : str
+        The username for the database application, if applicable.
+    dialect : str
+        The database flavor (oracle, mysql, etc.)
+    dsn : str, optional
+        Can either be a saved DSN from your computer, or a string that
+        represents all the relevant information provided in a DSN. 
+        It can also be a host:port combination. See sqlalchemy
+        documentation for more details.
+    pw : str, optional
+        The password for the database application that matches the user
+        specified, if applicable. If None or '', getpass will ask for a
+        password. If there is no password, just leave it blank.
+        The default is None.
+    create_engine_args : dict
+        A dictionary containing arguments to be passed to sqlAlchemy's
+        create_engine function.
+    read_sql_args : dict
+        A dictionary containing arguments to be passed to pandas'
+        read_sql function.
+
+    Returns
+    -------
+    data : pandas dataframe or list
+        A dataframe (or list of dataframes) containing the returned data.
+
+    '''
     if pw is None or pw == '':
         pw = getpass(prompt='Password: ')
     
-    conn = 'oracle://{user}:{password}@{dsn}'.format(
+    # TODO: include better support for sqlite, since it has a weird
+    # OS-dependent connection string.
+    conn = '{dialect}://{user}:{password}@{dsn}'.format(
+        dialect=dialect,
         user=user,
         password=pw,
         dsn=dsn
     )
 
-    engine = create_engine(conn, convert_unicode=convert_unicode,
-                           pool_recycle=pool_recyle,
-                           pool_size=pool_size, echo=echo)
-                           #,max_identifier_length=max_identifier_length)
+    engine = create_engine(conn, **create_engine_args)
+
     data = None
     if isinstance(sql, str):
-        data = pd.read_sql(sql, engine)
+        data = pd.read_sql(sql=sql, con=engine, **read_sql_args)
     else:
         data = []
         for query in sql:
-            data.append(pd.read_sql(query, engine))
+            data.append(pd.read_sql(sql=query, con=engine, **read_sql_args))
     engine.dispose()
     
     return data
 
 
-def pde_saveTable(data, tableName, user, pw=None, schema=None, dsn=None,
-                  if_exists='fail', write_index_as_col=True,
-                  index_label=None, chunksize=None, dtype=None,
-                  method=None, convert_unicode=False, pool_recyle=10,
-                  pool_size=20, echo=False):
-                  #max_identifier_length=128):
-    if dsn is None:
-	# The default is oracle, since that's what I was using at the time
-        dsn = """
-                (DESCRIPTION =
-                    (ADDRESS =
-                        (PROTOCOL = TCP)
-                    (HOST = 10.10.10.10)
-                    (PORT = 1234)
-                )
-                (CONNECT_DATA =
-                    (SERVICE_NAME = someschema)
-                ))
-            """
-    
+def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None,
+                  create_engine_args={}, to_sql_args={}):
+    '''
+    Save pandas dataframe to database.
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        The data to save to a table.
+    tableName : str
+        The name of the table in the database.
+    user : str
+        The username for the database application, if applicable.
+    dialect : str
+        The database flavor (oracle, mysql, etc.)
+    dsn : str, optional
+        Can either be a saved DSN from your computer, or a string that
+        represents all the relevant information provided in a DSN. 
+        It can also be a host:port combination. See sqlalchemy
+        documentation for more details.
+    pw : str, optional
+        The password for the database application that matches the user
+        specified, if applicable. If None or '', getpass will ask for a
+        password. If there is no password, just leave it blank.
+        The default is None.
+    create_engine_args : dict
+        A dictionary containing arguments to be passed to sqlAlchemy's
+        create_engine function. Default is {}
+    to_sql_args : dict
+        A dictionary containing arguments to be passed to pandas'
+        read_sql function. Default is {}
+
+    Returns
+    -------
+    None.
+
+    '''    
     if pw is None or pw == '':
         pw = getpass(prompt='Password: ')
     
-    conn = 'oracle://{user}:{password}@{dsn}'.format(
+    # TODO: include better support for sqlite, since it has a weird
+    # OS-dependent connection string.
+    conn = '{dialect}://{user}:{password}@{dsn}'.format(
+        dialect=dialect,
         user=user,
         password=pw,
         dsn=dsn
     )
 
-    engine = create_engine(conn, convert_unicode=convert_unicode,
-                           pool_recycle=pool_recyle,
-                           pool_size=pool_size, echo=echo)
-                           #,max_identifier_length=max_identifier_length)
-  
+    engine = create_engine(conn, **create_engine_args)  
     
-    data.to_sql(name=tableName, con=engine, schema=schema, if_exists=if_exists,
-                index=write_index_as_col, index_label=index_label,
-                cunksize=chunksize, dtype=dtype, method=method)
+    data.to_sql(name=tableName, con=engine, **to_sql_args)
     engine.dispose()
     
     return None
 
 
 def pretty_print_time(ts, te=None):
+    '''
+    Convert time in seconds to a clock-like time, i.e. 00:00:00 format.
+
+    Parameters
+    ----------
+    ts : float
+        Start time (or elapsed time if te is None).
+    te : float, optional
+        End time. The default is None.
+
+    Returns
+    -------
+    pretty : str
+        Prettified time.
+
+    '''
     if te is None:
         t = ts
     else:
@@ -126,19 +184,79 @@ def pretty_print_time(ts, te=None):
     return pretty
 
 
-def checkDir(dirc, make=True):
+def checkDir(dirc, make=True, verbose=True):
+    '''
+    Check if a directory exists. If it doesn't, create it.
+
+    Parameters
+    ----------
+    dirc : str
+        Directory to check.
+    make : bool, optional
+        Whether or not to create a missing directory. The default is True.
+    verbose : bool
+        Print results.
+
+    Returns
+    -------
+    bool
+        True if the directory exists.
+
+    '''
+    found = False
+    msg = ''
     if not os.path.isdir(dirc):
+        msg = msg + 'Directory not found. '
         if make:
-            os.mkdir(dirc)  
-        return False
+            os.mkdir(dirc)
+            msg = msg + 'Directory ' + dirc + ' created.'
+        else:
+            msg = msg + 'Directory ' + dirc + 'not created.'
     else:
-        return True
+        found = True
+    if verbose:
+        print(msg)
+    return found
 
 def print_message_with_time(msg, ts, te=None, display_realtime=True, backsn=False,
-                            log=False, log_dir="log", log_filename="", log_args="a",
-                            time_first=False):
-    
-    date_time = datetime.datetime.now().strftime("%-I:%M:%S %p (%b %d)")
+                            log=False, log_dir="log", log_filename="pmwt.log",
+                            log_args="a", time_first=False):
+    '''
+    Print a message with a timestamp. 
+
+    Parameters
+    ----------
+    msg : str
+        The message you want to print.
+    ts : float
+        Start time in seconds, or elapsed time if te is None.
+    te : float, optional
+        End time in seconds. The default is None.
+    display_realtime : bool, optional
+        Display the system (calendar) time as part of the output.
+        The default is True.
+    backsn : bool, optional
+        Add '\\n'. The default is False.
+    log : bool, optional
+        Save message to a log file. The default is False.
+    log_dir : str, optional
+        The directory for the log file. The default is "log".
+    log_filename : str, optional
+        The name of the logfile. The default is "pmwt.log".
+    log_args : str, optional
+        The read/write specification, for example, wb, w, a, etc.
+        The default is "a" for append. See open function in python for more
+        details.
+    time_first : bool, optional
+        Place time at the begininng of the message. The default is False.
+
+    Returns
+    -------
+    printed : str
+        Printed message with time.
+
+    '''
+    date_time = datetime.datetime.now().strftime("%I:%M:%S %p (%b %d)")
     if display_realtime:
         time_str = pretty_print_time(ts, te) + " Current Time: " + date_time
     else:
@@ -152,24 +270,89 @@ def print_message_with_time(msg, ts, te=None, display_realtime=True, backsn=Fals
     sys.stdout.write(printed)
     sys.stdout.flush()
     checkDir(log_dir)
-    logfile = log_dir + "/" + log_filename + ".log"
+    logfile = log_dir + "/" + log_filename
     logfile = logfile.replace("//", "/")
     if log:
-        with open(log_dir + "/" + log_filename + ".log", log_args) as f:
+        with open(logfile, log_args) as f:
             f.write(printed)
     return printed
     
 
 def print_time(*args, **kwargs):
+    '''
+    Wrapper for print_message_with_time. Shortened for ease of use.
+
+    Parameters
+    ----------
+    *args : 
+        Positional arguments (passed to print_message_with_time).
+    **kwargs : 
+        Keyword Arguments (passed to print_message_with_time).
+
+    Returns
+    -------
+    None.
+
+    '''
     print_message_with_time(*args, **kwargs)
 
 
 def save_checkpoint(obj, msg, ts=None, te=None, display_realtime=True, backsn=False,
                     log=True, log_dir="log", log_filename="", log_args="a",
-                    checkpoint_dir="checkpoints", checkpoint_filename="",
-                    checkpoint_extension="pkl", checkpoint_args="wb"):
-    print_message_with_time(msg=msg, ts=ts, te=te, display_realtime=display_realtime,
-                            backsn=backsn, log=log, log_dir=log_dir, log_filename=log_filename,
+                    time_first=False, checkpoint_dir="checkpoints",
+                    checkpoint_filename="chkpnt", checkpoint_extension="pkl",
+                    checkpoint_args="wb"):
+    '''
+    Save a python object to a pickle file as a checkpoint. Log message as 
+    logfile with the export.
+
+    Parameters
+    ----------
+    obj : any python object (must be pickleable)
+        The object to pickle.
+    msg : str
+        The message you want to print.
+    ts : float
+        Start time in seconds, or elapsed time if te is None.
+    te : float, optional
+        End time in seconds. The default is None.
+    display_realtime : bool, optional
+        Display the system (calendar) time as part of the output.
+        The default is True.
+    backsn : bool, optional
+        Add '\\n'. The default is False.
+    log : bool, optional
+        Save message to a log file. The default is False.
+    log_dir : str, optional
+        The directory for the log file. The default is "log".
+    log_filename : str, optional
+        The name of the logfile. The default is "pmwt.log".
+    log_args : str, optional
+        The read/write specification, for example, wb, w, a, etc.
+        The default is "a" for append. See open function in python for more
+        details.
+    time_first : bool, optional
+        Place time at the begininng of the message. The default is False.
+    checkpoint_dir : str, optional
+        The directory to save the checkpoint. The default is "checkpoints".
+    checkpoint_filename : str, optional
+        The filename for the checkpoint. The default is "chkpnt".
+    checkpoint_extension : str, optional
+        The file extension for the checkpoint. The default is "pkl".
+    checkpoint_args : str, optional
+        The read/write specification, for example, wb, w, a, etc.
+        See open function in python for more details.
+        The default is "wb" for write binary.
+
+    Returns
+    -------
+    None.
+
+    '''
+    print_message_with_time(msg=msg, ts=ts, te=te,
+                            display_realtime=display_realtime,
+                            backsn=backsn, log=log, log_dir=log_dir,
+                            log_filename=log_filename,
                             log_args=log_args)
     checkDir(checkpoint_dir)
     file = checkpoint_dir + '/' + checkpoint_filename + "." + checkpoint_extension
@@ -180,6 +363,26 @@ def save_checkpoint(obj, msg, ts=None, te=None, display_realtime=True, backsn=Fa
 
 
 def updateProgBar(curIter, totalIter, t0, barLength=20):
+    '''
+    Update progress bar. Place this function anywhere in a loop where you want
+    to keep track of the loop's progress.
+
+    Parameters
+    ----------
+    curIter : int
+        The current iteration.
+    totalIter : int
+        The total number of iterations. 
+    t0 : numeric
+        The start time of the operation (in seconds).
+    barLength : int, optional
+        The length of the progress bar. The default is 20.
+
+    Returns
+    -------
+    None.
+
+    '''
     status = "Working..."
     progress = float(curIter)/float(totalIter)
     if isinstance(progress, int):
@@ -201,6 +404,23 @@ def updateProgBar(curIter, totalIter, t0, barLength=20):
         
         
 def move_columns_to_end(data, col):
+    '''
+    Rearrange a pandas dataframe by moving a column (or list of columns)
+    to the end of the dataframe.
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        Data to rearrange.
+    col : str or list
+        String containing one column to move, or list containing several.
+
+    Returns
+    -------
+    data : pandas dataframe
+        Data with rearranged columns.
+
+    '''
     if not isinstance(col, list):
         col = list(col)
     data = data[[c for c in data if c not in col] + col]
@@ -210,6 +430,28 @@ def move_columns_to_end(data, col):
 # Searches a list of text arguments and returns a list that includes/excludes
 # the list elements that contain the keywords
 def keywordSearch(text_list, include_keywords, exclude_keywords=None):
+    '''
+    Searches a list of text arguments and returns a list that includes/excludes
+    the list elements that contain the keywords.
+    
+    Useful when searching for column names in a large dataframe, for example.
+
+    Parameters
+    ----------
+    text_list : list
+        List of string values.
+    include_keywords : list
+        List of keywords to search for.
+    exclude_keywords : list, optional
+        List of keywords that might be similar to include_keywords, but should
+        be excluded nonetheless. The default is None.
+
+    Returns
+    -------
+    found_list : list
+        Returns items from the original list that match the keywords.
+
+    '''
     found_list = []
     for text in text_list:
         is_in_i_keys = sum((1 if i_key in text else 0 for i_key in include_keywords))
@@ -221,19 +463,27 @@ def keywordSearch(text_list, include_keywords, exclude_keywords=None):
     return found_list
 
 
-def splitCol(data, search_col, search_list, split_pat):
-    exists = []
-    noneCount = 0
-    for i in data.index:
-        if data.loc[i, search_col] is None:
-            noneCount += 1
-        else:
-            found_splits = data.loc[i, search_col].split(split_pat)
-            exists.append([1 if val in found_splits else 0 for val in search_list])
-    return exists, noneCount
-
-
 def toFrame(todf, fromdf):
+    '''
+    Convert numpy array to pandas dataframe using past dataframe structure. 
+
+    Useful when you want to store the dataframe values as a seperate numpy
+    array, and make adjustments to the values, but want to convert back to a
+    dataframe once the calculations are completed. 
+
+    Parameters
+    ----------
+    todf : numpy array
+        Data to convert to pandas dataframe.
+    fromdf : pandas dataframe
+        Dataframe containing structure to convert back to.
+
+    Returns
+    -------
+    pandas dataframe
+        The converted dataframe.
+
+    '''
     return pd.DataFrame(todf, index=fromdf.index, columns=fromdf.columns)
 
 
@@ -243,12 +493,19 @@ def inferFeatureType(X, n_unique=None):
     so some need to be inferred. These inferred/derived datatypes are used to
     simply the plotting mechanisms
     
+    Parameters
+    ----------
     X : dataframe or ndarray
         The dataframe containing columns whose datatype needs to be inferred.
     n_unique : int
         The number of unique values to use as a cutoff for numeric columns,
         for example, if the number of unique values for a numeric column is
         greater than n_unique, consider it numeric. Default is None.
+    
+    Returns:
+    --------
+    d_type : str
+        String representation of the d_type
     
     numpy arrays.dtypes reference table:
     

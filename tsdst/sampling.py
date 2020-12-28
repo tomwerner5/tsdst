@@ -6,24 +6,48 @@ from timeit import default_timer as dt
 from .utils import print_time, updateProgBar
 
 
-def downSample(data, ycol, majority=0, minority=1, bal=0.5, rs=123):
+def downSample(data, target_var, majority=0, minority=1, bal=0.5,
+               random_state=123):
     '''
     In a low base-rate classification problem, it is sometimes advantageous to downsample
     the majority class until the classes are balanced (or close enough). This 
     is done by randomly removing a proportion of observations from only the
     majority class.
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        The design or feature matrix (with response).
+    target_var : str
+        The target or reponse variable.
+    majority : int, optional
+        Value of the majority class. The default is 0.
+    minority : int, optional
+        Value of the minority class. The default is 1.
+    bal : float, optional
+        The class balance after downsampling. The default is 0.5.
+    random_state : int, optional
+        The random seed for the process. The default is 123.
+
+    Returns
+    -------
+    data_sub : pandas dataframe
+        The downsampled data.
+
     '''
-    data_min = data[data[ycol] == minority]
-    data_maj = data[data[ycol] == majority]
+    data_min = data[data[target_var] == minority]
+    data_maj = data[data[target_var] == majority]
 
     samp_size_train = int(len(data_min)/bal - len(data_min))
     
-    np.random.seed(rs)
-    idx = np.random.choice(np.arange(0, len(data_maj)), samp_size_train, replace=False)
+    np.random.seed(random_state)
+    idx = np.random.choice(np.arange(0, len(data_maj)), samp_size_train,
+                           replace=False)
 
     data_maj = data_maj.iloc[idx, :]
     
-    data_sub = shuffle(pd.concat((data_min, data_maj), axis=0), random_state=rs)
+    data_sub = shuffle(pd.concat((data_min, data_maj), axis=0),
+                       random_state=random_state)
     
     return data_sub
 
@@ -32,11 +56,23 @@ def genRandSampFromDF(data, sampSize, replace=False, random_state=None):
     '''
     Creates a Random sample of observations (rows) from a Dataframe (data). If replace=True,
     this function can be used for bootstrap samples. 
-    
-    data: pd.DataFrame
-    sampSize: Int
-    replace: bool
-    random_state: Int or None
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        The design or feature matrix (with response).
+    sampSize : int
+        Number of somples to return.
+    replace : bool, optional
+        Sample with replacement. The default is False.
+    random_state : int, optional
+        The random seed for the process. The default is None.
+
+    Returns
+    -------
+    rand : pandas dataframe
+        The randomly sampled data.
+
     '''
     if random_state is not None:
         np.random.seed(random_state)
@@ -54,15 +90,42 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
     '''
     Creates a sample from a Dataframe (data). If replace=True,
     this function can be used for bootstrap samples. 
-    
-    data: pd.DataFrame, np.ndarray, may also work with a well structured dictionary
-    sampSize: Int
-    random_state: Int or None
-    sort_method: string
-    sort_cols: list or None
-    stratified: bool
-    bin_placement: string
-    verbose: bool
+
+    Parameters
+    ----------
+    data : numpy array or pandas dataframe
+        The design or feature matrix (with response).
+    sampleSize : int
+        The number of samples to return.
+    random_state : int, optional
+        The random seed of the process. The default is None.
+    shuffle_after : bool, optional
+        Shuffle the results after being sampled. The default is True.
+    sort_ : bool, optional
+        Sort the data (only set to False if sending presorted data).
+        The default is True.
+    sort_method : str, optional
+        Numpy sort method. The default is "quicksort".
+    sort_cols : list, optional
+        The columns to include in the sorting. The default is None.
+    stratified : bool, optional
+        Create a stratified sample. The default is True.
+    bin_placement : str, optional
+        Method for placing the edges on the sampling bins.
+        The default is "random".
+    verbose : bool, optional
+        Print the results of the process. The default is False.
+
+    Raises
+    ------
+    ValueError
+        Raised if invalid bin_plcement is passed.
+
+    Returns
+    -------
+    LHC : pandas dataframe or numpy array
+        The samples.
+
     '''
     t0 = None
     if verbose:

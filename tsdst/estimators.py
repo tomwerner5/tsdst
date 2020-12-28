@@ -19,17 +19,17 @@ from sklearn.utils.validation import check_is_fitted, _check_sample_weight
 from statsmodels.tools import add_constant
 from timeit import default_timer as dt
 
-from tsdst.distributions import (adaptive_posterior_logreg_lasso,
+from .distributions import (ap_logreg_lasso,
                                  posterior_logreg_lasso,
-                                 negloglike_logreg,
-                                 poisson_regression,
-                                 adaptive_poisson_regression,
-                                 poisson_regression_od,
-                                 adaptive_poisson_regression_od,
+                                 likelihood_bernoulli,
+                                 posterior_poisson_lasso,
+                                 ap_poisson_lasso,
+                                 posterior_poisson_lasso_od,
+                                 ap_poisson_lasso_od,
                                  weibull_regression_post)
-from tsdst.mcmc import adaptive_mcmc, rwm_with_lap, rwm, applyMCMC
-from tsdst.tmath import histogram_mode, mode_kde
-from tsdst.utils import print_time
+from .mcmc import adaptive_mcmc, rwm_with_lap, rwm, applyMCMC
+from .tmath import histogram_mode, mode_kde
+from .utils import print_time
 
 
 class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
@@ -41,16 +41,21 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
     def __init__(self, C=None, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
-                 has_constant=False, verbose=True, keep_nzc_only=True,
-                 over_dispersion=False):
+                 has_constant=False, verbose=True,
+                 over_dispersion=False, scorer=None):
+        # TODO: Implement random_state for reporduceability
         '''
         The constructor for the BayesLogRegClassifier
 
         Parameters
         ----------
         C : float, optional
-            The value for the L1 penalty. If None, the MCMC process looks for
-            the optimal penalty. The default is None.
+            The value for the inverse L1 penalty, or, the inverse
+            regularization strength. If None, the MCMC process
+            looks for the optimal penalty. The default is None.
+            
+            This value is gets converted into the scale parameter for a laplace
+            distribution (scale = 2*C).
         start : numpy array (float), optional
             The starting values for the MCMC. If None, the MLE estimate is used
             (solved with sklearn). The default is None.
@@ -91,14 +96,13 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         verbose : bool, optional
             If True, a progress bar, along with timestamps, is provided.
             The default is True.
-        keep_nzc_only : bool, optional
-            ---CURENTLY NOT IMPLEMENTED---
-            If True, perform L1 feature selection on the zeroed (or
-            essentially zero) parameter values. The default is True.
         over_dispersion : bool, optional
             ---CURRENTLY NOT IMPLEMENTED---
             Whether or not to account for overdispersion in the model.
             The default is False.
+        scorer : function or str
+            The function or string to use for the default scoring method.
+            Otherwise, pass None for accuracy. The default is None.
 
         Returns
         -------
@@ -119,16 +123,16 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         self.initialize_weights = initialize_weights
         self.has_constant = has_constant
         self.verbose = verbose
-        self.keep_nzc_only = keep_nzc_only
         self.retry_sd = retry_sd
         self.retry_max_tries = retry_max_tries
+        self.scoring = scorer
         if C is None:
             # TODO: Implement over-dispersion
             #if over_dispersion:
-            #    self.lpost = adaptive_posterior_logreg_lasso_od
+            #    self.lpost = ap_logreg_lasso_od
             #    self.extra_params = 2
             #else:
-            self.lpost = adaptive_posterior_logreg_lasso
+            self.lpost = ap_logreg_lasso
             self.extra_params = 1
         else:
             #if over_dispersion:
@@ -248,7 +252,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
             elif self.initialize_weights == 'ones':
                 self.start = np.ones(shape=X.shape[1] + self.extra_params)
             elif self.initialize_weights == 'random':
-                self.start = np.random.normal(X.shape[1] + self.extra_params)
+                self.start = np.random.normal(size=(X.shape[1] + self.extra_params, ))
             else:
                 self.start = np.zeros(shape=X.shape[1] + self.extra_params)
 
@@ -258,7 +262,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         postArgs = {
             'X': X,
             'Y': y,
-            'l_scale': self.C
+            'l_scale': self.C*2
         }
         
         self.mcmc_params, self.prev_vals = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
@@ -270,6 +274,10 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
                                                                                  self.extra_params)
         self.n_iter_ = self.niter
         self.classes_ = np.unique(y)
+        
+        if self.verbose:
+            print_time("Finished MCMC. Stored Coefficients...", t0, dt(), backsn=True)
+            
         return self
     
     def predict(self, X):
@@ -328,6 +336,26 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return np.log(self.predict_proba(X))
     
     def score(self, X, y, sample_weight=None):
+        '''
+        Scores the model using the scoring method passed, or, the default
+        scorer. In this case, the default scorer is accuracy.
+
+        Parameters
+        ----------
+        X : numpy array or pandas dataframe
+            The design or feature matrix.
+        y : numpy array or pandas series
+            The target or response variable.
+        sample_weight : numpy array, optional
+            An array containing the weights for each sample.
+            The default is None.
+
+        Returns
+        -------
+        score
+            The result of the scoring function.
+
+        '''
         scoring = self.scoring or 'accuracy'
         scoring = get_scorer(scoring)
         
@@ -343,7 +371,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
-                 has_constant=False, verbose=True, keep_nzc_only=True,
+                 has_constant=False, verbose=True,
                  over_dispersion=False):
         '''
         The constructor for the BayesPoissonClassifier
@@ -351,8 +379,12 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         Parameters
         ----------
         C : float, optional
-            The value for the L1 penalty. If None, the MCMC process looks for
-            the optimal penalty. The default is None.
+            The value for the inverse L1 penalty, or, the inverse
+            regularization strength. If None, the MCMC process
+            looks for the optimal penalty. The default is None.
+            
+            This value is gets converted into the scale parameter for a laplace
+            distribution (scale = 2*C).
         start : numpy array (float), optional
             The starting values for the MCMC. If None, the MLE estimate is used
             (solved with sklearn). The default is None.
@@ -393,10 +425,6 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         verbose : bool, optional
             If True, a progress bar, along with timestamps, is provided.
             The default is True.
-        keep_nzc_only : bool, optional
-            ---CURENTLY NOT IMPLEMENTED---
-            If True, perform L1 feature selection on the zeroed (or
-            essentially zero) parameter values. The default is True.
         over_dispersion : bool, optional
             ---CURRENTLY NOT IMPLEMENTED---
             Whether or not to account for overdispersion in the model.
@@ -421,22 +449,21 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         self.initialize_weights = initialize_weights
         self.has_constant = has_constant
         self.verbose = verbose
-        self.keep_nzc_only = keep_nzc_only
         self.retry_sd = retry_sd
         self.retry_max_tries = retry_max_tries
         if C is None:
             if over_dispersion:
-                self.lpost = adaptive_poisson_regression_od
+                self.lpost = ap_poisson_lasso_od
                 self.extra_params = 2
             else:
-                self.lpost = adaptive_poisson_regression
+                self.lpost = ap_poisson_lasso
                 self.extra_params = 1
         else:
             if over_dispersion:
-                self.lpost = poisson_regression_od
+                self.lpost = posterior_poisson_lasso_od
                 self.extra_params = 1
             else:
-                self.lpost = poisson_regression
+                self.lpost = posterior_poisson_lasso
                 self.extra_params = 0
             
     def _create_coefs(self, mcmc_params, param_summary, extra_params):
@@ -555,7 +582,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
             elif self.initialize_weights == 'ones':
                 self.start = np.ones(shape=X.shape[1] + self.extra_params)
             elif self.initialize_weights == 'random':
-                self.start = np.random.normal(X.shape[1] + self.extra_params)
+                self.start = np.random.normal(size=(X.shape[1] + self.extra_params, ))
             else:
                 self.start = np.zeros(shape=X.shape[1] + self.extra_params)
 
@@ -565,7 +592,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         postArgs = {
             'X': X,
             'Y': y,
-            'l_scale': self.C
+            'l_scale': self.C*2
         }
         
         self.mcmc_params, self.prev_vals = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
@@ -631,7 +658,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
-                 has_constant=False, verbose=True, keep_nzc_only=True,
+                 has_constant=False, verbose=True,
                  over_dispersion=False):
         '''
         The constructor for the BayesWeibullClassifier
@@ -639,8 +666,12 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         Parameters
         ----------
         C : float, optional
-            The value for the L1 penalty. If None, the MCMC process looks for
-            the optimal penalty. The default is None.
+            The value for the inverse L1 penalty, or, the inverse
+            regularization strength. If None, the MCMC process
+            looks for the optimal penalty. The default is None.
+            
+            This value is gets converted into the scale parameter for a laplace
+            distribution (scale = 2*C).
         start : numpy array (float), optional
             The starting values for the MCMC. If None, the MLE estimate is used
             (solved with sklearn). The default is None.
@@ -681,10 +712,6 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         verbose : bool, optional
             If True, a progress bar, along with timestamps, is provided.
             The default is True.
-        keep_nzc_only : bool, optional
-            ---CURENTLY NOT IMPLEMENTED---
-            If True, perform L1 feature selection on the zeroed (or
-            essentially zero) parameter values. The default is True.
         over_dispersion : bool, optional
             ---CURRENTLY NOT IMPLEMENTED---
             Whether or not to account for overdispersion in the model.
@@ -709,7 +736,6 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         self.initialize_weights = initialize_weights
         self.has_constant = has_constant
         self.verbose = verbose
-        self.keep_nzc_only = keep_nzc_only
         self.retry_sd = retry_sd
         self.retry_max_tries = retry_max_tries
         self.lpost = weibull_regression_post
@@ -840,7 +866,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         postArgs = {
             'X': X,
             'Y': y,
-            'l_scale': self.C
+            'l_scale': self.C*2
         }
         
         self.mcmc_params, self.prev_vals = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
@@ -909,7 +935,7 @@ class LogReg(BaseEstimator, LinearClassifierMixin):
                  hess=None, hessp=None, bounds=None, constraints=(), tol=None,
                  callback=None, options=None, has_constant=False):
         
-        self.optimize_args = {'fun': negloglike_logreg,
+        self.optimize_args = {'fun': likelihood_bernoulli,
                               'x0': x0,
                               'method': method,
                               'jac': jac,

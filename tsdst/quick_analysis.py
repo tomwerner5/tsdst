@@ -5,18 +5,105 @@ import os
 
 from datetime import datetime
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score
 from timeit import default_timer as dt
 
 from .feature_selection import dropHighCorrs, getHighCorrs, naiveVarDrop
-from .metrics import calcAICsLasso
+from .metrics import aicCalc, glm_regularized_AIC as glmAIC
 from .modeling import crossVal, prettyConfMat
 from .parallel import p_prog_simp
 from .utils import print_time, updateProgBar
 
 
+def calcAICsLasso(penalty, Xtrain, Ytrain, sample_size, unreg_full_mod=None,
+                  random_state=123):
+    '''
+    Utility function for quick_analysis. Need to update this to include more
+    GLM models.
+
+    Parameters
+    ----------
+    penalty : flost
+        The strength of the L1 penalty.
+    Xtrain : numpy array or pandas dataframe
+        The design or feature matrix.
+    Ytrain : numpy array or pandas series
+        The target or response variable.
+    sample_size : int
+        The number of observations.
+    unreg_full_mod : sklearn object, or similar, optional
+        The unregularized full model. The default is None.
+    random_state : int, optional
+        Random seed for the process. The default is 123.
+
+    Returns
+    -------
+    nzc : list
+        A list indicating the non-zero coefficients.
+    aics : list
+        A list containing the AIC values.
+
+    '''
+    cur_mod_reg = LogisticRegression(C=penalty, max_iter=10000, penalty="l1",
+                                     solver='liblinear',
+                                     random_state=random_state,
+                                     n_jobs=1).fit(Xtrain, Ytrain)
+    Yprob = cur_mod_reg.predict_proba(Xtrain)[:, 1]
+    Ypred = cur_mod_reg.predict(Xtrain)
+    mod_coef = np.concatenate((cur_mod_reg.intercept_,
+                               np.squeeze(cur_mod_reg.coef_)))
+    nzc = sum((1 if coef != 0 else 0 for coef in mod_coef))
+    loglike = np.sum(Ytrain*np.log(Yprob) + (1 - Ytrain)*np.log(1 - Yprob))
+    
+    aics = []
+    aics.append(aicCalc(loglike, nzc, sample_size, c=2, metric="aic"))
+    aics.append(aicCalc(loglike, nzc, sample_size, c=2, metric="aicc"))
+    aics.append(aicCalc(loglike, nzc, sample_size, c=2, metric="bic"))
+    aics.append(aicCalc(loglike, nzc, sample_size, c=2, metric="ebic"))
+    aics.append(np.mean(Ypred != Ytrain))
+    aics.append(f1_score(Ytrain, Ypred))
+    if unreg_full_mod is not None:
+        aics.append(glmAIC(Xtrain, Ytrain, cur_mod_reg, unreg_full_mod,
+                             tol=1e-8, method="kawano"))
+        aics.append(glmAIC(Xtrain, Ytrain, cur_mod_reg, unreg_full_mod,
+                             tol=1e-8, method="hastie"))
+    
+    return nzc, aics
+
+
 def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
-                                unreg_full_mod, rs, target_var, cur_pred_list,
-                                penalty):
+                                unreg_full_mod, random_state, target_var,
+                                cur_pred_list, penalty):
+    '''
+    Utility function for QuickAnalysis. Not to be used externally.
+
+    Parameters
+    ----------
+    save_path : str
+        The directory path to save temporary files to.
+    save_name : str
+        The name of the temporary file to save.
+    num_chunks : int
+        The number of chunks for the pandas msgpacks.
+    sample_size : int
+        The number of observations.
+    unreg_full_mod : sklearn object, or similar
+        Unregularized full model.
+    random_state : int
+        Random seed for the process.
+    target_var : str
+        The name of the target variable.
+    cur_pred_list : list
+        The list of current predictors in the model.
+    penalty : float
+        The strength of the L1 penalty.
+
+    Returns
+    -------
+    res : tuple
+        Tuple of results (non-zero coefficients and aic values).
+
+    '''
     # Note: Should probably update this to feather (as of 2019)
     # since it is faster and better on memory in general.
     # Since this is not long term storage, feather would be a 
@@ -38,7 +125,7 @@ def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
                         Ytrain=Ytrain,
                         sample_size=sample_size,
                         unreg_full_mod=unreg_full_mod,
-                        rs=rs)
+                        random_state=random_state)
     
     # For debugging purposes, to attempt to force garbage collection in parallel
     data = []
@@ -50,7 +137,35 @@ def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
 
 
 class QuickAnalysis(object):
-    def __init__(self, train, holdout, target_var, low_memory=False, name="QuickAnalysis"):
+    '''
+    A class for performing a quick sweep of the data. Helps establish a
+    baseline model to get started with, as well as quickly identify potentially
+    useful features.
+    '''
+    def __init__(self, train, holdout, target_var, low_memory=False,
+                 name="QuickAnalysis"):
+        '''
+        Constructor for QuickAnalysis
+
+        Parameters
+        ----------
+        train : pandas dataframe
+            The training dataset.
+        holdout : pandas dataframe
+            The holdout set (for evaluation of the final model).
+        target_var : str
+            The target or response variable.
+        low_memory : bool, optional
+            For instances where it applies, attempts to use less memory.
+            The default is False.
+        name : str, optional
+            A name for the modeling object. The default is "QuickAnalysis".
+
+        Returns
+        -------
+        None.
+
+        '''
         self._full_analysis_arglist = None
         self._bdp_analysis_arglist = None
         self._fsa_analysis_arglist = None
@@ -85,23 +200,57 @@ class QuickAnalysis(object):
         
     
     def GenCorrStats(self, is_raw=False):
+        '''
+        Generate Correlation Statistics.
+
+        Parameters
+        ----------
+        is_raw : bool, optional
+            Is the raw data (vs. scaled data). The default is False.
+
+        Returns
+        -------
+        None.
+
+        '''
         corr_mat = None
         if is_raw:
-            corr_mat = pd.DataFrame(np.corrcoef(self.train_raw.values, rowvar=False),
-                                    index=self.train_raw.columns, columns=self.train_raw.columns)
+            corr_mat = pd.DataFrame(np.corrcoef(self.train_raw.values,
+                                                rowvar=False),
+                                    index=self.train_raw.columns,
+                                    columns=self.train_raw.columns)
         else:
-            corr_mat = pd.DataFrame(np.corrcoef(self.train.values, rowvar=False),
-                                    index=self.train.columns, columns=self.train.columns)
+            corr_mat = pd.DataFrame(np.corrcoef(self.train.values,
+                                                rowvar=False),
+                                    index=self.train.columns,
+                                    columns=self.train.columns)
         self.y_corr = corr_mat.loc[self.cur_pred_list, self.target_var]
         self.corr_mat = corr_mat
     
     def sort_y_corr(self):
+        '''
+        Sort columns by their correlation with the target variable.
+
+        Returns
+        -------
+        pandas series
+            Sorted Correlations.
+
+        '''
         if self.y_corr is None:
             print("No y_corr recorded. Run GenCorrMat")
         else:
             return self.y_corr.abs().sort_values(ascending=False)
     
     def plot_y_corr(self):
+        '''
+        Plot variable correlations with the target variable.
+
+        Returns
+        -------
+        None.
+
+        '''
         sorted_corrs_with_y = self.y_corr.sort_values()
 
         plt.figure(figsize=(10, 5))
@@ -115,9 +264,49 @@ class QuickAnalysis(object):
         sorted_corrs_with_y = []
     
     def genHighCorrs(self, corr_cutoff):
+        '''
+        Generate a list of variables that are highly correlated with one
+        another.
+
+        Parameters
+        ----------
+        corr_cutoff : float
+            Cutoff value to determine high correlations.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.highCorr = getHighCorrs(self.corr_mat, corr_cutoff)
     
-    def calcAICs(self, num_cs, try_parallel, n_jobs, random_state, remove_msg, chunk):
+    def calcAICs(self, num_cs, try_parallel, n_jobs, random_state, remove_msg,
+                 chunk):
+        '''
+        Calculate AIC values for the models to prepare for comparison.
+
+        Parameters
+        ----------
+        num_cs : int, optional
+            number of penalty values to test (i.e. number of models to evaluate
+            during AIC calculations). 
+        try_parallel : bool
+            Whether to try running the operation in parallel.
+        n_jobs : int
+            Number of parallel processes to run.
+        random_state : int
+            Random seed for the process.
+        remove_msg : bool
+            Remove the temporary pandas msgpacks once calculations are
+            complete.
+        chunk : bool
+            Break the operation into chunks.
+
+        Returns
+        -------
+        None.
+
+        '''
         nonzero_coefs = []
         aics = np.zeros(shape=(num_cs, 6))
         
@@ -192,6 +381,14 @@ class QuickAnalysis(object):
         self.nonzero_coefs = list(nonzero_coefs)
     
     def plotAICs(self):
+        '''
+        Plot the AIC calculations.
+
+        Returns
+        -------
+        None.
+
+        '''
         fig, ax = plt.subplots(figsize=(16,10))
         ax.plot(self.nonzero_coefs, self.aics[:, 1])
         ax.plot(self.nonzero_coefs, self.aics[:, 2])
@@ -207,6 +404,26 @@ class QuickAnalysis(object):
         plt.show()
         
     def forwardElimMetricCalc(self, coef_ord_red, stride, random_state):
+        '''
+        Run a very basic forward elimination procedure, and calculate model 
+        metrics.
+
+        Parameters
+        ----------
+        coef_ord_red : list
+            A list of model coefficients, ordered by importance.
+        stride : int
+            Window size of the coefficients to test in the forward selection
+            procedure. For example, stride=1 is 1,2,3,4,..., stride=2 is
+            1,3,5,7,...
+        random_state : int
+            Random seed for procedure.
+
+        Returns
+        -------
+        None.
+
+        '''
         num_params = np.arange(1, self.train.shape[1]-1, stride)
         # f1, acc, sens, spec, auc
         metrics = np.zeros(shape=(len(num_params), 10))
@@ -214,11 +431,14 @@ class QuickAnalysis(object):
         t0 = dt()
 
         for i, parm in enumerate(num_params):
-            cur_mod_reg = LogisticRegression(C=self.opt_c, max_iter=10000, penalty="l1", solver='liblinear', random_state=random_state)
+            cur_mod_reg = LogisticRegression(C=self.opt_c, max_iter=10000,
+                                             penalty="l1", solver='liblinear',
+                                             random_state=random_state)
             # Cross-Val fully reduced model
             cols_to_include = list(coef_ord_red.index[0:parm])
-            cur_mod_cv_results = crossVal(self.train.loc[:, cols_to_include], self.train.loc[:, self.target_var], 5,
-                                          cur_mod_reg, print_=False)
+            cur_mod_cv_results = crossVal(self.train.loc[:, cols_to_include],
+                                          self.train.loc[:, self.target_var],
+                                          5, cur_mod_reg, print_=False)
 
             metrics[i, 0:2] = (np.mean(cur_mod_cv_results['Out of Sample']["Accuracy"]),
                                np.std(cur_mod_cv_results['Out of Sample']["Accuracy"], ddof=1))
@@ -236,6 +456,14 @@ class QuickAnalysis(object):
         self.num_params_forward = num_params
         
     def plotForwardMetrics(self):
+        '''
+        Plot forward elimination metric results.
+
+        Returns
+        -------
+        None.
+
+        '''
         
         plt.figure(figsize=(10,7))
         
@@ -252,15 +480,20 @@ class QuickAnalysis(object):
         auc_bnds = self.forwardElimMetrics[:, 9].reshape(-1, 1).dot(np.array([-2, 2]).reshape(1, 2)) + auc_mean
        
         plt.plot(self.num_params_forward, acc_mean)
-        plt.fill_between(self.num_params_forward,  acc_bnds[:, 0], acc_bnds[:, 1], alpha=0.5)
+        plt.fill_between(self.num_params_forward,
+                         acc_bnds[:, 0], acc_bnds[:, 1], alpha=0.5)
         plt.plot(self.num_params_forward, f1_mean)
-        plt.fill_between(self.num_params_forward,  f1_bnds[:, 0], f1_bnds[:, 1], alpha=0.5)
+        plt.fill_between(self.num_params_forward,
+                         f1_bnds[:, 0], f1_bnds[:, 1], alpha=0.5)
         plt.plot(self.num_params_forward, sens_mean)
-        plt.fill_between(self.num_params_forward,  sens_bnds[:, 0], sens_bnds[:, 1], alpha=0.5)
+        plt.fill_between(self.num_params_forward,
+                         sens_bnds[:, 0], sens_bnds[:, 1], alpha=0.5)
         plt.plot(self.num_params_forward, spec_mean)
-        plt.fill_between(self.num_params_forward,  spec_bnds[:, 0], spec_bnds[:, 1], alpha=0.5)
+        plt.fill_between(self.num_params_forward,
+                         spec_bnds[:, 0], spec_bnds[:, 1], alpha=0.5)
         plt.plot(self.num_params_forward, auc_mean)
-        plt.fill_between(self.num_params_forward,  auc_bnds[:, 0], auc_bnds[:, 1], alpha=0.5)
+        plt.fill_between(self.num_params_forward,
+                         auc_bnds[:, 0], auc_bnds[:, 1], alpha=0.5)
         
         plt.xlabel("Number of Model Features")
         plt.ylabel("Metric Values")
@@ -269,6 +502,20 @@ class QuickAnalysis(object):
         plt.show()
     
     def confusion_matrix(self, print_=True):
+        '''
+        Generate a confusion matrix (for classification data).
+
+        Parameters
+        ----------
+        print_ : bool, optional
+            Print the confusion matrix to the console. The default is True.
+
+        Returns
+        -------
+        confmat : pandas dataframe
+            A dataframe containing the confusion matrix.
+
+        '''
         confmat = None
         if self.Ytest is None:
             print("Run QuickAnalysis first")
@@ -279,6 +526,26 @@ class QuickAnalysis(object):
         return confmat
     
     def build_model(self, name, cv_iterations, penalty, random_state):
+        '''
+        A utility function for building the model at different steps of the 
+        QuickAnalysis process.
+
+        Parameters
+        ----------
+        name : str
+            The step where the model is being built.
+        cv_iterations : int
+            Number of cross validation steps.
+        penalty : float
+            The strength of the L1 penalty.
+        random_state : int
+            Random seed of the process.
+
+        Returns
+        -------
+        None.
+
+        '''
         mod_crossval = crossVal(self.train.loc[:, self.cur_pred_list],
                                 self.train.loc[:, self.target_var],
                                 cv_iterations=cv_iterations,
@@ -300,10 +567,54 @@ class QuickAnalysis(object):
             }
         
     
-    def BaselineDropProcedures(self, freshStart=True, downsample=False, dropCols=None, dropCor=True, corr_cutoff=0.9999, dropVar=True,
-                    dropVarTol=0.001, std_var_drop=False, cv_iterations=5, random_state=123, default_penalty=0.01,
-                    verbose=True, t0=None):
-        
+    def BaselineDropProcedures(self, freshStart=True, downsample=False,
+                               dropCols=None, dropCor=True, corr_cutoff=0.9,
+                               dropVar=True, dropVarTol=0.001,
+                               std_var_drop=False, cv_iterations=5,
+                               random_state=123, default_penalty=0.01,
+                               verbose=True, t0=None):
+        '''
+        Create Baseline model and begin dropping features from the model 
+        based on given criteria.
+
+        Parameters
+        ----------
+        freshStart : bool, optional
+            Whether to use a previous result, or start from scrath.
+            The default is True.
+        downsample : bool, optional
+            Whether or not to downsample the majority class.
+            The default is False.
+        dropCols : list, optional
+            List of columns to initially drop. The default is None.
+        dropCor : bool, optional
+            Drop variables with high correlations. The default is True.
+        corr_cutoff : float, optional
+            Cutoff for removing high correlation variables. Anything below the
+            cutoff is kept. The default is 0.9.
+        dropVar : bool, optional
+            Drop variables with very low variance.
+            Does nothing if data is standardized. The default is True.
+        dropVarTol : float, optional
+            Cutoff value for low variance. The default is 0.001.
+        cv_iterations : int, optional
+            The number of cross validation steps. The default is 5.
+        random_state : int, optional
+            The random seed for the process. The default is 123.
+        default_penalty : float, optional
+            The penalty term to be applied to models where the penalty is
+            otherwise unspecified. The default is 0.01.
+        verbose : bool, optional
+            Print steps as they complete. The default is True.
+        t0 : float, optional
+            The start time of the process. For internal use.
+            The default is None.
+
+        Returns
+        -------
+        None.
+
+        '''
         self._bdp_analysis_arglist = {'freshStart': freshStart,
                                  'downsample': downsample,
                                  'dropCols': dropCols,
@@ -332,7 +643,8 @@ class QuickAnalysis(object):
         if verbose:
             print_time("\nCreating Baseline Model...", t0, te=dt())
         
-        self.build_model('baseline_mod', cv_iterations, default_penalty, random_state)
+        self.build_model('baseline_mod', cv_iterations, default_penalty,
+                         random_state)
         
         if verbose:
             print_time("\nExecuting Column Drop Procedures...", t0, te=dt())
@@ -344,20 +656,24 @@ class QuickAnalysis(object):
             cols = list(self.train.columns)
             # what I used to do... 
             #idx = list(np.where([True if sum((True if reject in col else False for reject in dropCols))>0 else False for col in cols])[0])
-            idx = [i for i, col in zip(range(len(cols)), cols) if col in dropCols]
+            idx = [i for i, col in zip(range(len(cols)),
+                                       cols) if col in dropCols]
             label_idx = list(self.train.columns[idx])
             self.train = self.train.drop(label_idx, axis=1)
             self.cur_pred_list = self.train.columns[np.where(self.target_var != self.train.columns)[0]]
             self.num_dropped_cols['dropCol_list'] = len(dropCols)
             if verbose:
-                print_time("\nDropped " + str(len(dropCols)) + " Predefined Columns...", t0, te=dt())
+                print_time("\nDropped " + str(len(dropCols)) + " Predefined Columns...",
+                           t0, te=dt())
         
         if dropVar:
             if verbose:
                 print_time("\nDropping Low Variance Columns...", t0, te=dt())
 
-            varDropList = naiveVarDrop(self.train, list(self.train.columns[np.where(self.target_var != self.train.columns)[0]]),
-                                       tol=dropVarTol, standardize=std_var_drop, asList=True)
+            varDropList = naiveVarDrop(self.train,
+                                       list(self.train.columns[np.where(self.target_var != self.train.columns)[0]]),
+                                       tol=dropVarTol,
+                                       asList=True)
             
             self.train = self.train.drop(varDropList, axis=1)
             self.varDropList = varDropList
@@ -369,7 +685,8 @@ class QuickAnalysis(object):
         
         if dropCor:
             if verbose:
-                print_time("\nGenerating/Recovering Correlation Matrix...", t0, te=dt())
+                print_time("\nGenerating/Recovering Correlation Matrix...", t0,
+                           te=dt())
 
             if self.corr_mat is None or self.y_corr is None:
                 self.GenCorrStats(is_raw=False)
@@ -379,7 +696,8 @@ class QuickAnalysis(object):
             if verbose:
                 print_time("\nDropping High Correlations...", t0, te=dt())
 
-            HCdropList = dropHighCorrs(self.train, self.highCorr, asList=True, print_=False)
+            HCdropList = dropHighCorrs(self.train, self.highCorr, asList=True,
+                                       print_=False)
             self.train = self.train.drop(HCdropList, axis=1)
             self.HCdropList = HCdropList
             self.num_dropped_cols['HCdropList'] = len(HCdropList)
@@ -393,19 +711,51 @@ class QuickAnalysis(object):
             total_dropped = 0
             for key in self.num_dropped_cols.keys():
                 total_dropped += self.num_dropped_cols[key]
-            print_time("\nDropped " + str(total_dropped) + " Columns...", t0, te=dt())
+            print_time("\nDropped " + str(total_dropped) + " Columns...", t0,
+                       te=dt())
         
         if verbose:
             print_time("\nCreating Post-Drop Baseline Model...", t0, te=dt())
         
-        self.build_model('postdrop_baseline_mod', cv_iterations, default_penalty, random_state)
+        self.build_model('postdrop_baseline_mod', cv_iterations,
+                         default_penalty, random_state)
         
         if verbose:
             print_time("\nFinished Baseline Drop...", t0, te=dt())
     
-    def ForwardSelectionAnalysis(self, cv_iterations=5, random_state=123, default_penalty=0.01,
-                                 for_stride=2, reduce_features_by=30, red_metric='bic', verbose=True, t0=None):
-        
+    def ForwardSelectionAnalysis(self, cv_iterations=5, random_state=123,
+                                 default_penalty=0.01, for_stride=2,
+                                 reduce_features_by=30, red_metric='bic',
+                                 verbose=True, t0=None):
+        '''
+        Run very basic forward selection procedure on the model.
+
+        Parameters
+        ----------
+        default_penalty : float, optional
+            The penalty term to be applied to models where the penalty is
+            otherwise unspecified. The default is 0.01.
+        for_stride : int
+            Window size of the coefficients to test in the forward selection
+            procedure. For example, stride=1 is 1,2,3,4,..., stride=2 is
+            1,3,5,7,... The default is 2.
+        reduce_features_by : int, optional
+            Number of features to evaluate in the final model.
+            The default is 30.
+        red_metric : str, optional
+            Metric to use for finding optimal penalty value.
+            The default is 'bic'.
+        verbose : bool, optional
+            Print results of the process. The default is True.
+        t0 : float, optional
+            Initial start time for the process. The default is None.
+
+        Returns
+        -------
+        None.
+
+        '''
+        # TODO: make final feature selection automatic
         self._fsa_analysis_arglist = {
                                       'cv_iterations': cv_iterations,
                                       'random_state': random_state,
@@ -432,12 +782,15 @@ class QuickAnalysis(object):
         self.optimal_num_params = np.array(self.nonzero_coefs)[np.where(self.aics[:, aic_type[red_metric]] == np.min(self.aics[:, aic_type[red_metric]]))][0]
         
         if verbose:
-            print_time("\nCreating Model with Optimal Penalty Value...", t0, te=dt())
+            print_time("\nCreating Model with Optimal Penalty Value...", t0,
+                       te=dt())
         
-        self.build_model('lasso_reduction_mod', cv_iterations, self.opt_c, random_state)
+        self.build_model('lasso_reduction_mod', cv_iterations, self.opt_c,
+                         random_state)
         
         coef = self.steps['lasso_reduction_mod']['model'].coef_.reshape(-1,)
-        coef_ord = pd.DataFrame(np.abs(coef), index=self.train.loc[:, self.cur_pred_list].columns, columns=["Importance"])
+        coef_ord = pd.DataFrame(np.abs(coef), index=self.train.loc[:, self.cur_pred_list].columns,
+                                columns=["Importance"])
         coef_ord = coef_ord.sort_values('Importance', ascending=False)
         
         keep_cols = list(coef_ord[coef_ord["Importance"] > 0].index)
@@ -450,13 +803,20 @@ class QuickAnalysis(object):
         coef = []
         
         if verbose:
-            print_time("\nCreating Model with Optimal Penalty Value After Removing Zeroed Parameters...\n", t0, te=dt())
+            print_time("\nCreating Model with Optimal Penalty Value After Removing Zeroed Parameters...\n",
+                       t0, te=dt())
         
-        self.build_model('lasso_reduction_mod_reduced', cv_iterations, 1, random_state)
+        self.build_model('lasso_reduction_mod_reduced', cv_iterations, 1,
+                         random_state)
         
         coef_red = self.steps['lasso_reduction_mod_reduced']['model'].coef_.reshape(-1,1)
-        coef_ord_red = pd.DataFrame(np.concatenate((np.abs(coef_red), coef_red, 100.0*(np.exp(coef_red)-1)), axis=1),
-                                    index=self.train.loc[:, self.cur_pred_list].columns, columns=["Importance", "Coefficiants", "% increase in Prob"])
+        coef_ord_red = pd.DataFrame(np.concatenate((np.abs(coef_red), coef_red,
+                                                    100.0*(np.exp(coef_red)-1)),
+                                                   axis=1),
+                                    index=self.train.loc[:, self.cur_pred_list].columns,
+                                    columns=["Importance",
+                                             "Coefficiants",
+                                             "% increase in Prob"])
         coef_ord_red = coef_ord_red.sort_values('Importance', ascending=False)
         
         self.steps['lasso_reduction_mod_reduced']['coef_ord_red'] = coef_ord_red
@@ -494,10 +854,77 @@ class QuickAnalysis(object):
             print_time("\nFinished...", t0, te=dt())
         
         
-    def RunFullAnalysis(self, freshStart=True, downsample=False, dropCols=None, dropCor=True, corr_cutoff=0.9999, dropVar=True,
-                    dropVarTol=0.001, std_var_drop=False, cv_iterations=5, random_state=123, default_penalty=0.01, try_parallel=True,
-                    for_stride=2, reduce_features_by=30, num_cs=100, red_metric='bic', 
-                    red_log_low=-5, red_log_high=1, n_jobs=15, verbose=True, remove_msg=True, chunk=False):
+    def RunFullAnalysis(self, freshStart=True, downsample=False, dropCols=None,
+                        dropCor=True, corr_cutoff=0.9, dropVar=True,
+                        dropVarTol=0.001, std_var_drop=False, cv_iterations=5,
+                        random_state=123, default_penalty=0.01, verbose=True,
+                        try_parallel=True, for_stride=2, reduce_features_by=30,
+                        num_cs=100, red_metric='bic', red_log_low=-5,
+                        red_log_high=1, n_jobs=15, remove_msg=True,
+                        chunk=False):
+        '''
+        Performs a quick analysis by first considering which features/variables
+        may be uninformative predictors based on preliminary models. Then,
+        it performs a very basic forward selection procedure to limit
+        predictors in the final model. Currently, this only supports
+        Logistic Regression.
+
+        Parameters
+        ----------
+        freshStart : bool, optional
+            Whether to use a previous result, or start from scrath.
+            The default is True.
+        downsample : bool, optional
+            Whether or not to downsample the majority class.
+            The default is False.
+        dropCols : list, optional
+            List of columns to initially drop. The default is None.
+        dropCor : bool, optional
+            Drop variables with high correlations. The default is True.
+        corr_cutoff : float, optional
+            Cutoff for removing high correlation variables. Anything below the
+            cutoff is kept. The default is 0.9.
+        dropVar : bool, optional
+            Drop variables with very low variance.
+            Does nothing if data is standardized. The default is True.
+        dropVarTol : float, optional
+            Cutoff value for low variance. The default is 0.001.
+        cv_iterations : int, optional
+            The number of cross validation steps. The default is 5.
+        random_state : int, optional
+            The random seed for the process. The default is 123.
+        default_penalty : float, optional
+            The penalty term to be applied to models where the penalty is
+            otherwise unspecified. The default is 0.01.
+        verbose : bool, optional
+            Print steps as they complete. The default is True.
+        try_parallel : TYPE, optional
+            DESCRIPTION. The default is True.
+        for_stride : TYPE, optional
+            DESCRIPTION. The default is 2.
+        reduce_features_by : TYPE, optional
+            DESCRIPTION. The default is 30.
+        num_cs : int, optional
+            number of penalty values to test (i.e. number of models to evaluate
+            during AIC calculations). The default is 100.
+        red_metric : TYPE, optional
+            DESCRIPTION. The default is 'bic'.
+        red_log_low : TYPE, optional
+            DESCRIPTION. The default is -5.
+        red_log_high : TYPE, optional
+            DESCRIPTION. The default is 1.
+        n_jobs : TYPE, optional
+            DESCRIPTION. The default is 15.
+        remove_msg : TYPE, optional
+            DESCRIPTION. The default is True.
+        chunk : TYPE, optional
+            DESCRIPTION. The default is False.
+
+        Returns
+        -------
+        None.
+
+        '''
         t0 = dt()
         self._full_analysis_arglist = {'freshStart': freshStart,
                                  'downsample': downsample,
@@ -521,11 +948,19 @@ class QuickAnalysis(object):
                                  'verbose': verbose,
                                  'remove_msg': remove_msg}
         
-        self.BaselineDropProcedures(freshStart=freshStart, downsample=downsample, dropCols=dropCols, dropCor=dropCor,
-                                    corr_cutoff=corr_cutoff, dropVar=dropVar, dropVarTol=dropVarTol, std_var_drop=std_var_drop, 
-                                    cv_iterations=cv_iterations,random_state=random_state,
+        self.BaselineDropProcedures(freshStart=freshStart,
+                                    downsample=downsample,
+                                    dropCols=dropCols,
+                                    dropCor=dropCor,
+                                    corr_cutoff=corr_cutoff,
+                                    dropVar=dropVar,
+                                    dropVarTol=dropVarTol,
+                                    std_var_drop=std_var_drop, 
+                                    cv_iterations=cv_iterations,
+                                    random_state=random_state,
                                     default_penalty=default_penalty,
-                                    verbose=verbose, t0=t0)
+                                    verbose=verbose,
+                                    t0=t0)
         
         if verbose:
             print_time("\nCreating Lasso Reduction Models...", t0, te=dt())
@@ -535,7 +970,9 @@ class QuickAnalysis(object):
             try_again = True
             while(try_again):
                 try:
-                    self.calcAICs(num_cs, try_parallel, n_jobs, random_state=random_state, remove_msg=remove_msg, chunk=chunk)
+                    self.calcAICs(num_cs, try_parallel, n_jobs,
+                                  random_state=random_state,
+                                  remove_msg=remove_msg, chunk=chunk)
                     try_again = False
                 except (MemoryError):
                     n_jobs = int(n_jobs - (n_jobs/2))
@@ -543,11 +980,17 @@ class QuickAnalysis(object):
                     if n_jobs == 1:
                         try_again = False
                     if not try_again:
-                        self.calcAICs(num_cs, False, n_jobs=1, random_state=random_state, remove_msg=remove_msg, chunk=chunk)
+                        self.calcAICs(num_cs, False, n_jobs=1,
+                                      random_state=random_state,
+                                      remove_msg=remove_msg, chunk=chunk)
         else:
-            self.calcAICs(num_cs, False, n_jobs=1, random_state=random_state, remove_msg=remove_msg, chunk=chunk)
+            self.calcAICs(num_cs, False, n_jobs=1, random_state=random_state,
+                          remove_msg=remove_msg, chunk=chunk)
                 
-        self.ForwardSelectionAnalysis(cv_iterations=cv_iterations, random_state=random_state,
-                                      default_penalty=default_penalty, for_stride=for_stride,
-                                      reduce_features_by=reduce_features_by, red_metric=red_metric,
+        self.ForwardSelectionAnalysis(cv_iterations=cv_iterations,
+                                      random_state=random_state,
+                                      default_penalty=default_penalty,
+                                      for_stride=for_stride,
+                                      reduce_features_by=reduce_features_by,
+                                      red_metric=red_metric,
                                       verbose=verbose, t0=t0)

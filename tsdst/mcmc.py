@@ -13,16 +13,17 @@ import warnings
 from numba import jit
 from numpy import linalg as la
 from scipy.special import loggamma
-from scipy.stats import chi2, f
+from scipy.stats import chi2
 from scipy.linalg import toeplitz, solve
 from sklearn.preprocessing import scale
 from timeit import default_timer as dt
 
-from tsdst.utils import pretty_print_time
-from tsdst.distributions import qnorm_aprox
+from .tmath import cov2cor
+from .utils import pretty_print_time
+from .distributions import qnorm_aprox
 
 
-def updateProgBarMCMC(curIter, totalIter, t0, ar, barLength=20):
+def _updateProgBarMCMC(curIter, totalIter, t0, ar, barLength=20):
     '''
     Custom progress bar to output MCMC chain progress.
 
@@ -112,7 +113,7 @@ def applyMCMC(st, ni, lp, algo, algoOpts=None, postArgs={},
     try_num = 1
     not_successful = True
     res = None
-    lns = st.size
+    lns = st.shape
     while not_successful:
         if try_num % 5 == 0:
             st = st + np.random.normal(size=lns, scale=sd)
@@ -171,7 +172,11 @@ def cholupdate(L, x, update=True):
 def adaptive_mcmc(start, niter, lpost, postArgs={}, options=None):
     '''
     A random walk metropolis algorithm that adaptively tunes the covaraince 
-    matrix. Based on methods by Rosenthal and Haario.
+    matrix. Based on methods by Rosenthal (who improved on Haario's method).
+    The method by Rosenthal is sometimes refered to as Adaptive Mixture
+    Metropolis, while the algorithm by Haario is called Adaptive Metropolis and
+    is generally considered to be the historically first adaptive Metropolis
+    algorithm.
 
     Parameters
     ----------
@@ -283,7 +288,7 @@ def adaptive_mcmc(start, niter, lpost, postArgs={}, options=None):
         sumi += 1.0
         acceptDraw = False
         if progress:
-            updateProgBarMCMC(i + 1, niter, t0, float(accept) / float(i))
+            _updateProgBarMCMC(i + 1, niter, t0, float(accept) / float(i))
         
     prev_vals = {'chol2': chol2, 'prev_i': sumi - 1, 'sumx': sumx}
     print("Acceptance Rate: ", float(accept) / float(niter))
@@ -293,7 +298,9 @@ def adaptive_mcmc(start, niter, lpost, postArgs={}, options=None):
 def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
     '''
     A random walk metropolis algorithm that adaptively tunes the covaraince 
-    matrix.
+    matrix with a log-adaptive posterior.
+    
+    See "Exploring an Adaptive Metropolis Algorithm" by Ben Shaby, 2010.
 
     Parameters
     ----------
@@ -311,9 +318,9 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
             k : int
                 The number of MCMC samples to generate for each evaluation.
             c0 : float
-                TODO: add DESCRIPTION.
+                Attenuation parameter. Default is 1.
             c1 : float
-                TODO: add DESCRIPTION.
+                Attenuation parameter. Default is 0.8.
             progress : bool
                 Whether to display progress bar
             prev_vals : dict
@@ -321,7 +328,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
                     E_0 : numpy array
                         the final covaraince matrix
                     sigma_2 : float
-                        the standard deviation multiplier in the algorithm
+                        the positive scaling parameter in the algorithm
                     t : int
                         the current iteration number
         The default is None.
@@ -373,7 +380,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
     if prev_vals['E_0'] is not None:
         E_0 = prev_vals["E_0"]
 
-    chol = la.cholesky((sigma_2)*E_0)
+    chol = la.cholesky(np.sqrt(sigma_2)*E_0)
     chol_i = np.array(chol)
     
     t = 1 + prev_vals['t']
@@ -399,7 +406,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
             
         acceptDraw = False
         if progress:
-            updateProgBarMCMC(i + 1, niter, t0, float(total_accept) / float(i))
+            _updateProgBarMCMC(i + 1, niter, t0, float(total_accept) / float(i))
         
         if (i + 1) % k == 0:
             X = parm[(i + 1 - k):(i + 1), :]
@@ -416,7 +423,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
                 chol = chol_i
             else:
                 try:
-                    chol = la.cholesky(sigma_2*E_0)
+                    chol = la.cholesky(np.sqrt(sigma_2)*E_0)
                 #except la.LinAlgError:
                 #    chol = sla.sqrtm(sigma_2*E_0)
                 except:
@@ -508,7 +515,7 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
         
         acceptDraw = False
         if progress:
-            updateProgBarMCMC(i + 1, niter, t0, float(accept) / float(i))
+            _updateProgBarMCMC(i + 1, niter, t0, float(accept) / float(i))
     
     prev_vals = {'E_O': E}
     print("Acceptance Rate: ", float(accept) / float(niter))
@@ -542,6 +549,81 @@ def samp_size_calc_raftery(q=0.025, r=0.005, s=0.95):
     return phi, nmin
 
 
+def lag(s, b, method):
+    '''
+    Translated from R's mcmcse package
+    
+    Returns the lag window value for the corresponding window.
+
+    Parameters
+    ----------
+    TODO: add description for these parameters
+    s : int
+        DESCRIPTION.
+    b : flost
+        DESCRIPTION.
+    method : str
+        Either `bartlett` or None.
+
+    Returns
+    -------
+    int, float
+        Lag window.
+
+    '''
+    if method == "bartlett":
+        return 1 - (s/b)
+    else:
+        return ((1 + np.cos(np.pi * s/b))/2) 
+
+
+def adjust_matrix(mat, N, epsilon=None, b=9/10):
+    '''
+    Translated from R's mcmcse package.
+    
+    Function adjusts a non-positive definite estimator to be positive definite.
+
+    Parameters
+    ----------
+    mat : numpy array
+        A symmetric pxp matrix, usually a covarince matrix.
+    N : int
+        Number of observations in the original atrix.
+    epsilon : float, optional
+        The adjustment size. If None, sqrt(log(N)/p).
+        The default is None.
+    b : float, optional
+        The exponent on N for the adjustment. The default is 9/10.
+
+    Returns
+    -------
+    mat_adj : numpy array
+        Adjusted matrix.
+
+    '''
+    if epsilon is None:
+        epsilon = np.sqrt(np.log(N)/mat.shape[1])
+    mat_adj = mat
+    adj = epsilon*N**(-b)
+    var = np.diag(mat)
+    corr = cov2cor(mat)
+    eig_val, eig_vec = np.linalg.eig(corr)
+    adj_eigs = np.maximum(eig_val, adj)
+    mat_adj = np.diag(var**0.5).dot(eig_vec).dot(np.diag(adj_eigs)).dot(eig_vec.T).dot(np.diag(var**0.5))
+    return mat_adj
+
+
+#def arp_approx(chain):
+#
+#
+#
+#def batchSize(chain, method="bm", g=None):
+#    if g is not None:
+#        chain = np.array([g(chain[i, :]) for i in range(chain.shape[0])])
+#    n = chain.shape[0]
+    
+
+
 def mbmc(chain, b):
     '''
     Translated from R's mcmcse package
@@ -556,9 +638,10 @@ def mbmc(chain, b):
     Returns
     -------
     numpy array
-        DESCRIPTION.
+        Covaraince matrix estimate.
 
     '''
+    b = int(b)
     n = chain.shape[0]
     chain = chain.reshape(n, -1)
     p = chain.shape[1]
@@ -567,9 +650,9 @@ def mbmc(chain, b):
     out = np.zeros((p, p))
     block_means = np.zeros((a, p))
     mean_mat = np.zeros((a, p))
-    idx = np.arange(a) * int(b)
+    idx = np.arange(a) * b
 
-    for i in range(int(b)):
+    for i in range(b):
         block_means += chain[idx, :]
         idx += 1
     block_means = block_means/b
@@ -582,14 +665,68 @@ def mbmc(chain, b):
     return (out*b/(a - 1))
 
 
-def lag(s, b, method):
-    if method == "bartlett":
-        return 1 - (s/b)
-    else:
-        return ((1 + np.cos(np.pi * s/b))/2)    
+def mobmc(chain, b):
+    '''
+    Translated from R's mcmcse package
+
+    Parameters
+    ----------
+    chain : numpy array
+        MCMC chain.
+    b : int
+        Number of blocks.
+
+    Returns
+    -------
+    numpy array
+        Covariance matrix estimate.
+
+    '''
+    b = int(b)
+    n = chain.shape[0]
+    chain = chain.reshape(n, -1)
+    p = chain.shape[1]
+    a = n - b + 1
+    
+    y_mean = np.zeros(p)
+    out = np.zeros((p, p))
+    block_means = np.zeros((a, p))
+    mean_mat = np.zeros((a, p))
+    
+    idx = np.arange(a)
+
+    for i in range(b):
+        block_means += chain[idx, :]
+        idx += 1
+    block_means = block_means/b
+
+    y_mean = np.mean(chain, axis=0)
+    for i in range(a):
+        mean_mat[i, :] = y_mean
+
+    out = (block_means - mean_mat).T.dot(block_means - mean_mat)
+    return (out*b/n)
 
 
 def msvec(chain, b, method="bartlett"):
+    '''
+    Translated from R's mcmcse package.
+
+    Parameters
+    ----------
+    chain : numpy array
+        MCMC chain.
+    b : int
+        Number of blocks.
+    method : str, optional
+        Method to estimate covariance matrix. The default is "bartlett".
+
+    Returns
+    -------
+    numpy array
+        Covariance matrix estimate.
+
+    '''
     n = chain.shape[0]
     chain = chain.reshape(n, -1)
     p = chain.shape[1]
@@ -605,8 +742,54 @@ def msvec(chain, b, method="bartlett"):
     return out/n
 
 
-def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, level=0.95,
-               adjust=True, blather=False):
+def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
+    '''
+    Translated from R's mcmcse package.
+    
+    An estimate of the Monte Carlo Standard Error, as well as the Monte Carlo
+    estimate. Returns a covariance matrix and array for the estimates, as well 
+    as other algorithmic outputs.
+
+    Parameters
+    ----------
+    chain : numpy array
+        The MCMC chain, where the rows are samples.
+    method : str, optional
+        Any of `bm`, `obm`, `bartlett`, `tukey`. `bm` represents batch means
+        estimator, `obm` represents overlapping batch means estimator with,
+        `bartlett` and `tukey` represents the modified-Bartlett window and
+        the Tukey-Hanning windows for spectral variance estimators.
+        The default is "bm".
+    r : int, float, optional
+        The Lugsail parameter, which converts a lag window into it's lugsail
+        equivalent. Larger r implies less underestimation of `cov`, but higher
+        variability of the estimator. r > 5 is not recommended.
+        The default is 3.
+    size : str, or int, optional
+        Batch size, either `sqroot`, `cuberoot`, or an int value between 1 and
+        n/2. 
+        TODO: switch default to None once batch_size is implemented.
+        The default is 'sqroot'.
+    g : function, optional
+        A function to apply to the samples of the chain. If None,
+        g is set to be the identity, which is the estimation of the mean of
+        the target density. The default is None.
+    adjust : bool, optional
+        Automatically adjust the matrix if it is unstable.
+        The default is True.
+
+    Raises
+    ------
+    ValueError
+        Raised is if r is negative, if size is misspecified, if b and r both
+        equal 1, or if an unknown method is specified.
+
+    Returns
+    -------
+    dict
+        A dictionary of the results.
+
+    '''
     method_used = method
     if method == "lug":
         method = "bm"
@@ -635,61 +818,106 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, level=0.95,
                              larger than n.""")
         b = np.floor(size)
 
-    a = np.floor(n/b)
+    if b == 1 and r != 1:
+        r = 1
+        message = "r was set to 1 since b = 1."
     mu_hat = np.mean(chain, axis=0)
-    m = 0
-    # sig_sum = np.zeros(0, (p, p))
-    if method != "bm" and method != "bartlett" and method != "tukey":
+    sig_mat = np.zeros(0, (p, p))
+    if np.floor(b/r) < 1:
+        raise ValueError("Either decrease r or increase n")
+    message = ""
+    
+    if method != "bm" and method != "obm" and method != "bartlett" and method != "tukey":
         raise ValueError("No such method available")
-    if method == "bm":
-        sig_mat = mbmc(chain, b)
-        m = a - 1
-    if method == "bartlett":
+    elif method == "bm":
+        bm_mat = mbmc(chain, b)
+        sig_mat = bm_mat
+        method_used = "Batch Means"
+        if r > 1:
+            sig_mat = 2*bm_mat - mbmc(chain, np.floor(b/r))
+            method_used <- "Lugsail Batch Means with r = " + str(r)
+            if np.prod(np.diag(sig_mat) > 0) == 0:
+                sig_mat = bm_mat
+                method_used = "Batch Means"
+                message = "Diagonals were negative with r = " + str(r) + ". r = 1 was used."
+    elif method == "obm":         
+        obm_mat = mobmc(chain, b)
+        sig_mat = obm_mat
+        method_used = "Overlapping Batch Means"
+        if r > 1:
+            sig_mat = 2*obm_mat - mobmc(chain, np.floor(b/r))
+            method_used <- "Lugsail Overlapping Batch Means with r = " + str(r)
+            if np.prod(np.diag(sig_mat) > 0) == 0:
+                sig_mat = obm_mat
+                method_used = "Overlapping Batch Means"
+                message = "Diagonals were negative with r = " + str(r) + ". r = 1 was used."
+    elif method == "bartlett":
         chain = scale(chain, with_mean=True, with_std=False)
-        sig_mat = msvec(chain, b, "bartlett")
-        m = n - b
-    if method == "tukey":
+        bar_mat = msvec(chain, b, "bartlett")
+        sig_mat = bar_mat
+        method_used = "Bartlett Spectral Variance"
+        if r > 1:
+            sig_mat = 2*bar_mat - msvec(chain, np.floor(b/r), "bartlett")
+            method_used = "Lugsail Bartlett Spectral Variance with r = " + str(r)
+            if np.prod(np.diag(sig_mat) > 0) == 0:
+                sig_mat = bar_mat
+                method_used = "Bartlett Spectral Variance"
+                message = "Diagonals were negative with r = " + str(r) + ". r = 1 was used."
+    
+    elif method == "tukey":
         chain = scale(chain, with_mean=True, with_std=False)
-        sig_mat = msvec(chain, b, "tukey")
-        m = n - b
-    if (m - p + 1 <= 0):
-        warnings.warn("Not enough samples. Estimate is not positive definite")
-        pth_vol = np.nan
-    else:
+        tuk_mat = msvec(chain, b, "tukey")
+        method_used = "Tukey Spectral Variance"
+        if r > 1:
+            sig_mat = 2*tuk_mat - msvec(chain, np.floor(b/r), "tukey")
+            method_used = "Lugsail Tukey Spectral Variance with r = " + str(r)
+            if np.prod(np.diag(sig_mat) > 0) == 0:
+                sig_mat = tuk_mat
+                method_used = "Tukey Spectral Variance"
+                message = "Diagonals were negative with r = " + str(r) + ". r = 1 was used."
+    
+    adjust_used = False
+    if adjust:
         sig_eigen = np.linalg.eigvals(sig_mat)
         if (min(sig_eigen) <= 0):
-            warnings.warn("""You either need more samples or x is not
-                          full column rank""")
-        log_dethalf_pth = (1/(2 * p)) * np.sum(np.log(sig_eigen))
-        crit = chi2.ppf(level, df=p)/n if large else np.exp(np.log(p) + np.log(m) - np.log(n) - np.log(m - p + 1) + np.log(f.ppf(level, p, m - p + 1)))
-        foo = (1/p) * np.log(2) + (1/2) * np.log(np.pi * crit) - (1/p) * np.log(p) - (1/p) * loggamma(p/2)
-        pth_vol = np.exp(foo + log_dethalf_pth)
+            adjust_used = True
+            sig_mat = adjust_matrix(sig_mat, N=n)
 
-    return {'cov': sig_mat, 'vol': pth_vol, 'est': mu_hat, 'nsim': n,
-            'large': large, 'size': b, 'adjust_used': adjust_used,
-            'method': method, 'method_used': method_used}
+    return {'cov': sig_mat, 'est': mu_hat, 'nsim': n,
+            'size': b, 'adjustment_used': adjust_used,
+            'method': method, 'method_used': method_used,
+            'message': message}
 
 
 def minESS(p, alpha=0.05, eps=0.05, ess=None):
     '''
     Translated from the R mcmcse package.
     
-    Calculates the minimum Effective Sample Size of an MCMC chain for the
-    given parameters. `alpha` is the confidence level, `eps` is the
-    tolerance level (ignored when `ess is not None`), and `ess` is the
-    effective sample size. When `ess is not None`, the function returns
-    the confidence level needed to obtain that ESS.
+    Calculates the minimum Effective Sample Size, independent of the MCMC
+    chain for the given number of parameters. `alpha` is the confidence level,
+    `eps` is the tolerance level (ignored when `ess is not None`), and `ess`
+    is the effective sample size. When `ess is not None`, the function returns
+    the tolerance level needed to obtain that ESS.
+    
+    In practice, the user should find the minESS amount and then sample until 
+    they hit that number. Usually, it is computationally difficult to obtain
+    the optimal minimum effective sample size, therefore, it is useful to know
+    what tolerance is needed to obtain the samples that can be afforded 
+    computationally.
 
-    see mulitESS for more information.
+    see mcmcse::minESS for more information.
 
     Parameters
     ----------
     p : int
-        The dimension of the estimation problem.
+        The dimension of the estimation problem (i.e. the number of parameters
+        represented in the MCMC chain, or the number of columns in the MCMC
+        chain).
     alpha : float, optional
         Confidence level. The default is 0.05.
     eps : float, optional
-        tolerance level. The default is 0.05.
+        Tolerance level. The smaller the tolerance, the larger the minimum 
+        effective samples. The default is 0.05.
     ess : int, optional
         Estimated effective sample size. The default is None.
 
@@ -731,15 +959,22 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
     Parameters
     ----------
     chain : numpy array
-        The MCMC chain.
+        The MCMC chain, where the rows are samples.
     covmat : numpy array, optional
         The covaraince matrix for the parameters, if available. If None,
         matrix is obtained from mcse_multi. The default is None.
     g : function, optional
-        --NOT YET IMPLEMENTED--. A function that represents features of
+        A function that represents features of
         interest. `g` is applied to each row of x, and should thus take a
         vector input only. If g is none, g is set to be identity, which is
         estimation of the mean of the target density. The default is None.
+        
+        An example of g would be the sum of the second moments of
+        each parameter, i.e.:
+        
+        def g(x):
+            return np.sum(x**2)
+        
     mcse_multi_args : dict
         Arguments for mcse_multi function. Don't use this if a suitable matrix
         estimate from mcse_multi or mcse_initseq is already obtained. The
@@ -751,13 +986,13 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
         The estimated effective sample size.
 
     '''
-    # if g is not None:
-    #     chain = np.array([g(chain[i, :]) for i in range(chain.shape[0])])
+    if g is not None:
+        chain = np.array([g(chain[i, :]) for i in range(chain.shape[0])])
     
     n = chain.shape[0]
     chain = chain.reshape(n, -1)
     p = chain.shape[1]
-    var_mat = np.cov(chain.T, ddof=1)
+    var_mat = np.cov(chain, rowvar=False, ddof=1)
     if covmat is None:
         covmat = mcse_multi(chain, **mcse_multi_args)['cov']
     det_var_p = np.prod(np.linalg.eigvals(var_mat)**(1/p))

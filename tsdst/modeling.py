@@ -10,8 +10,8 @@ from sklearn.model_selection import (StratifiedKFold, KFold,
 from timeit import default_timer as dt
 
 from .metrics import (cox_snell_r2, nagelkerke_r2, tjur_r2, mcfadden_r2,
-                     conf_mat_metrics, bias, rpmse, r2, adj_r2, top_20p,
-                     number_of_nonzero_coef)
+                      conf_mat_metrics, bias, rpmse, r2, adj_r2, top_20p,
+                      number_of_nonzero_coef)
 
 
 def scoreModel(X, Y, model, metrics=['Accuracy',
@@ -557,8 +557,8 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold', mtype='classification'
 
     Returns
     -------
-    scores : TYPE
-        DESCRIPTION.
+    scores : dict
+        Dictionary of performance metrics.
 
     '''
     splits = None
@@ -760,8 +760,8 @@ def beta_trans(coef, type_="percent"):
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
+    numpy array
+        Transformed Coefficients.
 
     '''
     val = np.exp(coef)

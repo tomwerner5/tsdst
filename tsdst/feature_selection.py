@@ -4,11 +4,14 @@ import pandas as pd
 
 from datetime import datetime
 from sklearn.model_selection import StratifiedKFold
+from time import mktime
 from timeit import default_timer as dt
 
+from .distributions import (likelihood_bernoulli, likelihood_poisson,
+                            likelihood_gaussian)
 from .metrics import aicCalc
 from .parallel import p_prog_simp
-from .tmath import percentIncrease
+#from .tmath import percentIncrease, powerset
 from .utils import updateProgBar, print_time
 
 
@@ -16,10 +19,6 @@ def naiveVarDrop(X, searchCols, tol=0.0001, standardize=False, asList=False,
                  print_=False):
     '''
     Drop columns based on which columns have variance below the threshold.
-    
-    Note: the standardize option is for historical reasons only. If set to
-    True, nothing will happen, since every column will now have a variance
-    of 1.
 
     Parameters
     ----------
@@ -30,8 +29,6 @@ def naiveVarDrop(X, searchCols, tol=0.0001, standardize=False, asList=False,
     tol : float, optional
         The threshold for variance to decide which columns to keep or drop.
         The default is 0.0001.
-    standardize : bool, optional
-        Assign each column an equal variance of 1. The default is False.
     asList : bool, optional
         Return only the list of columns to be dropped. The default is False.
     print_ : bool, optional
@@ -47,12 +44,7 @@ def naiveVarDrop(X, searchCols, tol=0.0001, standardize=False, asList=False,
     if searchCols is None:
         searchCols = list(X.columns)
     for i in searchCols:
-        var = 1
-        if standardize:
-            std_data = (X.loc[:, i] - X.loc[:, i].mean())/X.loc[:, i].std(ddof=1)
-            var = np.var(std_data, ddof=1)
-        else:
-            var = X.loc[:, i].var(ddof=1)
+        var = X.loc[:, i].var(ddof=1)
         if var < tol:
             cols_to_drop.append(i)
     if print_:
@@ -102,6 +94,8 @@ def getHighCorrs(corr_mat, corr_thres, split_key="..&.."):
     '''
     Given a correlation matrix, return the
     correlations that are above the threshold.
+    
+    To be used before dropHighCorrs.
 
     Parameters
     ----------
@@ -141,11 +135,14 @@ def dropHighCorrs(X, top_corr, split_key="..&..", asList=False, print_=False):
     '''
     Remove high inter-correlations from the dataset. When dropping a column,
     the column with the lowest variance is selected.
+    
+    To be used after getHighCorrs.
 
     Parameters
     ----------
     X : pandas dataframe
-        The data in tabular form (the feature or design matrix).
+        The data in tabular form (the feature or design matrix of which the 
+        correlation is being evaluated).
     top_corr : dataframe
         The output from the getHighCorrs function, or, a dataframe containing a
         list of the high correlations, where the index is a list of the column
@@ -184,6 +181,8 @@ def dropHighCorrs(X, top_corr, split_key="..&..", asList=False, print_=False):
 
 def dropCorrProcedure(X, corr_thres, split_key="..&..", 
                       asList=False, print_=False):
+    # TODO: add an option for dropping columns that have a low correlation with
+    # the target
     '''
     Calculates the inter-correlation of the columns in a dataframe, and then
     drops columns that are above a given threshold.
@@ -276,7 +275,7 @@ def permutation_importance(fit_model, Xtest, Ytest,
     return res
 
 
-def crossval_perm_imp(model, X, Y, metric_func, num_splits=8, seed=None, sort="dsc"):
+def permutation_importance_CV(model, X, Y, metric_func, num_splits=8, seed=None, sort="dsc"):
     '''
     Performs a cross-validated permutation importance on a non-fitted model.
     
@@ -338,7 +337,7 @@ def crossval_perm_imp(model, X, Y, metric_func, num_splits=8, seed=None, sort="d
     return pi_tot_df
 
 
-def calcForwardAics(X, Y, model, metric):
+def _calcForwardAICs(X, Y, model, metric, family):
     '''
     A utility function for the forwardSelection algorithm. Calculates AIC
     values for a two-class classification model.
@@ -350,10 +349,12 @@ def calcForwardAics(X, Y, model, metric):
     Y : pandas Series
         The response variable.
     model : sklearn, or similar
-        Any model that has a fit and predict method.
+        Any model that has a fit and predict (or predict_proba) method.
     metric : str
         The AIC metric to be used, for example, aic, aicc, bic, ebic, hastie, 
         or kwano.
+    family : str
+        The family of distributions to calculate log-likelihood from.
 
     Returns
     -------
@@ -361,24 +362,34 @@ def calcForwardAics(X, Y, model, metric):
         The AIC (or variant) score.
 
     '''
-
     mod = model.fit(X, Y)
 
     ss = X.shape[0]
     ncoefs = X.shape[1]
 
-    Yprob = mod.predict_proba(X)[:, 1]
-    #mod_coef = np.concatenate((model.intercept_, np.squeeze(model.coef_)))
-    #ncoefs = sum([True if coef != 0 else False for coef in mod_coef])
+    if family == "binomial":
+        nllf = likelihood_bernoulli
+        # Assumes the probability of positive class
+        y_pred = mod.predict_proba(X)[:, 1]
+    elif family == "poisson":
+        nllf = likelihood_poisson
+        y_pred = mod.predict(X)
+    elif family == "gaussian":
+        nllf = likelihood_gaussian
+        y_pred = mod.predict(X)
+    else:
+        raise ValueError("Not a valid family")
 
-    loglike = np.sum(Y*np.log(Yprob) + (1 - Y)*np.log(1 - Yprob))
+    loglike = nllf(y_true=Y, y_score=y_pred, neg=False)
+
     score = aicCalc(loglike, ncoefs, sample_size=ss, c=2, metric=metric)
     return score
 
 
-def doParallelForward(save_path, save_name, metric, model,
+def _doParallelForward(save_path, save_name, save_ext, metric, model,
                       target_var, new_predictor, use_probabilities,
-                      mod_cols, Yprob=None):
+                      mod_cols, family, Yprob=None,
+                      serialize_flavor='feather'):
     '''
     A helper function to lessen the load on memory when computing in parallel.
 
@@ -388,6 +399,8 @@ def doParallelForward(save_path, save_name, metric, model,
         Path to temporary saved data.
     save_name : str
         Name of temporary data.
+    save_ext : str
+        The name of the temporary file extension.
     metric : str
         The AIC metric to be used, for example, aic, aicc, bic, ebic, hastie, 
         or kwano.
@@ -403,9 +416,17 @@ def doParallelForward(save_path, save_name, metric, model,
         selection.
     mod_cols : list
         Columns that made it into the final model.
+    family : str
+        The family of distributions to calculate log-likelihood from.
     Yprob : numpy array or pandas series, optional
         The predicted probabilities from the current model, if applicable.
         The default is None.
+    serialize_flavor : str
+        Which mode of downsaving data to use, currently supports 'feather' and
+        'msgpack'. Unfortunately, as of pandas 0.25.0, msgpack is no longer 
+        supported.
+        
+        Note: using feather requires pyarrow
 
     Returns
     -------
@@ -420,41 +441,106 @@ def doParallelForward(save_path, save_name, metric, model,
     # good choice. However, for long-term storage, parquet is 
     # probably the best option
 
-    data = pd.read_msgpack(save_path + save_name + '.msg')
-    chunks = [int(x[6:]) for x in data.keys()]
-    chunks = sorted(chunks)
-    mergedDF = pd.DataFrame()
-    for chunk in chunks:
-        mergedDF = mergedDF.append(data['chunk_'+str(chunk)])
+    if serialize_flavor == 'msgpack':
+        data = pd.read_msgpack(save_path + save_name + save_ext)
+        chunks = [int(x[6:]) for x in data.keys()]
+        chunks = sorted(chunks)
+        mergedDF = pd.DataFrame()
+        for chunk in chunks:
+            mergedDF = mergedDF.append(data['chunk_'+str(chunk)])
+    elif serialize_flavor == 'feather':
+        mergedDF = pd.read_feather(save_path + save_name + save_ext)
+    else:
+        raise ValueError("{0} is not a supported serialize method.".format(serialize_flavor))
+    
 
     Y = mergedDF.loc[:, target_var]
-    
+
     if use_probabilities:
         X = pd.DataFrame({'Yprob': Yprob,
-                          new_predictor: mergedDF.loc[:, new_predictor].values},
-                         index=mergedDF.index)
+                          new_predictor: mergedDF.loc[:, new_predictor].values
+                         }, index=mergedDF.index)
     else:
         X = mergedDF.loc[:, mod_cols + new_predictor]
-    
-    res = calcForwardAics(X, Y, model, metric)
 
-        # For debugging purposes, to attempt to force garbage collection in parallel
-    data = []
-    chunks = []
-    mergedDF = []
-    X = []
-    Y = []
+    res = _calcForwardAICs(X, Y, model, metric, family)
+
+    # For debugging purposes, to attempt to force garbage collection in parallel
+    #data = []
+    #chunks = []
+    #mergedDF = []
+    #X = []
+    #Y = []
         
     return res
 
+def _prepare_for_parallel(XY, serialize_flavor='feather'):
+    '''
+    Utility function to setup the data for parallel processing with low
+    memory overhead.
 
-def forwardSelection(XY, target_var, model, metric='bic', verbose=True,
-                     n_jobs=1, early_stop=False, perc_min=0.05,
-                     stop_at_p=1000, stop_when=5, use_probabilites=False,
-                     return_type='all'):
+    Parameters
+    ----------
+    XY : pandas dataframe
+        The combined independent variables/features and reponse/target
+        variable.
+
+    Returns
+    -------
+    save_name : str
+        The name of the temporary data.
+    save_path : str
+        The name of the temporary file path.
+    save_ext : str
+        The name of the temporary file extension.
+    num_chunks : int
+        The number of chunks inside pandas msgpck format (determined by 
+        dataframe size).
+    serialize_flavor : str
+        Which mode of downsaving data to use, currently supports 'feather' and
+        'msgpack'. Unfortunately, as of pandas 0.25.0, msgpack is no longer 
+        supported.
+        
+        Note: using feather requires pyarrow
+
+    '''
+        
+    save_path = 'forward_tmp'
+    if not os.path.isdir(save_path):
+        os.mkdir(save_path)
+    save_name = '/forward_run_' + str(int(mktime(datetime.now().timetuple())))
+    save_ext = ''
+    
+    if serialize_flavor == 'msgpack':
+        save_ext = '.msg'
+        num_chunks = int(((XY.memory_usage(index=True).sum()/(1024**3))/2) + 1)
+        pd.to_msgpack(save_path + save_name + save_ext, {
+            'chunk_{0}'.format(i):chunk for i, chunk in enumerate(np.array_split(XY, num_chunks))
+            })
+    elif serialize_flavor == 'feather':
+        save_ext = '.fth'
+        num_chunks = None
+        XY.to_feather(save_path + save_name + save_ext)
+    else:
+        raise ValueError("{0} is not a supported serialize method.".format(serialize_flavor))
+    
+    return save_name, save_path, save_ext, num_chunks
+
+
+def forwardSelection(XY, target_var, model, metric='bic', family='gaussian',
+                     verbose=True, n_jobs=1, early_stop=False, perc_min=0.01,
+                     stop_at_p=1000, stop_when=5, use_probabilities=False,
+                     return_type='all', serialze_flavor='feather',
+                     use_threads=True):
     '''
     A forward selection algorithm for classification only right now. Still 
     needs some work.
+    
+    Note: it is a known bug for this function to fail when n_jobs > 1 while
+    using sypder. This is because of an issue with spyder and the p_prog_simp
+    function. I have not been able to discover why, or provide a fix.
+    If you run a script with this function from the console, it should run
+    just fine. 
 
     Parameters
     ----------
@@ -464,32 +550,41 @@ def forwardSelection(XY, target_var, model, metric='bic', verbose=True,
     target_var : str
         The column containing the target (or response) variable.
     model : sklearn, or similar
-        Any model that has a fit and predict method.
+        An unfitted model. Any model that has a fit and predict method.
     metric : str
         The AIC metric to be used, for example, aic, aicc, bic, ebic, hastie, 
         or kwano.
+    family : str
+        The family of distributions to calculate log-likelihood from.
     verbose : bool, optional
         Output the steps and progress as it completes. The default is True.
     n_jobs : int, optional
         If greater than 1, perform operation in parallel. The default is 1.
-    early_stop : bool, optional
-        Stop operations early if max number of desired selection is reached.
-        The default is False.
-    perc_min : TYPE, optional
-        DESCRIPTION. The default is 0.05.
+    perc_min : float, optional
+        --NOT IMPLEMENTED--. The percent change minimum for breaking early,
+        if no meanigful change in metric is detected. The default is 0.01.
     stop_at_p : int, optional
-        The number of selections to stop at, if early_stop is True.
-        The default is 1000.
+        The number of selections to stop at. In other words, it selects up to
+        `p` predictors, even if the optimal model is not yet found and more
+        tests could be done. The default is 1000.
     stop_when : int, optional
         Stop the operations when the metric no longer continues to decrease,
         after evaluating the next stop_when columns. The default is 5.
-    use_probabilities : bool
+    use_probabilities : bool, optional
         Whether or not to use predicted probabilities as the only other feature
         in the set, or to use the actual features in performing the forward 
-        selection.
+        selection. The default is False.
     return_type : str, optional
         Which object to return, can be either list, model, data, or all.
         The default is 'all'.
+    serialize_flavor : str
+        Which mode of downsaving data to use, currently supports 'feather' and
+        'msgpack'. Unfortunately, as of pandas 0.25.0, msgpack is no longer 
+        supported.
+    use_threads : bool, optional
+        Use threads instead of processes for parallel operation.f
+        
+        Note: using feather requires pyarrow
 
     Returns
     -------
@@ -497,42 +592,6 @@ def forwardSelection(XY, target_var, model, metric='bic', verbose=True,
         Either return as list, model, data, or all. The default is 'all'.
 
     '''
-    
-    def prepare_for_parallel(XY):
-        '''
-        Utility function to setup the data for parallel processing with low
-        memory overhead.
-
-        Parameters
-        ----------
-        XY : pandas dataframe
-            The combined independent variables/features and reponse/target
-            variable.
-
-        Returns
-        -------
-        save_name : str
-            The name of the temporary data.
-        save_path : str
-            The name of the temporary file path.
-        num_chunks : int
-            The number of chunks inside pandas msgpck format (determined by 
-            dataframe size).
-
-        '''
-        num_chunks = int(((XY.memory_usage(index=True).sum()/(1024**3))/2) + 1)
-            
-        save_path = 'forward_tmp'
-        if not os.path.isdir(save_path):
-            os.mkdir(save_path)
-        save_name = '/forward_run_' + str(datetime.now())
-        
-        pd.to_msgpack(save_path + save_name + '.msg', {
-            'chunk_{0}'.format(i):chunk for i, chunk in enumerate(np.array_split(XY, num_chunks))
-            })
-        
-        return save_name, save_path, num_chunks
-        
     
     t0 = dt()
     
@@ -546,6 +605,7 @@ def forwardSelection(XY, target_var, model, metric='bic', verbose=True,
             complexity = np.sum((XY.shape[1] - 1) - np.arange(0, stop_at_p))
     else:
         complexity = total_possible_complexity
+        stop_at_p = XY.shape[1] - 1
     
     
     if verbose:
@@ -557,28 +617,30 @@ def forwardSelection(XY, target_var, model, metric='bic', verbose=True,
     #all_combos = list(powerset(X.columns))
     final_mod_cols = []
     leftover_cols = [x for x in XY.columns if x != target_var]
-    prev_minScore = np.inf
-    early_stop_counter = 0
+    currentScore = np.inf
+    #early_stop_counter = 0
     loop_counter = 0
     
     if n_jobs > 1:
         if verbose:
             print_time("\nPreparing Parallel Operation...", t0, te=dt())
             
-        save_name, save_path, num_chunks = prepare_for_parallel(XY)
+        save_name, save_path, save_ext, num_chunks = _prepare_for_parallel(XY)
         arg = {'save_path': save_path,
                'save_name': save_name,
+               'save_ext': save_ext,
                'metric': metric,
                'model': model,
                'target_var': target_var,
-               'use_probabilites': use_probabilites,
+               'family': family,
+               'use_probabilities': use_probabilities,
                'mod_cols': final_mod_cols,
                'Yprob': None
               }
     
     for i in range(XY.shape[1] - 1):
         scores = []
-        if use_probabilites and i > 1:
+        if use_probabilities and i > 1:
             # create current model and probability array
             initial_fit = model.fit(XY.loc[:, final_mod_cols], XY.loc[:, target_var])
             Yprob = initial_fit.predict_proba(XY.loc[:, final_mod_cols])[:, 1]
@@ -591,18 +653,22 @@ def forwardSelection(XY, target_var, model, metric='bic', verbose=True,
                 print_time("\nPerforming " + str(i + 1) + " of " + str(stop_at_p) + " Steps...",
                            t0, te=dt(), backsn=True)
             loop_arg = [{'new_predictor': [col]} for col in leftover_cols]
-            scores = p_prog_simp(arg, loop_arg, doParallelForward, n_jobs)
-            
+            scores = p_prog_simp(arg, loop_arg, _doParallelForward, n_jobs,
+                                 use_threads=use_threads)
+            #return scores
+            if verbose:
+                loop_counter += len(loop_arg)
+                updateProgBar(loop_counter, complexity, t0)
         else:
             for k, col in enumerate(leftover_cols):
-                if use_probabilites and i > 1:
+                if use_probabilities and i > 1:
                     #print('loop step: ', XY.loc[:, col].values.shape, "\n")
                     XY_prob = pd.DataFrame({'Yprob': Yprob, col: XY.loc[:, col].values}, index=XY.index)
-                    score = calcForwardAics(XY_prob, XY.loc[:, target_var],
-                                            model, metric)
+                    score = _calcForwardAICs(XY_prob, XY.loc[:, target_var],
+                                             model, metric, family)
                 else:
-                    score = calcForwardAics(XY.loc[:, final_mod_cols + [col]], XY.loc[:, target_var],
-                                            model, metric)
+                    score = _calcForwardAICs(XY.loc[:, final_mod_cols + [col]], XY.loc[:, target_var],
+                                             model, metric, family)
                 scores.append(score)
             
                 if verbose:
@@ -610,28 +676,32 @@ def forwardSelection(XY, target_var, model, metric='bic', verbose=True,
                     updateProgBar(loop_counter, complexity, t0)
         
         minScore = np.min(scores)
-        if minScore < prev_minScore:
-            prev_minScore = minScore
+        if minScore > currentScore:
+            print("\nNo further imporovement in the model. Breaking...")
+            break
+        else:
+            currentScore = minScore
         
         minScoreLoc = np.where(minScore == np.array(scores))[0][0]
         final_mod_cols.append(leftover_cols[minScoreLoc])
         del leftover_cols[minScoreLoc]
         
-        if early_stop:
-            if np.abs(percentIncrease(minScore, prev_minScore)) >= perc_min:
-                early_stop_counter += 1
-            else:
-                early_stop_counter = 0
-            
-            if early_stop_counter >= stop_when:
-                print('Stopped Early')
-                break
-            if i >= stop_at_p:
-                print('Stopped at ', str(i), 'Generations')
-                break
+        # could be useful if I wanted to do something like accuracy,
+        # but for AIC/BIC, this isn't necessary
+        #if np.abs(percentIncrease(minScore, prev_minScore)) < perc_min:
+        #    early_stop_counter += 1
+        #else:
+        #    early_stop_counter = 0
+        #
+        #if early_stop_counter >= stop_when:
+        #    print('Stopped Early')
+        #    break
+        #if i >= stop_at_p:
+        #    print('Stopped at ', str(i), ' selected predictors')
+        #    break
 
     if n_jobs > 1:
-        file_ = save_path + save_name + '.msg'
+        file_ = save_path + save_name + save_ext
         try:
             os.remove(file_)
         except FileNotFoundError:
@@ -650,4 +720,3 @@ def forwardSelection(XY, target_var, model, metric='bic', verbose=True,
 ## TODO: import vif from modeling and incorporate a vif drop  
 def vifDrop():
     return 0
-

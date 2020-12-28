@@ -10,7 +10,7 @@ import numpy as np
 from scipy.stats import norm as normal, lognorm, gamma
 from scipy.special import xlogy, loggamma
 
-from tsdst.tmath import norm
+from .tmath import norm
 
 
 # #########################################
@@ -53,6 +53,215 @@ def qnorm_aprox(p, mu=0, sigma=1, lt=True):
     i_erf = np.sign(x)*np.sqrt(np.sqrt(b**2 - c) - b)
     quant = mu + sigma*np.sqrt(2)*i_erf
     return quant
+
+
+def pnorm_approx(q, mu=0, sigma=1, lt=True, log=False):
+    '''
+    This is a fast approximation of the normal cdf, accurate to 1.5e-7.
+    For exact solutions, use dwrap or SciPy.
+
+    Parameters
+    ----------
+    q : float
+        Quantile of interest.
+    mu : float, optional
+        Mean of the normal distribution. The default is 0.
+    sigma : float, optional
+        Standard deviation of the normal distribution. The default is 1.
+    lt : bool, optional
+        Use lower tail. The default is True.
+    log : bool, optional
+        Return log of the value. The default is False.
+
+    Returns
+    -------
+    prob : float
+        The probability at the given quantile.
+
+    '''
+    q = np.array(q)
+    p = 0.3275911
+    a1 = 0.254829592
+    a2 = -0.284496736
+    a3 = 1.421413741
+    a4 = -1.453152027
+    a5 = 1.061405429
+    x = (q - mu)/(sigma * np.sqrt(2))
+    sx = np.sign(x)
+    ax = np.abs(x)
+    t = (1 / (1 + p*ax))
+    erf = sx * (1 - (a1*t +
+                a2*(t**2) +
+                a3*(t**3) +
+                a4*(t**4) +
+                a5*(t**5)) * np.exp(-(ax**2)))
+
+    prob = 0.5*(1.0 + erf)
+    if not lt:
+        prob = 1.0 - prob
+    if log:
+        prob = np.log(prob)
+    return prob
+
+
+def dpoibin_PA(k, p):
+    '''
+    Poisson approximation of the Poisson-Binomial probability mass function.
+    Fast, but possibly inaccurate.
+
+    Parameters
+    ----------
+    k : numpy array or int
+        The poisson counts.
+    p : numpy array or float
+        Binomial probabilities.
+
+    Returns
+    -------
+    prob : float
+        The mass of the poisson-binomial distribution.
+
+    '''
+    lmbda = np.sum(p)
+    prob = np.exp(k * np.log(lmbda) - lmbda - loggamma(k + 1.0))
+    return prob
+
+
+def ppoibin_RNA(k, p, p_weight=None):
+    '''
+    Refined normal approximation of Poisson-Binomial Cumulative Distribution.
+    This code is adapted from the R package 'poibin'.
+    Very fast for p > 10000.
+
+    Parameters
+    ----------
+    k : numpy array or int
+        Poisson counts.
+    p : numpy array or float
+        Binomial probabilities.
+    p_weight : numpy array, optional
+        Weights for the probabilities. Same length as p. The default is None.
+
+    Returns
+    -------
+    vkk_r : numpy array or float
+        cumulative probabilities.
+
+    '''
+    p = np.array(p).reshape(-1, )
+    k = np.array(k).reshape(-1, )
+    if any(p < 0) or any(p > 1):
+        raise("Invalid Probabilities (0 <= P(x) <= 1)")
+
+    if p_weight is None:
+        p_weight = np.repeat(1, len(p))
+
+    pp = np.repeat(p, p_weight)
+    muk = np.sum(pp)
+    sigmak = np.sqrt(np.sum(pp * (1 - pp)))
+    gammak = np.sum(pp * (1 - pp) * (1 - 2 * pp))
+    kk1 = (k + 0.5 - muk)/sigmak
+    vkk_r = (pnorm_approx(kk1) + gammak/(6 * sigmak**3) * (1 - kk1**2) *
+             dwrap(kk1, [0, 1], "pdf", "normal"))
+    vkk_r[np.where(vkk_r < 0)] = 0
+    vkk_r[np.where(vkk_r > 1)] = 1
+    return vkk_r
+
+
+def dpoibin_FT(k, p):
+    '''
+    The probability mass function for the poisson-binomial distribution.
+    This function is written by the author of this package, and uses the
+    discrete fourier transform.
+
+    Parameters
+    ----------
+    k : numpy array or int
+        Poisson counts.
+    p : numpy array or float
+        Binomial probabilities.
+
+    Returns
+    -------
+    karray : float or numpy array
+        The mass of the poisson-binomial distribution.
+
+    '''
+    n = len(p)
+    nk = len(k)
+    inp1 = (1/(n + 1))
+    L = np.arange(0, n + 1, 1)
+    C = np.exp((2*1j*np.pi)/(n + 1))
+    karray = np.zeros(nk)
+    k_bool = np.array((k < 0) | (k > n))
+    for i in range(nk):
+        if k_bool[i]:
+            karray[i] = 0
+        else:
+            prodp = np.array([np.prod(1 + (C**x - 1)*p) for x in L])
+            c_calc = C**(-L*k[i])
+            sumc = np.sum(c_calc * prodp)
+            res = inp1*sumc
+            karray[i] = res.real
+    if any(karray < 0):
+        karray[np.where(karray < 0)] = 0
+    return karray
+
+
+# This function is adapted from Mark Lodato of StackExchange, Nov 7'16
+# It's fast, but runs slower than 1 second once p > 25000
+# Link: https://stats.stackexchange.com/questions/242233/efficiently-computing-poisson-binomial-sum
+# Computes both the pdf and the cdf
+def dpoibin_exact(k, p, cdf=False):
+    '''
+    The probability mass function for the poisson-binomial distribution.
+    
+    This function is adapted from Mark Lodato of StackExchange, Nov 7'16
+    It's fast, but runs slower than 1 second once len(p) > 25000
+    Link: https://stats.stackexchange.com/questions/242233/efficiently-computing-poisson-binomial-sum
+    
+    Adapted to compute both the pdf and the cdf
+
+    Parameters
+    ----------
+    k : numpy array or int
+        Poisson counts.
+    p : numpy array or float
+        Binomial probabilities.
+    cdf : bool, optional
+        Compute the cdf. Default is False.
+
+    Returns
+    -------
+    karray : float or numpy array
+        The mass of the poisson-binomial distribution.
+
+    '''
+    k = np.array(k).reshape(-1,)
+    p = np.array(p).reshape(-1,)
+    
+    n = p.shape[0]
+    m = k.shape[0]
+    karray = np.zeros(m)
+    pmf = np.zeros(n + 1, dtype=float)
+    pmf[0] = 1.0
+    for i in range(n):
+        success = pmf[:i + 1] * p[i]
+        pmf[:i + 2] *= (1 - p[i])  
+        pmf[1:i + 2] += success
+    for i, k_elem in enumerate(k):
+        if cdf:
+            karray[i] = pmf[:int(k_elem+1)].sum()
+            if any(k > n):
+                karray[np.where(k > n)] = 1
+        else:
+            if k_elem <= n:
+                karray[i] = pmf[k_elem]
+            if any(k > n):
+                karray[np.where(k > n)] = 0
+    if any((karray < 0) | (k < 0)):
+        karray[np.where((karray < 0) | (k < 0))] = 0
+    return karray
 
 
 def dwrap(data, params, disttype, funct, log=False):
@@ -198,7 +407,7 @@ def dwrap(data, params, disttype, funct, log=False):
         if disttype == "pdf":
             if log:
                 return (-0.5*np.log(2*np.pi) - np.log(sigma) -
-                        (((data - mu)**2) / (2*(sigma**2))))
+                        0.5*((data - mu) / sigma)**2)
             else:
                 return ((1/(np.sqrt(2*np.pi)*sigma)) *
                         (np.exp(-((data - mu)**2)/(2*(sigma**2)))))
@@ -209,9 +418,14 @@ def dwrap(data, params, disttype, funct, log=False):
                 return normal.cdf(x=data, loc=mu, scale=sigma)
         elif disttype == "sf":
             if log:
-                return normal.logsf(x=data, scale=mu, s=sigma)
+                return normal.logsf(x=data, loc=mu, scale=sigma)
             else:
-                return normal.sf(x=data, scale=mu, s=sigma)
+                return normal.sf(x=data, loc=mu, scale=sigma)
+        elif disttype == "inv-cdf":
+            if log:
+                return normal.logppf(q=data, loc=mu, scale=sigma)
+            else:
+                return normal.ppf(q=data, loc=mu, scale=sigma)
         else:
             raise ValueError("Not a valid distribution type")
     elif funct == "gamma":
@@ -243,9 +457,44 @@ def dwrap(data, params, disttype, funct, log=False):
 # #########################################
 
 
-def negloglike_logreg(parms, X, Y, lamb=1, l_norm=1):
+def likelihood_bernoulli(y_true, y_score, neg=True, log=True):
     '''
-    The negative log-likelihood for a logistic regression model with a penalty
+    The likelihood for a binary output or bernoulli model 
+    
+    Parameters
+    ----------
+    y_true : numpy array (numeric)
+        The true values (the binary observations).
+    y_score : numpy array or pandas dataframe
+        The predicted probabilities.
+    neg : bool, optional
+        Return negative likelihood. The default is True.
+    log : bool, optional
+        Return log-likelihood. The default is True.
+
+    Returns
+    -------
+    float
+        The likelihood.
+
+    '''
+    
+    ### Alternate formulation (placing here for my notes)
+    # loglike = y_true*y_score - np.log(1 + np.exp(y_score))
+    loglike = np.sum(xlogy(y_true, y_score) + xlogy(1.0 - y_true, 1.0 - y_score))
+
+    if not log:
+        loglike = np.exp(loglike)
+
+    if neg:
+        return -loglike
+    else:
+        return loglike
+
+
+def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
+    '''
+    The likelihood for a logistic regression or bernoulli model with a penalty
     term (can accept any norm, default is 1 for L1)
     
     Parameters
@@ -261,14 +510,18 @@ def negloglike_logreg(parms, X, Y, lamb=1, l_norm=1):
     lamb : int, optional
         The size of the penalty (lambda). Note this is the inverse of the
         common sklearn parameter C (i.e. C=1/lambda. The default is 1.
-    l_norm : int, optional
+    l_p : int, optional
         The mathmatical norm to be applied to the coefficients.
         The default is 1, representing an L1 penalty.
+    neg : bool, optional
+        Return negative likelihood. The default is True.
+    log : bool, optional
+        Return log-likelihood. The default is True.
 
     Returns
     -------
     float
-        The negative log-likelihood.
+        The likelihood.
 
     '''
     #intercept = parms[0]
@@ -276,10 +529,185 @@ def negloglike_logreg(parms, X, Y, lamb=1, l_norm=1):
     
     mu = X.dot(parms)
     Ypred = 1.0/(1.0 + np.exp(-mu))
-    #Ypred = np.sum([Ypred >= 0.5], axis=0)
-    loglike = np.sum(xlogy(Y, Ypred) + xlogy(1.0 - Y, 1.0 - Ypred)) - lamb*norm(betas, l_norm)
+    ### Alternate formulation (placing here for my notes)
+    # loglike = Y*mu - np.log(1 + np.exp(mu))
+    loglike = np.sum(xlogy(Y, Ypred) + xlogy(1.0 - Y, 1.0 - Ypred)) - lamb*norm(betas, l_p)
 
-    return -loglike
+    if not log:
+        loglike = np.exp(loglike)
+
+    if neg:
+        return -loglike
+    else:
+        return loglike
+
+
+def likelihood_poisson(y_true, y_score, neg=True, log=True):
+    '''
+    The likelihood for a count output or poisson model 
+    
+    Parameters
+    ----------
+    y_true : numpy array (numeric)
+        The true values (the poisson observations).
+    y_score : numpy array or pandas dataframe
+        The estimated value/values (lambda).
+    neg : bool, optional
+        Return negative likelihood. The default is True.
+    log : bool, optional
+        Return log-likelihood. The default is True.
+
+    Returns
+    -------
+    float
+        The likelihood.
+
+    '''
+    loglike = np.sum(y_true*np.log(y_score) - y_score - loggamma(y_true + 1))
+
+    if not log:
+        loglike = np.exp(loglike)
+
+    if neg:
+        return -loglike
+    else:
+        return loglike
+
+
+def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
+    '''
+    The likelihood for a poisson regression model with a penalty
+    term (can accept any norm, default is 1 for L1)
+    
+    Parameters
+    ----------
+    parms : numpy array (numeric)
+        The coefficients (including intercept, which is first)
+    X : numpy array (numeric)
+        The independent variables (or feature matrix), where the first column
+        is a dummy column of 1's (for the intercept).
+    Y : numpy array or pandas dataframe
+        The response value (should be 0 or 1, but could be float as well if 
+        you're willing to deal with those consequences).
+    lamb : int, optional
+        The size of the penalty (lambda). Note this is the inverse of the
+        common sklearn parameter C (i.e. C=1/lambda. The default is 1.
+    l_p : int, optional
+        The mathmatical norm to be applied to the coefficients.
+        The default is 1, representing an L1 penalty.
+    neg : bool, optional
+        Return negative likelihood. The default is True.
+    log : bool, optional
+        Return log-likelihood. The default is True.
+
+    Returns
+    -------
+    float
+        The likelihood.
+
+    '''
+    #intercept = parms[0]
+    betas = parms[1:]
+    
+    mu = X.dot(parms)
+    
+    loglike = np.sum(Y*mu - np.exp(mu) - loggamma(Y + 1)) - lamb*norm(betas, l_p)
+
+    if not log:
+        loglike = np.exp(loglike)
+
+    if neg:
+        return -loglike
+    else:
+        return loglike
+
+
+def likelihood_gaussian(y_true, y_score, neg=True, log=True, sigma=None):
+    '''
+    The likelihood for a normal(ish) output or gaussian model 
+    
+    Parameters
+    ----------
+    y_true : numpy array (numeric)
+        The true values (the normal observations).
+    y_score : numpy array or pandas dataframe
+        The estimated value/values (mean of the normal distribution).
+    neg : bool, optional
+        Return negative likelihood. The default is True.
+    log : bool, optional
+        Return log-likelihood. The default is True.
+
+    Returns
+    -------
+    float
+        The likelihood.
+
+    '''
+    if sigma is None:
+        # The MLE estimate of sigma
+        sigma = np.sqrt(np.mean((y_true - y_score)**2))
+
+    loglike = np.sum((-0.5*np.log(2*np.pi) - np.log(sigma) - 0.5*((y_true - y_score) / sigma)**2))
+
+    if not log:
+        loglike = np.exp(loglike)
+
+    if neg:
+        return -loglike
+    else:
+        return loglike
+
+
+def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
+                            log=True):
+    '''
+    The likelihood for a gaussian regression model with a penalty
+    term (can accept any norm, default is 1 for L1)
+    
+    Parameters
+    ----------
+    parms : numpy array (numeric)
+        The coefficients (including intercept, which is first)
+    X : numpy array (numeric)
+        The independent variables (or feature matrix), where the first column
+        is a dummy column of 1's (for the intercept).
+    Y : numpy array or pandas dataframe
+        The response value (should be 0 or 1, but could be float as well if 
+        you're willing to deal with those consequences).
+    lamb : int, optional
+        The size of the penalty (lambda). Note this is the inverse of the
+        common sklearn parameter C (i.e. C=1/lambda. The default is 1.
+    l_p : int, optional
+        The mathmatical norm to be applied to the coefficients.
+        The default is 1, representing an L1 penalty.
+    neg : bool, optional
+        Return negative likelihood. The default is True.
+    log : bool, optional
+        Return log-likelihood. The default is True.
+
+    Returns
+    -------
+    float
+        The likelihood.
+
+    '''
+    #intercept = parms[0]
+    betas = parms[1:]
+    
+    mu = X.dot(parms)
+    if sigma is None:
+        # The MLE estimate of sigma
+        sigma = np.sqrt(np.sum((Y - mu)**2)/(Y.shape[0] - len(betas) - 1))
+    
+    loglike = np.sum((-0.5*np.log(2*np.pi) - np.log(sigma) - 0.5*((Y - mu) / sigma)**2)) - lamb*norm(betas, l_p)
+    
+    if not log:
+        loglike = np.exp(loglike)
+
+    if neg:
+        return -loglike
+    else:
+        return loglike
 
 
 # #########################################
@@ -287,9 +715,9 @@ def negloglike_logreg(parms, X, Y, lamb=1, l_norm=1):
 # #########################################
 
 
-def posterior_logreg_lasso(parms, X, Y, l_scale=0.5):
+def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
     '''
-    The posterior likelihood for a logistic regression model with an L1 penalty
+    The posterior density for a logistic regression model with an L1 penalty
     term.
     
     Parameters
@@ -302,20 +730,32 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5):
     Y : numpy array or pandas dataframe
         The response value (should be 0 or 1, but could be float as well if 
         you're willing to deal with those consequences).
-    l_scale : int, optional
-        The size of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, where
+    l_scale : float, optional
+        The value of the scale parameter in the Laplace distribution.
+        A common choice for the laplace prior is scale = 2/lambda, 
+        because it can be shown that this is the MAP estimate where
+        a laplace prior is equivalent to performing lasso regression.
         lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn). I find that when scale == C, you get more similar results.
-        to LogisticRegression output in sklearn. This
-        parameterization is similar to scale = stddev/lambda or
-        scale = stddev*C, where I set stddev to 1 instead of 2, as is common.
-        The default value is 1.
+        in sklearn).
+        
+        I find that when scale == C, you get more similar results to
+        the model output in sklearn, and based on
+        my research into their implementation, I think it is because the
+        sklearn implementation actually scales lambda by 1/2 (see the user
+        guide here for more details:
+        https://scikit-learn.org/stable/modules/linear_model.html),
+        but i'm not 100% sure on this. This parameterization is similar to
+        scale = stddev/lambda or scale = stddev*C, where they set stddev to
+        1 instead of 2. The default value is 1.
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density)
+        The posterior density (height of the posterior density)
 
     '''
     n_mu = 0
@@ -329,16 +769,23 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5):
     Ypred = 1.0/(1.0 + np.exp(-mu))
     like = np.sum(Y*np.log(Ypred) + (1.0 - Y)*np.log(1.0 - Ypred))
     # normal prior on the intercept
-    int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - (((intercept - n_mu)**2) / (2.0*(n_sigma**2))))
+    int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - 0.5*((intercept - n_mu) / n_sigma)**2)
     # Laplace prior 
     parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     post = like + parm_prior + int_prior 
-    return post
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def adaptive_posterior_logreg_lasso(parms, X, Y, l_scale=None):
+def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     '''
-    The posterior likelihood for a logistic regression model with an L1 penalty
+    The posterior density for a logistic regression model with an L1 penalty
     term. However, unlike the posterior_logreg_lasso function, this is made to
     addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
     in the parms variable, at the end of the array
@@ -354,22 +801,34 @@ def adaptive_posterior_logreg_lasso(parms, X, Y, l_scale=None):
     Y : numpy array or pandas dataframe
         The response value (should be 0 or 1, but could be float as well if 
         you're willing to deal with those consequences).
-    l_scale : int, optional
+    l_scale : float, optional
         ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
         EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
-        The size of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, where
+        The value of the scale parameter in the Laplace distribution.
+        A common choice for the laplace prior is scale = 2/lambda, 
+        because it can be shown that this is the MAP estimate where
+        a laplace prior is equivalent to performing lasso regression.
         lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn). I find that when scale == C, you get more similar results.
-        to LogisticRegression output in sklearn. This
-        parameterization is similar to scale = stddev/lambda or
-        scale = stddev*C, where I set stddev to 1 instead of 2, as is common.
-        The default value is 1.
+        in sklearn).
+        
+        I find that when scale == C, you get more similar results to
+        the model output in sklearn, and based on
+        my research into their implementation, I think it is because the
+        sklearn implementation actually scales lambda by 1/2 (see the user
+        guide here for more details:
+        https://scikit-learn.org/stable/modules/linear_model.html),
+        but i'm not 100% sure on this. This parameterization is similar to
+        scale = stddev/lambda or scale = stddev*C, where they set stddev to
+        1 instead of 2. The default value is 1.
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density)
+        The posterior density (height of the posterior density)
     '''
     n_mu = 0
     n_sigma = 1
@@ -382,7 +841,7 @@ def adaptive_posterior_logreg_lasso(parms, X, Y, l_scale=None):
     betas = parms[1:-1]
     l_scale = np.exp(parms[-1])
     
-    mu = X.dot(parms[:-1].reshape(-1, )).reshape(-1, )
+    mu = X.dot(parms[:-1]).reshape(-1, )
     Ypred = 1/(1 + np.exp(-mu))
     like = np.sum(Y*np.log(Ypred) + (1 - Y)*np.log(1 - Ypred))
     # normal prior on the intercept
@@ -393,12 +852,19 @@ def adaptive_posterior_logreg_lasso(parms, X, Y, l_scale=None):
     scale_prior = np.log(l_scale_rate) - l_scale_rate * l_scale
     # post = likelihood + laplace prior + jacobian for laplace scale + laplace scale prior
     post = like + int_prior + parm_prior + parms[-1] + scale_prior
-    return post
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def adaptive_poisson_regression(parms, X, Y, l_scale=None):
+def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     '''
-    The posterior likelihood for a poisson regression model with an L1 penalty
+    The posterior density for a poisson regression model with an L1 penalty
     term. However, unlike the poisson_regression function, this is made to
     addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
     in the parms variable, at the end of the array
@@ -414,22 +880,34 @@ def adaptive_poisson_regression(parms, X, Y, l_scale=None):
     Y : numpy array or pandas dataframe
         The response value (should be 0 or 1, but could be float as well if 
         you're willing to deal with those consequences).
-    l_scale : int, optional
+    l_scale : float, optional
         ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
         EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
-        The size of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, where
+        The value of the scale parameter in the Laplace distribution.
+        A common choice for the laplace prior is scale = 2/lambda, 
+        because it can be shown that this is the MAP estimate where
+        a laplace prior is equivalent to performing lasso regression.
         lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn). I find that when scale == C, you get more similar results.
-        to LogisticRegression output in sklearn. This
-        parameterization is similar to scale = stddev/lambda or
-        scale = stddev*C, where I set stddev to 1 instead of 2, as is common.
-        The default value is 1.
+        in sklearn).
+        
+        I find that when scale == C, you get more similar results to
+        the model output in sklearn, and based on
+        my research into their implementation, I think it is because the
+        sklearn implementation actually scales lambda by 1/2 (see the user
+        guide here for more details:
+        https://scikit-learn.org/stable/modules/linear_model.html),
+        but i'm not 100% sure on this. This parameterization is similar to
+        scale = stddev/lambda or scale = stddev*C, where they set stddev to
+        1 instead of 2. The default value is 1.
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density)
+        The posterior density (height of the posterior density)
     '''
     n_sigma = 10
     l_loc = 0
@@ -441,7 +919,7 @@ def adaptive_poisson_regression(parms, X, Y, l_scale=None):
     betas = parms[1:-1]
     l_scale = np.exp(parms[-1])
     
-    mu = X.dot(parms)
+    mu = X.dot(parms[:-1])
     
     like = np.sum(Y*mu - np.exp(mu) - loggamma(Y + 1))
     # normal prior on the intercept
@@ -456,12 +934,19 @@ def adaptive_poisson_regression(parms, X, Y, l_scale=None):
     # post = likelihood + laplace prior + jacobian for laplace scale + laplace scale prior
     
     post = like + parm_prior + int_prior + parms[-1] + scale_prior
-    return post
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def adaptive_poisson_regression_od(parms, X, Y, l_scale=None):
+def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
     '''
-    The posterior likelihood for a poisson regression model with an L1 penalty
+    The posterior density for a poisson regression model with an L1 penalty
     term. However, unlike the poisson_regression function, this is made to
     addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
     in the parms variable, at the end of the array. This function also attempts
@@ -478,22 +963,34 @@ def adaptive_poisson_regression_od(parms, X, Y, l_scale=None):
     Y : numpy array or pandas dataframe
         The response value (should be 0 or 1, but could be float as well if 
         you're willing to deal with those consequences).
-    l_scale : int, optional
+    l_scale : float, optional
         ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
         EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
-        The size of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, where
+        The value of the scale parameter in the Laplace distribution.
+        A common choice for the laplace prior is scale = 2/lambda, 
+        because it can be shown that this is the MAP estimate where
+        a laplace prior is equivalent to performing lasso regression.
         lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn). I find that when scale == C, you get more similar results.
-        to LogisticRegression output in sklearn. This
-        parameterization is similar to scale = stddev/lambda or
-        scale = stddev*C, where I set stddev to 1 instead of 2, as is common.
-        The default value is 1.
+        in sklearn).
+        
+        I find that when scale == C, you get more similar results to
+        the model output in sklearn, and based on
+        my research into their implementation, I think it is because the
+        sklearn implementation actually scales lambda by 1/2 (see the user
+        guide here for more details:
+        https://scikit-learn.org/stable/modules/linear_model.html),
+        but i'm not 100% sure on this. This parameterization is similar to
+        scale = stddev/lambda or scale = stddev*C, where they set stddev to
+        1 instead of 2. The default value is 1.
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density)
+        The posterior density (height of the posterior density)
     '''
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
@@ -523,12 +1020,19 @@ def adaptive_poisson_regression_od(parms, X, Y, l_scale=None):
     # post = likelihood + laplace prior + jacobian for laplace scale + laplace scale prior
     
     post = like + parm_prior + int_prior + parms[-2] + scale_prior
-    return post
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def poisson_regression(parms, X, Y, l_scale=1):
+def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
     '''
-    The posterior likelihood for a poisson regression model with an L1 penalty
+    The posterior density for a poisson regression model with an L1 penalty
     term.
     
     Parameters
@@ -542,20 +1046,32 @@ def poisson_regression(parms, X, Y, l_scale=1):
     Y : numpy array or pandas dataframe
         The response value (should be 0 or 1, but could be float as well if 
         you're willing to deal with those consequences).
-    l_scale : int, optional
-        The size of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, where
+    l_scale : float, optional
+        The value of the scale parameter in the Laplace distribution.
+        A common choice for the laplace prior is scale = 2/lambda, 
+        because it can be shown that this is the MAP estimate where
+        a laplace prior is equivalent to performing lasso regression.
         lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn). I find that when scale == C, you get more similar results.
-        to LogisticRegression output in sklearn. This
-        parameterization is similar to scale = stddev/lambda or
-        scale = stddev*C, where I set stddev to 1 instead of 2, as is common.
-        The default value is 1.
+        in sklearn).
+        
+        I find that when scale == C, you get more similar results to
+        the model output in sklearn, and based on
+        my research into their implementation, I think it is because the
+        sklearn implementation actually scales lambda by 1/2 (see the user
+        guide here for more details:
+        https://scikit-learn.org/stable/modules/linear_model.html),
+        but i'm not 100% sure on this. This parameterization is similar to
+        scale = stddev/lambda or scale = stddev*C, where they set stddev to
+        1 instead of 2. The default value is 1.
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density)
+        The posterior density (height of the posterior density)
     '''
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
@@ -576,12 +1092,19 @@ def poisson_regression(parms, X, Y, l_scale=1):
     parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
     
     post = like + parm_prior + int_prior 
-    return post
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def poisson_regression_od(parms, X, Y, l_scale=1):
+def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
     '''
-    The posterior likelihood for a poisson regression model with an L1 penalty
+    The posterior density for a poisson regression model with an L1 penalty
     term. This function also attempts to adaptively account for overdispersion.
     
     Parameters
@@ -595,22 +1118,34 @@ def poisson_regression_od(parms, X, Y, l_scale=1):
     Y : numpy array or pandas dataframe
         The response value (should be 0 or 1, but could be float as well if 
         you're willing to deal with those consequences).
-    l_scale : int, optional
+    l_scale : float, optional
         ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
         EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
-        The size of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, where
+        The value of the scale parameter in the Laplace distribution.
+        A common choice for the laplace prior is scale = 2/lambda, 
+        because it can be shown that this is the MAP estimate where
+        a laplace prior is equivalent to performing lasso regression.
         lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn). I find that when scale == C, you get more similar results.
-        to LogisticRegression output in sklearn. This
-        parameterization is similar to scale = stddev/lambda or
-        scale = stddev*C, where I set stddev to 1 instead of 2, as is common.
-        The default value is 1.
+        in sklearn).
+        
+        I find that when scale == C, you get more similar results to
+        the model output in sklearn, and based on
+        my research into their implementation, I think it is because the
+        sklearn implementation actually scales lambda by 1/2 (see the user
+        guide here for more details:
+        https://scikit-learn.org/stable/modules/linear_model.html),
+        but i'm not 100% sure on this. This parameterization is similar to
+        scale = stddev/lambda or scale = stddev*C, where they set stddev to
+        1 instead of 2. The default value is 1.
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density)
+        The posterior density (height of the posterior density)
     '''
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
@@ -632,12 +1167,20 @@ def poisson_regression_od(parms, X, Y, l_scale=1):
     parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
     # assuming uniform for over dispersion prior
     post = like + parm_prior + int_prior #+ parms[-1]
-    return post
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def weibull_regression_post(parms, X, Y, status=None, l_scale=1):
+def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
+                            log=True):
     '''
-    The posterior likelihood for a weibull regression model with an L1 penalty
+    --NOT OPERATIONAL-- The posterior density for a weibull regression model with an L1 penalty
     term. 
     
     Parameters
@@ -656,22 +1199,36 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1):
         An array of 1's and 0's, such that a 1 indicates an event, and 0 is the
         censored observation. If None, it will assume there are no censored
         events. Default is None.
-    l_scale : int, optional
-        The size of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, where
-        lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn). I find that when scale == C, you get more similar results.
-        to LogisticRegression output in sklearn. This
-        parameterization is similar to scale = stddev/lambda or
-        scale = stddev*C, where I set stddev to 1 instead of 2, as is common.
+    l_scale : float, optional
+        The value of the scale parameter in the Laplace distribution.
+        
+        A common choice for the laplace prior is scale = 2/lambda, or
+        scale = 2*C, where lambda is the L1 penalty (regularization strength)
+        and C is the inverse penalty/strength. This is because it can be shown
+        that this is the MAP estimate where a laplace prior is equivalent
+        to performing lasso regression.
+        
+        I find that when scale == C, you get more similar results to
+        the model output in sklearn, and based on
+        my research into their implementation, I think it is because the
+        sklearn implementation actually scales lambda by 1/2 (see the user
+        guide here for more details:
+        https://scikit-learn.org/stable/modules/linear_model.html),
+        but i'm not 100% sure on this, and it deserves more exploration.
+        This parameterization is similar to scale = variance/lambda or
+        scale = variance*C, where they set variance to 1 instead of 2.
         The default value is 1.
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density)
+        The posterior density (height of the posterior density)
     '''
-    n_mu = 0
+    l_loc = 0
     n_sigma = 10
     
     intercept = parms[0]
@@ -691,28 +1248,39 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1):
     
     xly_1 = (shape - 1.0)*np.log(fails/scale)
     xly_2 = (gshape - 1.0)*np.log(scale)
-    if (shape - 1.0) == 0:
+    print(shape)
+    if np.any(shape - 1.0 == 0):
         xly_1[np.where(np.isnan(xly_1))] = 0
     
     fail_like = (np.log(shape) - np.log(scale) + xly_1 - (fails/scale)**shape)
-    cens_like = -(cens/scale)**shape
+    if cens.shape[0] != 0:
+        cens_like = -(cens/scale)**shape
+    else:
+        cens_like = 0
     
     #scale prior
     scale_prior = (-(loggamma(gshape) + gshape*np.log(gscale)) + xly_2 - (scale/gscale))
     # normal prior on the intercept
-    int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - (((intercept - n_mu)**2) / (2.0*(n_sigma**2))))
+    int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - (((intercept - l_loc)**2) / (2.0*(n_sigma**2))))
     # Laplace prior 
-    #parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
+    parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     # Normal prior
-    parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - n_mu)**2) / (2.0*(l_scale**2))))
+    #parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
     # assuming uniform for over dispersion prior
     post = np.sum(fail_like) + np.sum(cens_like) + parm_prior + int_prior + scale_prior + parms[-1]
-    return post
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def pois_uniform(param, count):
+def pois_uniform(param, count, neg=False, log=True):
     '''
-    Posterior Likelihood for the Poisson distribution (assuming uniform prior)
+    Posterior density for the Poisson distribution (assuming uniform prior)
 
     Parameters
     ----------
@@ -720,22 +1288,35 @@ def pois_uniform(param, count):
         log of the Poisson mean (lambda).
     count : int, or array of ints
         count of events (or poisson counts)
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density).
+        The posterior density (height of the posterior density).
 
     '''
     lmbda = np.exp(param)
     like = np.sum(count * param - lmbda - loggamma(count + 1.0))
     jac = param
-    return like + jac
+    
+    post = like + jac
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def pois_gamma(param, count, gshape=0.01, gscale=100):
+def pois_gamma(param, count, gshape=0.01, gscale=100, neg=False, log=True):
     '''
-    Posterior Likelihood for the Poisson distribution (assuming gamma prior)
+    Posterior density for the Poisson distribution (assuming gamma prior)
 
     Parameters
     ----------
@@ -747,11 +1328,15 @@ def pois_gamma(param, count, gshape=0.01, gscale=100):
         shape parameter of the gamma prior
     gscale : float
         scale parameter of the gamma prior
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density).
+        The posterior density (height of the posterior density).
 
     '''
     lmbda = np.exp(param)
@@ -759,12 +1344,21 @@ def pois_gamma(param, count, gshape=0.01, gscale=100):
     prior = (-(loggamma(gshape) + gshape*np.log(gscale)) +
              xlogy(gshape-1, lmbda) - (lmbda/gscale))
     jac = param
-    return like + prior + jac
+    
+    post = like + prior + jac
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def pois_gamma_ada(param, count):
+def pois_gamma_ada(param, count, neg=False, log=True):
     '''
-    Posterior Likelihood for the Poisson distribution (assuming gamma prior),
+    Posterior density for the Poisson distribution (assuming gamma prior),
     learns the gamma shape/scale as part of mcmc
 
     Parameters
@@ -774,11 +1368,15 @@ def pois_gamma_ada(param, count):
         of the gamma prior.
     count : int, or array of ints
         count of events (or poisson counts)
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density).
+        The posterior density (height of the posterior density).
 
     '''
     lmbda = np.exp(param[0])
@@ -788,12 +1386,74 @@ def pois_gamma_ada(param, count):
     prior = (-(loggamma(gshape) + gshape*np.log(gscale)) +
              xlogy(gshape-1, lmbda) - (lmbda/gscale))
     jac = np.sum(param)
-    return like + prior + jac
+    
+    post = like + prior + jac
+    
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
 
 
-def weibull_lpost(param, data, status=None, neg=False):
+def exp_gamma(param, data, status, gshape=0.01, gscale=100, neg=False,
+              log=True):
     '''
-    The posterior likelihood for a weibull distribution with a gamma prior
+    Posterior distribution for an exponential likelihood with a gamma prior.
+    Allows for censoring.
+
+    Parameters
+    ----------
+    param : float
+        The log of the rate parameter of an exponential distribution.
+    data : numpy array
+        The data for the exponential likelihood (Usually times).
+    status : numpy array
+        An array of binary variables indicating which items are censored (1's are events, 0's are unknown). If there
+        are no censored observations, pass an array of 1's.
+    gshape : float
+        shape parameter of the gamma prior
+    gscale : float
+        scale parameter of the gamma prior
+    neg : bool, optional
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
+
+    Returns
+    -------
+    post : float
+        The posterior density.
+
+    '''
+    if status is None:
+        status = np.repeat(1, data.shape[0])
+    
+    rate = np.exp(param)
+    events = data[status == 1]
+    cens = data[status == 0]
+    post = ((len(events) * param) -
+            (rate*(np.sum(events) +
+                   np.sum(cens))) +
+            (-(loggamma(gshape) + gshape*np.log(gscale)) +
+             ((gshape - 1.0)*param) - (rate/gscale)) +
+            param)
+
+    if not log:
+        post = np.exp(post)
+
+    if neg:
+        return -post
+    else:
+        return post
+
+
+def weibull_gamma(param, data, status=None, gshape=0.01, gscale=100,
+                  neg=False, log=True):
+    '''
+    The posterior density for a weibull distribution with a gamma prior
 
     Parameters
     ----------
@@ -806,14 +1466,19 @@ def weibull_lpost(param, data, status=None, neg=False):
         An array of 1's and 0's, such that a 1 indicates an event, and 0 is the
         censored observation. If None, it will assume there are no censored
         events. The default is None.
+    gshape : float
+        shape parameter of the gamma prior
+    gscale : float
+        scale parameter of the gamma prior
     neg : bool, optional
-        Whether to return the negative of the posterior or not. The default
-        is False.
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density).
+        The posterior density (height of the posterior density).
 
     '''
     shape = np.exp(param[0])
@@ -824,8 +1489,6 @@ def weibull_lpost(param, data, status=None, neg=False):
 
     fails = data[status == 1]
     cens = data[status == 0]
-    gshape = 0.01
-    gscale = 100.0
 
     xly_1 = (shape - 1.0)*np.log(fails/scale)
     xly_2 = (gshape - 1.0)*np.log(scale)
@@ -840,21 +1503,26 @@ def weibull_lpost(param, data, status=None, neg=False):
              xly_2 - (scale/gscale))
 
     post = np.sum(fail_like) + np.sum(cens_like) + prior + param[0] + param[1]
+    
+    if not log:
+        post = np.exp(post)
+
     if neg:
         return -post
     else:
         return post
 
 
-def NHPP_lpost_Math(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False):
+def NHPP_posterior(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False,
+                   log=True):
     '''
-    The posterior likelihood of the Non-Homogenous Poisson Distribution with
-    a power law process. 
+    The posterior density of the non-homogenous Poisson distribution with
+    a power-law process. 
 
     Parameters
     ----------
     lparm : numpy array (float)
-        eta and phi (shape and scale with a variable change).
+        log parameters eta and phi (shape and scale with a variable change).
     tints : numpy array (int)
         The sequence of time intervals (1,2,3, etc...) for the poisson counts.
     tbar : int
@@ -872,13 +1540,14 @@ def NHPP_lpost_Math(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False):
         This is a paramter that is part of the variable change on the gamma
         prior for the poisson likelihood.
     neg : bool, optional
-        Whether to return the negative of the posterior or not. The default
-        is False.
+        Return negative density. The default value is False.
+    log : bool, optional
+        Return log-density. The default value is True.
 
     Returns
     -------
     float
-        The posterior likelihood (height of the posterior density).
+        The posterior density (height of the posterior density).
 
     '''
     # The Log postirior for NHPP with rate = (phi/eta)*(t/eta)**(phi-1) using
@@ -919,11 +1588,15 @@ def NHPP_lpost_Math(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False):
     # Calulate Log Jacobian from the above variable change.
     # the term np.log(b-a) was removed because it's just a constant.
     ljac = (lparm[0] + lparm[1] - 2.0*np.log(1.0 + np.exp(lparm[0])))
-
+    
+    post = llik + lprior + ljac
+    
+    if not log:
+        post = np.exp(post)
     # Sum and return
     if neg:
-        return -(llik + lprior + ljac)
+        return -post
     else:
-        return llik + lprior + ljac
+        return post
 
     
