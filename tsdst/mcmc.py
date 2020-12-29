@@ -1330,7 +1330,7 @@ class mcmcObject(object):
             else:
                 res = _raftery(self.chains[chainName], q=q[i], r=r, s=s,
                                converge_eps=converge_eps, thin=thin,
-                               pr=print_each)
+                               print_=print_each)
                 res["Quantile"] = q[i]
                 res['Parameter'] = res.index
                 all_samples = all_samples.append(res, ignore_index=True)
