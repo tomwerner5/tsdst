@@ -1625,7 +1625,7 @@ class mcmcObject(object):
         None.
 
         '''
-        start = np.array(start).reshape(1, -1)
+
         if algoOpts is None:
             algoOpts = {}
         first_run_results = applyMCMC(st=start, ni=initSampleSize, lp=lpost,
@@ -1635,6 +1635,7 @@ class mcmcObject(object):
         # TODO: change this so it's not hardcoded
         previous_values = first_run_results['prev_vals']
         new_start = first_run_results['parameters'][-1]
+
         self.addChain(first_run_results['parameters'], chainName, concat=False)
         self.previous_values[chainName + "_latestrun"] = previous_values
 
