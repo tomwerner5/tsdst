@@ -265,10 +265,13 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
             'l_scale': self.C*2
         }
         
-        self.mcmc_params, self.prev_vals = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
-                                                     algo=self.algo, postArgs=postArgs,
-                                                     algoOpts=self.algo_options, sd=self.retry_sd,
-                                                     max_tries=self.retry_max_tries)
+        algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
+                             algo=self.algo, postArgs=postArgs,
+                             algoOpts=self.algo_options, sd=self.retry_sd,
+                             max_tries=self.retry_max_tries)
+        
+        self.mcmc_params = algo_res['parameters']
+        self.prev_vals = algo_res['prev_vals']
         
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, self.param_summary,
                                                                                  self.extra_params)
@@ -595,10 +598,13 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
             'l_scale': self.C*2
         }
         
-        self.mcmc_params, self.prev_vals = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
-                                                     algo=self.algo, postArgs=postArgs,
-                                                     algoOpts=self.algo_options, sd=self.retry_sd,
-                                                     max_tries=self.retry_max_tries)
+        algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
+                             algo=self.algo, postArgs=postArgs,
+                             algoOpts=self.algo_options, sd=self.retry_sd,
+                             max_tries=self.retry_max_tries)
+        
+        self.mcmc_params = algo_res['parameters']
+        self.prev_vals = algo_res['prev_vals']
         
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, self.param_summary,
                                                                                  self.extra_params)
@@ -869,10 +875,13 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
             'l_scale': self.C*2
         }
         
-        self.mcmc_params, self.prev_vals = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
-                                                     algo=self.algo, postArgs=postArgs,
-                                                     algoOpts=self.algo_options, sd=self.retry_sd,
-                                                     max_tries=self.retry_max_tries)
+        algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
+                             algo=self.algo, postArgs=postArgs,
+                             algoOpts=self.algo_options, sd=self.retry_sd,
+                             max_tries=self.retry_max_tries)
+        
+        self.mcmc_params = algo_res['parameters']
+        self.prev_vals = algo_res['prev_vals']
         
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, self.param_summary,
                                                                                  self.extra_params)
