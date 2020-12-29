@@ -292,7 +292,7 @@ def adaptive_mcmc(start, niter, lpost, postArgs={}, options=None):
         
     prev_vals = {'chol2': chol2, 'prev_i': sumi - 1, 'sumx': sumx}
     print("Acceptance Rate: ", float(accept) / float(niter))
-    return parm, prev_vals
+    return {'parameters': parm, 'prev_vals': prev_vals}
 
 
 def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
@@ -434,7 +434,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
             
     prev_vals = {'E_0': E_0, 'sigma_2': sigma_2, 't': t}
     print("Acceptance Rate: ", float(total_accept) / float(niter))
-    return parm, prev_vals
+    return {'parameters': parm, 'prev_vals': prev_vals}
 
 
 def rwm(start, niter, lpost, postArgs={}, options=None):
@@ -519,7 +519,7 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
     
     prev_vals = {'E_O': E}
     print("Acceptance Rate: ", float(accept) / float(niter))
-    return parm, prev_vals
+    return {'parameters': parm, 'prev_vals': prev_vals}
 
 
 def samp_size_calc_raftery(q=0.025, r=0.005, s=0.95):
@@ -1625,15 +1625,17 @@ class mcmcObject(object):
         None.
 
         '''
+        start = np.array(start).reshape(1, -1)
         if algoOpts is None:
             algoOpts = {}
         first_run_results = applyMCMC(st=start, ni=initSampleSize, lp=lpost,
                                       algo=algo, algoOpts=algoOpts,
                                       postArgs=lpost_args,
                                       sd=sd, max_tries=max_tries)
-        previous_values = first_run_results[0][1]
-        new_start = first_run_results[0][0][-1, :]
-        self.addChain(first_run_results[0][0], chainName, concat=False)
+        # TODO: change this so it's not hardcoded
+        previous_values = first_run_results['prev_vals']
+        new_start = first_run_results['parameters'][-1]
+        self.addChain(first_run_results['parameters'], chainName, concat=False)
         self.previous_values[chainName + "_latestrun"] = previous_values
 
         if do_raftery:
@@ -1680,8 +1682,8 @@ class mcmcObject(object):
                                               postArgs=lpost_args,
                                               sd=sd,
                                               max_tries=max_tries)
-                previous_values = final_run_results[0][1]
-                self.addChain(final_run_results[0][0], chainName, concat=True)
+                previous_values = final_run_results['prev_vals']
+                self.addChain(final_run_results['parameters'], chainName, concat=True)
                 self.previous_values[chainName + "_latestrun"] = previous_values
 
         burnin_param = None
