@@ -5,13 +5,14 @@ from tsdst import feature_selection
 from tsdst import mcmc
 from tsdst import metrics
 from tsdst import modeling
+from tsdst import optimization
 from tsdst import parallel
 from tsdst import quick_analysis
 from tsdst import sampling
 from tsdst import tmath
 from tsdst import utils
 
-__version__ = '1.1.3'
+__version__ = '1.0.0'
 
 __all__ = ['distributions',
            'estimators',
@@ -19,6 +20,7 @@ __all__ = ['distributions',
            'mcmc',
            'metrics',
            'modeling',
+	   'optimization',
            'parallel',
            'quick_analysis',
            'sampling',

@@ -1001,10 +1001,11 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
     return ess
 
 
-def _raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001,
+def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001,
              thin=1, print_=False):
     '''
-    
+    Calculate the Raftery diagnostic to determine how many more samples are
+    needed.
 
     Parameters
     ----------
@@ -1328,9 +1329,9 @@ class mcmcObject(object):
                 print("not enough samples in the chain for quantile " +
                       str(q[i]) + ". Could not evaluate.")
             else:
-                res = _raftery(self.chains[chainName], q=q[i], r=r, s=s,
-                               converge_eps=converge_eps, thin=thin,
-                               print_=print_each)
+                res = raftery(self.chains[chainName], q=q[i], r=r, s=s,
+                              converge_eps=converge_eps, thin=thin,
+                              print_=print_each)
                 res["Quantile"] = q[i]
                 res['Parameter'] = res.index
                 all_samples = all_samples.append(res, ignore_index=True)
@@ -1510,10 +1511,11 @@ class mcmcObject(object):
 
     def runMCMC(self, start, initSampleSize, lpost, algo, algoOpts=None,
                 raftOpts=None, chainName=None, max_tries=100, sd=0.02,
-                plot_t=True, plot_d=True, write_plots=True,
-                plot_dir='./Plots/', plot_d_smoothing=0.05, plot_d_vlines=None,
-                do_raftery=True, iters_to_go=None, max_iters=750000,
-                burnin=0, lpost_args={}):
+                plot_trace=True, plot_density=True, plot_acf=True,
+                plot_trace_args=None, plot_density_args=None,
+                plot_acf_args=None, acfType='pacf', acf_args=None,
+                do_raftery=True, iters_to_go=None, max_iters=750000, burnin=0,
+                lpost_args={}):
         '''
         TODO: Update to include ESS option, instead of just raftery.
         
@@ -1581,28 +1583,24 @@ class mcmcObject(object):
             jitter amount from. In other words, the jittered covariance is the 
             covaraince matrix plus a random draw X, where X~N(0, sd). 
             The default is 0.02.
-        plot_t : bool, optional
+        plot_trace : bool, optional
             Plot the trace of the MCMC samples. The default is True.
-        plot_d : bool, optional
+        plot_density : bool, optional
             Plot the posterior density of the MCMC samples.
             The default is True.
-        write_plots : bool, optional
-            Save any plots to a directory. The default is True.
-        plot_dir : str, optional
-            The directory to save any plot to. The default is './Plots/'.
-        plot_d_smoothing : float, optional
-            The amount of smoothing to use on the kde plot.
-            See seaborn.kde_plot for details.
-            The default is 0.05.
-        plot_d_vlines : numpy array, optional
-            The x-axis locations of any predetermined vertical lines on the
-            density plots.
-            
-            Generally, this is not helpful when creating the
-            first MCMC chain. However, after generating an initial run,
-            it can be useful to call the plot_density method
-            on it's own and include the location of the mean, mode, etc.
-            The default is None.
+        plot_acf : bool, optional
+            Plot the auto-correlation. The default is True.
+        plot_trace_args : dict
+            Arguments for the plotTrace function. Default is None.
+        plot_density_args : dict
+            Arguments for the plotDensity function. Default is None.
+        plot_acf_args : dict
+            Arguments for the plotACF function. Default is None.
+        acf_type : str
+            Ether 'acf', 'pacf', or None. Default is 'pacf'. If None, pacf
+            calculation is not performed.
+        acf_args : dict
+            Arguments to pass to the `acf` function. Default is None.
         do_raftery : bool, optional
             Whether to perform the raftery evaluation, or stop after the
             first chain generation. Default is True.
@@ -1704,13 +1702,53 @@ class mcmcObject(object):
                 burnin_param = np.repeat(burnin, len(start))
                 burnVal = burnin
 
-        if plot_t:
-            self.plotTrace(chainName, CTres=burnin_param, write=write_plots,
-                           pdir=plot_dir)
-        if plot_d:
-            self.plotDensity(chainName, smoothing=plot_d_smoothing,
-                             write=write_plots, pdir=plot_dir,
-                             vlines=plot_d_vlines)
+        if plot_trace:
+            if plot_trace_args is None:
+                plot_trace_args = {'CTres': burnin_param,
+                                   'write': False,
+                                   'pdir': "./Plots/",
+                                   'fileType': "jpg",
+                                   'figsize': (15, 12)
+                                   }
+            else:
+                plot_trace_args.update({'CTres': burnin_param})
+            self.plotTrace(chainName, **plot_trace_args)
+        if plot_density:
+            if plot_density_args is None:
+                plot_density_args = {'smoothing': 0.05,
+                                     'write': False,
+                                     'pdir': "./Plots/",
+                                     'vlines': None,
+                                     'fileType': "jpg",
+                                     'figsize': (15, 12)
+                                     }
+            self.plotDensity(chainName, **plot_density_args)
+        if acfType is not None:
+            if acfType == 'pacf':
+                partial = True
+            else:
+                partial = False
+            
+            if acf_args is None:
+                acf_args = {'lag': 50,
+                            'partial': partial,
+                            'demean': True}
+            else:
+                acf_args.update({'partial': partial})
+            
+            self.acf(chainName, **acf_args)
+            if plot_acf:
+                if plot_acf_args is None:
+                    plot_acf_args = {'bounds': True,
+                                     'ci': 0.95,
+                                     'acfType': acfType,
+                                     'write': False,
+                                     'pdir': "./Plots/",
+                                     'fileType': "jpg",
+                                     'lw': None,
+                                     'figsize': (15, 12)
+                                     }
+                self.plotACF(chainName, **plot_acf_args)
 
         self.burnin(chainName, burnVal)
 
@@ -1746,21 +1784,25 @@ class mcmcObject(object):
         fig, ax = plt.subplots(nrows=nparam, ncols=1, figsize=figsize,
                                squeeze=False)
         for i in range(nparam):
-            ax[i, 0].plot(trace[:, i])
-            ax[i, 0].set_ylabel(''.join(["Trace Dis: ", self.name,
-                                         ", Run Param: ", str(i+1), "/",
-                                         str(nparam)]))
-            ax[i, 0].set_xlabel("Iteration")
+            ax[i, 0].plot(trace[:, i], label='Sample Values')
+            ax[i, 0].set_ylabel(''.join(["Value for Parameter ",
+                                         str(i+1), "/",
+                                         str(nparam), " Value"]))
+            ax[i, 0].set_xlabel("Iteration (Sample) Number")
+            if i == 0:
+                ax[i, 0].set_title("Trace Plot for " + self.name +
+                                   " Parameters")
             if CTres is not None:
                 ax[i, 0].axvline(x=int(CTres[i]), color="red",
-                                 linewidth=2.0)
+                                 linewidth=2.0, label='Recommended Burnin')
+            ax[i, 0].legend()
         if write:
             pathlib.Path(pdir).mkdir(exist_ok=True)
             fig.savefig(''.join([pdir, self.name, '_', chainName,
                                  "_trace.", fileType]))
         else:
-            plt.show(fig)
-        plt.close(fig)
+            fig.show()
+        #plt.close()
 
     def plotDensity(self, chainName, smoothing=0.05, write=True,
                     pdir="./Plots/", vlines=None, fileType="jpg",
@@ -1802,20 +1844,20 @@ class mcmcObject(object):
                                sharey=True, squeeze=False)
         for i in range(nparam):
             sns.kdeplot(trace[:, i], ax=ax[0, i], shade=True)
-            ax[0, i].set_ylabel("Density")
-            ax[0, i].set_xlabel(''.join(["Trace Results: ", self.name,
-                                         ", Run Param: ",
+            if i == 0:
+                ax[0, i].set_ylabel("Density")
+            ax[0, i].set_xlabel(''.join(["Value for Parameter ", 
                                          str(i+1), "/", str(nparam)]))
             if vlines is not None:
                 ax[0, i].axvline(vlines[i])
-
+        fig.suptitle("Posterior Density of " + self.name + " Parameters")
         if write:
             pathlib.Path(pdir).mkdir(exist_ok=True)
             fig.savefig(''.join([pdir, self.name, '_', chainName, "_density.",
                                  fileType]))
         else:
-            plt.show(fig)
-        plt.close(fig)
+            fig.show()
+        #plt.close()
 
     def plotACF(self, chainName, bounds=True, ci=0.95, acfType="acf",
                 write=False, pdir="./Plots/", fileType="jpg", lw=None,
@@ -1870,11 +1912,14 @@ class mcmcObject(object):
             lw = 1-np.exp(-0.00346103*(samples-1))
         for i in range(nparam):
             ax[i, 0].bar(range(len(allacf[:, i])), allacf[:, i], width=lw)
-            ax[i, 0].set_ylabel(''.join([acfType, " Dis: ", self.name,
-                                         ", Run Param: ", str(i+1), "/",
-                                         str(nparam)]))
-            ax[i, 0].set_xlabel("Lag")
+            ax[i, 0].set_ylabel(''.join([acfType.upper(), " for Param. ",
+                                         str(i+1), "/", str(nparam)]))
             ax[i, 0].axhline(y=0, linewidth=0.5)
+            if i == 0:
+                ax[i, 0].set_title("ACF Plot for " + self.name +
+                                   " Parameters")
+            if i == nparam - 1:
+                ax[i, 0].set_xlabel("Lag")
             if bounds:
                 bnd = qnorm_aprox((1+ci)/2)/np.sqrt(samples)
                 ax[i, 0].axhline(y=bnd, color="red",
@@ -1885,8 +1930,8 @@ class mcmcObject(object):
             pathlib.Path(pdir).mkdir(exist_ok=True)
             fig.savefig(''.join([pdir, self.name, '_', chainName, acfType, ".", fileType]))
         else:
-            plt.show(fig)
-        plt.close(fig)
+            fig.show()
+        #plt.close()
 
 	
     def acf(self, chainName, lag=50, partial=False, demean=True):

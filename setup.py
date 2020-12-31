@@ -39,15 +39,16 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Topic :: Scientific/Engineering :: Mathmatics :: Statistics'
     ],
-    install_requires=['numpy>=1.16.4',
+    install_requires=['matplotlib>=3.1.0',
+                      'numba>=0.44.1',
+		      'numdifftools>=0.9.39',
+		      'numpy>=1.16.4',
                       'pandas>=0.24.2',
                       'scikit-learn>=0.22.1',
-                      'statsmodels>=0.9.0',
-                      'matplotlib>=3.1.0',
-                      'sqlalchemy>=1.3.4',
                       'scipy>=1.2.1',
-                      'numba>=0.44.1',
 		      'seaborn>=0.11.0',
+                      'sqlalchemy>=1.3.4',
+                      'statsmodels>=0.9.0',
                       ]
 )
     

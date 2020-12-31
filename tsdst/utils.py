@@ -184,13 +184,13 @@ def pretty_print_time(ts, te=None):
     return pretty
 
 
-def checkDir(dirc, make=True, verbose=True):
+def checkDir(directory, make=True, verbose=True):
     '''
     Check if a directory exists. If it doesn't, create it.
 
     Parameters
     ----------
-    dirc : str
+    dir : str
         Directory to check.
     make : bool, optional
         Whether or not to create a missing directory. The default is True.
@@ -205,13 +205,13 @@ def checkDir(dirc, make=True, verbose=True):
     '''
     found = False
     msg = ''
-    if not os.path.isdir(dirc):
+    if not os.path.isdir(directory):
         msg = msg + 'Directory not found. '
         if make:
-            os.mkdir(dirc)
-            msg = msg + 'Directory ' + dirc + ' created.'
+            os.mkdir(directory)
+            msg = msg + 'Directory ' + directory + ' created.'
         else:
-            msg = msg + 'Directory ' + dirc + 'not created.'
+            msg = msg + 'Directory ' + directory + 'not created.'
     else:
         found = True
     if verbose:
@@ -540,3 +540,33 @@ def inferFeatureType(X, n_unique=None):
             else:
                 d_type = "numeric"
     return d_type
+
+
+def reshape_to_vect(ar, axis=1):
+    '''
+    Flatten or reshape an array to be a vector (or transpose an already
+    flat array).
+
+    Parameters
+    ----------
+    ar : numpy array
+        An array to be reshaped.
+    axis : int, optional
+        The direction to flatten. The default is 1.
+
+    Returns
+    -------
+    ar : numpy array
+        The flattened array.
+
+    '''
+    # TODO: Need to look at the use case for this again. There may be a more
+    # efficient way to do this.
+    if len(ar.shape) == 1:
+        if axis == 1:
+            return ar.reshape(ar.shape[0], 1)
+        elif axis == 0:
+            return ar.reshape(1, ar.shape[0])
+        else:
+            raise('Invalid axis dimension, either 0 or 1')
+    return ar

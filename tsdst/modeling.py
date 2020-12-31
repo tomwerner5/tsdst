@@ -12,6 +12,7 @@ from timeit import default_timer as dt
 from .metrics import (cox_snell_r2, nagelkerke_r2, tjur_r2, mcfadden_r2,
                       conf_mat_metrics, bias, rpmse, r2, adj_r2, top_20p,
                       number_of_nonzero_coef)
+from .utils import reshape_to_vect
 
 
 def scoreModel(X, Y, model, metrics=['Accuracy',
@@ -150,8 +151,9 @@ def scoreModel(X, Y, model, metrics=['Accuracy',
             }
         }
     
+    y_temp = Y.values.ravel()
     if mtype == "classification":
-
+        
         args['n_obs'] = Y.shape[0]
         args['y_score'] = model.predict_proba(X)[:, 1]
         
@@ -164,13 +166,13 @@ def scoreModel(X, Y, model, metrics=['Accuracy',
                         'Nagelkerke R2',
                         'Cox/Snell R2'] for met in metrics)):
             
-            args['y_prob_nullmod'] = np.repeat(np.mean(Y.values), args['n_obs'])
-            args['ll_est'] = np.sum(Y.values*np.log(args['y_score']) + (1 - Y.values)*np.log(1 - args['y_score']))
-            args['ll_null'] = np.sum(Y.values*np.log(args['y_prob_nullmod']) + (1 - Y.values)*np.log(1 - args['y_prob_nullmod']))
+            args['y_prob_nullmod'] = np.repeat(np.mean(y_temp), args['n_obs'])
+            args['ll_est'] = np.sum(y_temp*np.log(args['y_score']) + (1 - y_temp)*np.log(1 - args['y_score']))
+            args['ll_null'] = np.sum(y_temp*np.log(args['y_prob_nullmod']) + (1 - y_temp)*np.log(1 - args['y_prob_nullmod']))
                   
     else:
         if isinstance(Y, pd.DataFrame) or isinstance(Y, pd.Series):
-            args['y_true'] = Y.values
+            args['y_true'] = y_temp
         args['y_pred'] = model.predict(X)
     
     for met in metrics:
@@ -318,7 +320,7 @@ def runScorers(X, Y, splits, model, mtype, metrics=['Accuracy',
                method_on_X=None, mox_args={}, Y_for_test_only=None,
                sample_limit=20):
     '''
-    
+    Performs the cross-validation.
 
     Parameters
     ----------
@@ -408,7 +410,7 @@ def runScorers(X, Y, splits, model, mtype, metrics=['Accuracy',
             Xtrain = method_fit.transform(Xtrain)
             Xtest = method_fit.transform(Xtest)
         
-        mod = copy(model).fit(Xtrain, Ytrain)
+        mod = copy(model).fit(Xtrain, Ytrain.values.ravel())
         
         if len(keys) == 0:
             for sk in calculate:
@@ -1007,4 +1009,185 @@ class EstimatorSelectionHelper(object):
         else:
             scores = self._score_summary_skgs(sort_by=sort_by)
         return scores
+
+
+def BPCA_initmodel(y, q):
+    '''
+    Initialize the bPCA model.
+
+    Parameters
+    ----------
+    y : numpy array
+        The data to be nan-filled.
+    q : int
+        The number of dimensions to consider in the PCA.
+
+    Returns
+    -------
+    M : dict
+        A dictionary of the initialized values.
+
+    '''
+    M = {}
+    M['N'] = y.shape[0]
+    M['d'] = y.shape[1]
+    M['q'] = q
+    M['yest'] = y.copy()
+    M['missidx'] = []
+    M['nomissidx'] = []
+    M['gnomiss'] = []
+    M['gmiss'] = []
+    
+    for i in range(y.shape[0]):
+        M['missidx'].append(np.where(np.isnan(y[i, :]))[0])
+        M['nomissidx'].append(np.where(~np.isnan(y[i, :]))[0])
+        if M['missidx'][i].shape[0] == 0:
+            M['gnomiss'].append(i)
+        else:
+            M['gmiss'].append(i)
+            M['yest'][i, M['missidx'][i]] = 0
+    
+    # ynomiss = y[M['gnomiss'], :]
+    covy = np.cov(M['yest'], rowvar=False)
+    U, S, _ = np.linalg.svd(covy, full_matrices=True)
+    U = U[:, :q]
+    S = S[:q]
+    #V = V.T[:, :q]
+
+    M['mu'] = np.nansum(y, axis=0)/np.array([np.sum(~np.isnan(y[:, col])) for col in range(y.shape[1])])
+
+    M['W'] = U * np.sqrt(S);
+    M['tau'] = 1/(np.sum(np.diag(covy)) - np.sum(np.diag(S)))
+    taumax = 1e10
+    taumin = 1e-10
+    M['tau'] = max(min(M['tau'], taumax), taumin)
+    
+    M['galpha0'] = 1e-10
+    M['balpha0'] = 1
+    M['alpha'] = (2*M['galpha0'] + M['d'])/(M['tau']*np.diag(M['W'].T.dot(M['W'])) + 2*M['galpha0']/M['balpha0'])
+    
+    M['gmu0'] = 0.001
+    
+    M['btau0'] = 1
+    M['gtau0'] = 1e-10
+    M['SigW'] = np.eye(q)
+    
+    return M
+
+
+def BPCA_dostep(M, y):
+    '''
+    The workhorse of the bPCA algorithm, the Expectation-Maximization
+    step.
+
+    Parameters
+    ----------
+    M : dict
+        A dictionary containing preliminary results for the algorithm.
+    y : numpy array
+        The original data.
+
+    Returns
+    -------
+    M : dict
+        The updated results.
+
+    '''
+    N = M['N']
+    d = M['d']
+    
+    Rx = np.eye(M['q']) + M['tau']*M['W'].T.dot(M['W']) + M['SigW']
+    Rxinv_o = np.linalg.inv(Rx)
+
+    idx = M['gnomiss']
+    n = len(idx)
+    
+    dy = y[idx, :] - np.tile(M['mu'], (n, 1))
+    x = M['tau'] * Rxinv_o.dot(M['W'].T).dot(dy.T)
+
+    Tt = dy.T.dot(x.T)
+    trS = np.sum(dy * dy)
+    for i in M['gmiss']:
+        dyo = y[i, M['nomissidx'][i]] - M['mu'][M['nomissidx'][i]]
+
+        Wm = M['W'][M['missidx'][i], :]
+        Wo = M['W'][M['nomissidx'][i], :]
+        Rxinv = np.linalg.inv(Rx - M['tau']*Wm.T.dot(Wm))
+        ex = M['tau']*Wo.T.dot(dyo.T)
+        x = Rxinv.dot(ex)
+        
+        dym = Wm.dot(x)
+        dy = y[i, :].copy()
+        dy[M['nomissidx'][i]] = dyo.T
+        dy[M['missidx'][i]] = dym.T
+        M['yest'][i, :] = dy + M['mu']
+
+        Tt = Tt + reshape_to_vect(dy).dot(reshape_to_vect(x).T)
+        Tt[M['missidx'][i], :] = Tt[M['missidx'][i], :] + Wm.dot(Rxinv)
+        trS = trS + dy.dot(dy.T) + len(M['missidx'][i])/M['tau'] + np.trace(Wm.dot(Rxinv).dot(Wm.T))
+
+    Tt = Tt/N
+    trS = trS/N
+
+    Dw = Rxinv_o + M['tau']*Tt.T.dot(M['W']).dot(Rxinv_o) + np.diag(M['alpha'])/N
+    Dwinv = np.linalg.inv(Dw)
+    M['W'] = Tt.dot(Dwinv)
+    
+    M['tau'] = (d + 2*M['gtau0']/N)/(trS - np.trace(Tt.T.dot(M['W'])) + (M['mu'].dot(M['mu'].T)*M['gmu0'] + 2*M['gtau0']/M['btau0'])/N)
+    M['SigW'] = Dwinv*(d/N)
+    M['alpha'] = (2*M['galpha0'] + d)/(M['tau']*np.diag(M['W'].T.dot(M['W'])) + np.diag(M['SigW']) + 2*M['galpha0']/M['balpha0'])
+
+    return M
+        
+
+
+# assumes no rows of all NaNs
+def bPCA(data, k=None, maxepoch=200, stepsize=10, dtau_tol=1e-8):
+    '''
+    An algorithm to compute missing values using Bayesian PCA. Translated from
+    MATLAB code by Shigeyuki OBA, 2002 May. 5th.
+
+    Parameters
+    ----------
+    data : numpy array
+        The data with missing values to be estimated.
+    k : int, optional
+        The number of components to consider. Must be less than the number of
+        columns. If None, use num_cols - 1. The default is None.
+    maxepoch : int, optional
+        Number of iterations. The default is 200.
+    stepsize : int, optional
+        The number of iterations to compute before printing results.
+        The default is 10.
+    dtau_tol : float, optional
+        The precision tolerance. Breaks if precision is lower than the
+        tolerance. The default is 1e-8.
+
+    Returns
+    -------
+    M : dict
+        A dictionary of the results, containing:
+            mu: The estimated mean row vector
+            W: The estimated principal axis matrix
+            tau: The estimated precision (inverse variance) of the residual 
+                 error
+
+    '''
+    N, d = data.shape
+    if k is None:
+        k = d - 1
+    
+    M = BPCA_initmodel(data, k)
+    tauold = 1000
+    
+    for epoch in range(maxepoch):
+        M = BPCA_dostep(M, data)
+        if epoch % stepsize == 0:
+            tau = M['tau'];
+            dtau = np.abs(np.log10(tau)-np.log10(tauold));
+            print('epoch=%d, dtau=%g' % (epoch, dtau));
+            if dtau < dtau_tol:
+                break
+            tauold = tau    
+    return M
         

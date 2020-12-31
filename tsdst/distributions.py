@@ -708,6 +708,36 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
         return -loglike
     else:
         return loglike
+    
+
+def ExactMLE_exp(data, censored):
+    '''
+    Maximum Likelihood Estimate of an exponential distribution (with an option
+    for right-censoring).
+
+    Parameters
+    ----------
+    data : numpy array
+        The data for the exponential distribution (usually time between events,
+        or similar).
+    censored : numpy array
+        An array of boolean values where 1 means the event occured and 0 means
+        the event is censored (right).
+
+    Returns
+    -------
+    list
+        A list containing (in order) the MLE, the standard error, and the 
+        95% confidence interval for the estimate.
+
+    '''
+    f = data[censored == 1]
+    c = data[censored == 0]
+    nf = f.size
+    rate = nf/(np.sum(f) + np.sum(c))
+    se = rate / np.sqrt(nf)
+    params_ci = (rate + np.array([-1, 1])*norm.ppf(1-(1-0.95)/2)*se)
+    return [rate, se, params_ci]
 
 
 # #########################################

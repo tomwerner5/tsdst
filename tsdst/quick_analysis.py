@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
+from time import mktime
 from timeit import default_timer as dt
 
 from .feature_selection import dropHighCorrs, getHighCorrs, naiveVarDrop
@@ -110,12 +111,13 @@ def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
     # good choice. However, for long-term storage, parquet is 
     # probably the best option
     
-    data = pd.read_msgpack(save_path + save_name + '.msg')
-    chunks = [int(x[6:]) for x in data.keys()]
-    chunks = sorted(chunks)
-    mergedDF = pd.DataFrame()
-    for chunk in chunks:
-        mergedDF = mergedDF.append(data['chunk_'+str(chunk)])
+    #data = pd.read_msgpack(save_path + save_name + '.msg')
+    #chunks = [int(x[6:]) for x in data.keys()]
+    #chunks = sorted(chunks)
+    #mergedDF = pd.DataFrame()
+    #for chunk in chunks:
+    #    mergedDF = mergedDF.append(data['chunk_'+str(chunk)])
+    mergedDF = pd.read_feather(save_path + save_name + '.fth')
     
     Xtrain = mergedDF.loc[:, cur_pred_list]
     Ytrain = mergedDF.loc[:, target_var]
@@ -128,8 +130,6 @@ def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
                         random_state=random_state)
     
     # For debugging purposes, to attempt to force garbage collection in parallel
-    data = []
-    chunks = []
     mergedDF = []
     Xtrain = []
     Ytrain = []
@@ -318,20 +318,21 @@ class QuickAnalysis(object):
             save_path = 'qr_tmp'
             if not os.path.isdir(save_path):
                 os.mkdir(save_path)
-            save_name = '/qr_run_' + str(datetime.now())
+            save_name = '/qr_run_' + str(int(mktime(datetime.now().timetuple())))
             
-            pd.to_msgpack(save_path + save_name + '.msg', {
-                    'chunk_{0}'.format(i):chunk for i, chunk in enumerate(np.array_split(self.train, num_chunks))
-                                                          })
-
+            #pd.to_msgpack(save_path + save_name + '.msg', {
+            #        'chunk_{0}'.format(i):chunk for i, chunk in enumerate(np.array_split(self.train, num_chunks))
+            #                                              })
+            temp_train = self.train.copy(deep=True)
+            temp_train.to_feather(save_path + save_name + '.fth')
+            
             size = self.train.shape[0]
-            rs = random_state
             arr = {'save_path': save_path,
                    'save_name': save_name,
                    'num_chunks': num_chunks,
                    'sample_size': size,
                    'unreg_full_mod': None,
-                   'rs': rs,
+                   'random_state': random_state,
                    'target_var': self.target_var,
                    'cur_pred_list': list(self.cur_pred_list),
                   }
@@ -356,7 +357,8 @@ class QuickAnalysis(object):
                                   n_jobs=n_jobs)
 
             if remove_msg:
-                file_ = save_path + save_name + '.msg'
+                #file_ = save_path + save_name + '.msg'
+                file_ = save_path + save_name + '.fth'
                 try:
                     os.remove(file_)
                 except FileNotFoundError:
@@ -371,7 +373,7 @@ class QuickAnalysis(object):
                                  Ytrain=self.train.loc[:, self.target_var],
                                  sample_size=self.train.shape[0],
                                  unreg_full_mod=None,
-                                 rs=random_state) for red in self.reduction]
+                                 random_state=random_state) for red in self.reduction]
         
         for i, re in enumerate(res):
             nonzero_coefs.append(re[0])
@@ -570,7 +572,7 @@ class QuickAnalysis(object):
     def BaselineDropProcedures(self, freshStart=True, downsample=False,
                                dropCols=None, dropCor=True, corr_cutoff=0.9,
                                dropVar=True, dropVarTol=0.001,
-                               std_var_drop=False, cv_iterations=5,
+                               cv_iterations=5,
                                random_state=123, default_penalty=0.01,
                                verbose=True, t0=None):
         '''
@@ -622,7 +624,6 @@ class QuickAnalysis(object):
                                  'corr_cutoff': corr_cutoff,
                                  'dropVar': dropVar,
                                  'dropVarTol': dropVarTol,
-                                 'std_var_drop': std_var_drop,
                                  'cv_iterations': cv_iterations,
                                  'random_state': random_state,
                                  'default_penalty': default_penalty,
@@ -856,11 +857,11 @@ class QuickAnalysis(object):
         
     def RunFullAnalysis(self, freshStart=True, downsample=False, dropCols=None,
                         dropCor=True, corr_cutoff=0.9, dropVar=True,
-                        dropVarTol=0.001, std_var_drop=False, cv_iterations=5,
+                        dropVarTol=0.001, cv_iterations=5,
                         random_state=123, default_penalty=0.01, verbose=True,
                         try_parallel=True, for_stride=2, reduce_features_by=30,
                         num_cs=100, red_metric='bic', red_log_low=-5,
-                        red_log_high=1, n_jobs=15, remove_msg=True,
+                        red_log_high=1, n_jobs=1, remove_msg=True,
                         chunk=False):
         '''
         Performs a quick analysis by first considering which features/variables
@@ -898,27 +899,30 @@ class QuickAnalysis(object):
             otherwise unspecified. The default is 0.01.
         verbose : bool, optional
             Print steps as they complete. The default is True.
-        try_parallel : TYPE, optional
-            DESCRIPTION. The default is True.
-        for_stride : TYPE, optional
-            DESCRIPTION. The default is 2.
-        reduce_features_by : TYPE, optional
-            DESCRIPTION. The default is 30.
+        try_parallel : bool, optional
+            Try to perform the operation in parallel. If it fails, it will
+            continue without parallel operations. The default is True.
+        for_stride : int, optional
+            The gap between variables evaluated for the forward selection
+            metric. The default is 2.
+        reduce_features_by : int, optional
+            The size of the final model. The default is 30.
         num_cs : int, optional
             number of penalty values to test (i.e. number of models to evaluate
             during AIC calculations). The default is 100.
-        red_metric : TYPE, optional
-            DESCRIPTION. The default is 'bic'.
-        red_log_low : TYPE, optional
-            DESCRIPTION. The default is -5.
-        red_log_high : TYPE, optional
-            DESCRIPTION. The default is 1.
-        n_jobs : TYPE, optional
-            DESCRIPTION. The default is 15.
-        remove_msg : TYPE, optional
-            DESCRIPTION. The default is True.
-        chunk : TYPE, optional
-            DESCRIPTION. The default is False.
+        red_metric : str, optional
+            The metric used to optimize model reductions. The default is 'bic'.
+        red_log_low : float, optional
+            The logspace minimum value for evaluating the L1 penalty.
+            The default is -5.
+        red_log_high : float, optional
+            The logspace maximum value for evaluating the L1 penalty.. The default is 1.
+        n_jobs : int, optional
+            The number of processes to attempt. The default is 1.
+        remove_msg : bool, optional
+            Remove messagepacks. The default is True.
+        chunk : bool, optional
+            Chunk msgpacks? The default is False.
 
         Returns
         -------
@@ -933,7 +937,6 @@ class QuickAnalysis(object):
                                  'corr_cutoff': corr_cutoff,
                                  'dropVar': dropVar,
                                  'dropVarTol': dropVarTol,
-                                 'std_var_drop': std_var_drop,
                                  'cv_iterations': cv_iterations,
                                  'random_state': random_state,
                                  'default_penalty': default_penalty,
@@ -955,7 +958,6 @@ class QuickAnalysis(object):
                                     corr_cutoff=corr_cutoff,
                                     dropVar=dropVar,
                                     dropVarTol=dropVarTol,
-                                    std_var_drop=std_var_drop, 
                                     cv_iterations=cv_iterations,
                                     random_state=random_state,
                                     default_penalty=default_penalty,

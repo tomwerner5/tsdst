@@ -195,7 +195,7 @@ def mann_whitney(x, y, y_is='groups'):
 
 def biserial_rank_corr(x, y, y_is='groups'):
     '''
-    
+    Biserial Rank Correlation.
 
     Parameters
     ----------
@@ -287,12 +287,13 @@ def corr(x, y=None, method='pearson'):
     return cor_mat
 
 
-def histogram_mode(data, delta=75, dataMax_thres=1e9, median_thres=None):
+def mode_histogram(data, delta=75, dataMax_thres=1e9, median_thres=None):
     # TODO: make this work in a multivariate setting
     # TODO: Go through the function again to provide more useful documentation
     '''
-    Calculates the mode using data provided from a histogram. Created because
-    calculating mode from KDE estimate can be slow.
+    Calculates the mode (from a continuous distribution) using data provided
+    from a histogram. Created because calculating mode from KDE estimate
+    can be slow.
 
     Parameters
     ----------
@@ -332,7 +333,7 @@ def histogram_mode(data, delta=75, dataMax_thres=1e9, median_thres=None):
     return hist[1][np.where(hist[0] == np.max(hist[0]))][0], hist
 
 
-def mode_kde(data):
+def mode_kde(data, kde_args=None):
     '''
     Calculate mode from gaussian kernel density estimate (using scipy
     gaussian_pde).
@@ -341,6 +342,8 @@ def mode_kde(data):
     ----------
     data : numpy array
         Array to calculate mode from.
+    kde_args : dict
+        A dictionary containing arguments for gaussian_kde (scipy)
 
     Returns
     -------
@@ -348,7 +351,9 @@ def mode_kde(data):
         A numeric value, which is the mode.
 
     '''
-    kernel = gaussian_kde(data)
+    if kde_args is None:
+        kde_args = {}
+    kernel = gaussian_kde(data, **kde_args)
     height = kernel.pdf(data)
     mode = data[np.argmax(height)]
     return mode
@@ -425,4 +430,81 @@ def mahalanobis(data, produce=None):
         return ((md2/(n - 1)) + (1/n))
     else:
         return np.sqrt(md2)
+
+
+def scaling(x, a=0, b=1, percentile=(0, 100),
+            center=None, scale=None, ddof=0):
+    '''
+    Common scaling algorithm. Either min-max (with any desired bound),
+    standardizing, max absolute scaling, or robust scaling.
+
+    Parameters
+    ----------
+    x : numpy array
+        The data.
+    a : float, optional
+        The minimum value desired. The default is 0.
+    b : float, optional
+        The maximum value desired. The default is 1.
+    percentile : list or array-like, optional
+        Provide percentile bounds on values. The default is (0, 100).
+    center : float or str, optional
+        Either a value representing the centrality measure, or a string
+        for the measure to be computed, either mean or median.
+        If None, use the minimum of the percentile bounds.
+        The default is None.
+    scale : float or str, optional
+        Either a value representing the dispersion measure, or a string
+        for the measure to be computed, either std (standard deviation),
+        var (variance), or maxAbs.
+        If None, use the absolute difference of the percentile bounds.
+        The default is None.
+    ddof : int, optional
+        Degrees of freedom for the variance/std. dev measure. The default is 0.
+
+    Raises
+    ------
+    TypeError
+        Raised if center is an invalid type.
+
+    Returns
+    -------
+    scaled : numpy array
+        The scaled values.
+
+    '''
+    lower = upper = centVal = scaleVal = None
+    if center is not None:
+        try:
+            centVal = x - center
+        except TypeError:
+            if center == "mean":
+                centVal = x - np.nanmean(x)
+            elif center == "median":
+                centVal = x - np.nanmedian(x)
+            else:
+                raise TypeError("""center must be a string, either 'mean' or
+                                'median', else a number (central tendency)""")
+    else:
+        (lower, upper) = np.nanpercentile(x, percentile)
+        centVal = x - lower
+
+    if scale is not None:
+        try:
+            scaleVal = scale/1
+        except TypeError:
+            if scale == "maxAbs":
+                scaleVal = np.nanmax(np.abs(x))
+            elif scale == "std":
+                scaleVal = np.nanstd(x, ddof=ddof)
+            elif scale == "var":
+                scaleVal = np.nanvar(x, ddof=ddof)
+    else:
+        if lower is None:
+            (lower, upper) = np.nanpercentile(x, percentile)
+        scaleVal = upper - lower
+
+    scaled = (b - a)*centVal/scaleVal + a
+
+    return scaled
         

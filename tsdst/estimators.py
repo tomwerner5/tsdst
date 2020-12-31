@@ -28,7 +28,7 @@ from .distributions import (ap_logreg_lasso,
                                  ap_poisson_lasso_od,
                                  weibull_regression_post)
 from .mcmc import adaptive_mcmc, rwm_with_lap, rwm, applyMCMC
-from .tmath import histogram_mode, mode_kde
+from .tmath import mode_histogram, mode_kde
 from .utils import print_time
 
 
@@ -175,7 +175,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         elif param_summary == 'median':
             sum_parms = np.median(mcmc_params, axis=0)
         elif param_summary == 'mode_histogram':
-            sum_parms = np.array([histogram_mode(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
+            sum_parms = np.array([mode_histogram(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
         elif param_summary == 'mode_kde':
             sum_parms = np.array([mode_kde(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
         else:
@@ -502,7 +502,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         elif param_summary == 'median':
             sum_parms = np.median(mcmc_params, axis=0)
         elif param_summary == 'mode_histogram':
-            sum_parms = np.array([histogram_mode(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
+            sum_parms = np.array([mode_histogram(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
         elif param_summary == 'mode_kde':
             sum_parms = np.array([mode_kde(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
         else:
@@ -780,7 +780,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         elif param_summary == 'median':
             sum_parms = np.median(mcmc_params, axis=0)
         elif param_summary == 'mode_histogram':
-            sum_parms = np.array([histogram_mode(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
+            sum_parms = np.array([mode_histogram(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
         elif param_summary == 'mode_kde':
             sum_parms = np.array([mode_kde(mcmc_params[:, i]) for i in range(mcmc_params.shape[1])])
         else:
