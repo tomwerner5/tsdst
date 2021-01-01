@@ -17,3 +17,7 @@ pip install tsdst
 ## View Documentation
 
 [See the documentation here](https://tomwerner5.github.io/tsdst/Descriptions.html)
+
+## Other Original Content
+
+[Primer on Gradient Descent and Backpropagation](Gradient_Descent_and_Back_Propagation.html)
