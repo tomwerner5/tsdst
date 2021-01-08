@@ -1136,8 +1136,8 @@ def cross_entropy_1Dclass_der(y_true, y_pred, delta=1e-9):
 <li><span class="math inline">\(Y_{m \times h}\)</span> = The target variable</li>
 <li><span class="math inline">\(W_j\)</span> = The jth matrix of weights</li>
 <li><span class="math inline">\(b_j\)</span> = bias of the jth layer</li>
-<li><span class="math inline">\(\sigma(X)_j\)</span> = The activation function for the jth layer</li>
-<li><span class="math inline">\(\sigma &#39; (X)_j\)</span> = <span class="math inline">\(\frac{d \sigma}{d X} \sigma(X)\)</span>, where j is the respective layer</li>
+<li><span class="math inline">\(\sigma_j(X)\)</span> = The activation function for the jth layer</li>
+<li><span class="math inline">\(\sigma_j &#39; (X)\)</span> = <span class="math inline">\(\frac{d \sigma}{d X} \sigma(X)\)</span>, where j is the respective layer</li>
 <li><span class="math inline">\(\eta\)</span> = cost</li>
 <li><span class="math inline">\(\psi(Y, Z_h)\)</span> = cost function, where <span class="math inline">\(Y\)</span> is the true value, and <span class="math inline">\(Z_h\)</span> is the prediction</li>
 <li><span class="math inline">\(\psi &#39; (Y, Z_h)\)</span> = <span class="math inline">\(\frac{d \psi}{d Z_h} \psi(Y, Z_h)\)</span></li>
@@ -1171,7 +1171,7 @@ def cross_entropy_1Dclass_der(y_true, y_pred, delta=1e-9):
 </ol></li>
 <li>Else
 <ol style="list-style-type: decimal">
-<li><span class="math inline">\(Z_{j}&#39; = Z_{j+1}&#39; W_{j+1}^T \times \sigma &#39; (Z_j)\)</span></li>
+<li><span class="math inline">\(Z_{j}&#39; = Z_{j+1}&#39; W_{j+1}^T \times \sigma_{j} &#39; (Z_j)\)</span></li>
 </ol></li>
 <li><span class="math inline">\(W_j &#39; = \frac{Z_{j-1}^T Z_j &#39;}{m}\)</span> (Gradient of the weight in layer j)</li>
 <li><span class="math inline">\(b_j &#39; = \frac{\sum Z_j&#39;}{m}\)</span> (sum the columns of <span class="math inline">\(Z_j&#39;\)</span>)</li>
@@ -1305,7 +1305,7 @@ Iteration 25000: Cost: 0.097315, Acc: 0.964286</code></pre>
 <pre class="python"><code>t1 = dt()
 print(&#39;\nRuntime (s):&#39;, t1 - t0, &#39;\n&#39;) </code></pre>
 <pre><code>
-Runtime (s): 26.817095899999998 </code></pre>
+Runtime (s): 27.191824599999997 </code></pre>
 <pre class="python"><code>plt.figure()
 plt.plot(costs[::100])
 plt.title(&quot;Cost Function Over Time&quot;)
