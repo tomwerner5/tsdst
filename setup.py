@@ -8,7 +8,7 @@ except ImportError:
     from distutils.core import setup
 
 
-with open("PYPI_DESCRIPTION.md", 'r', encoding='utf-8') as f:
+with open("README.md", 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 def read(rel_path):
