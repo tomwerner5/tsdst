@@ -27,15 +27,19 @@ def get_version(rel_path):
 setup(
     name='tsdst',
     version=get_version("tsdst/__init__.py"),
-    description='A library of convenience functions for Tom',
+    description='A low-key data science and statistics toolkit',
+    license='MIT',
     long_description=long_description,
     author='Tom W',
     author_email='tomwerner5@gmail.com',
-    url="https://www.tmwerner.com",
+    url='https://tomwerner5.github.io/tsdst/',
+    download_url='https://github.com/tomwerner5/tsdst/archive/v_1.0.0.tar.gz',
     packages=['tsdst'],
+    keywords=['data science', 'statistics', 'neural network', 'bayesian']
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Programming Language :: Python',
+        'Intended Audience :: Data Scientists',
+        'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
         'Topic :: Scientific/Engineering :: Mathmatics :: Statistics'
     ],
