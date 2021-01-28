@@ -6,8 +6,6 @@ This project began as a list of functions for tasks I did repeatedly and hated c
 
 ## Installation
 
-Note: as of this posting, the package may not be quite ready for pip/conda. But fear not, it will be soon...
-
 To Install:
 
 ```{python}
