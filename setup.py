@@ -8,7 +8,7 @@ except ImportError:
     from distutils.core import setup
 
 
-with open("README.md", 'r') as f:
+with open("PYPI_DESCRIPTION.md", 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 def read(rel_path):
@@ -30,18 +30,19 @@ setup(
     description='A low-key data science and statistics toolkit',
     license='MIT',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Tom W',
     author_email='tomwerner5@gmail.com',
     url='https://tomwerner5.github.io/tsdst/',
-    download_url='https://github.com/tomwerner5/tsdst/archive/v_1.0.0.tar.gz',
+    download_url='https://github.com/tomwerner5/tsdst/archive/v_' + get_version("tsdst/__init__.py") + 'tar.gz',
     packages=['tsdst'],
     keywords=['data science', 'statistics', 'neural network', 'bayesian'],
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Intended Audience :: Data Scientists',
+        'Intended Audience :: Science/Research',
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
-        'Topic :: Scientific/Engineering :: Mathmatics :: Statistics'
+        'Topic :: Scientific/Engineering :: Mathematics'
     ],
     install_requires=['matplotlib>=3.1.0',
                       'numba>=0.44.1',
