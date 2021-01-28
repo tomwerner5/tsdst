@@ -62,11 +62,11 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         niter : int, optional
             The number of MCMC samples to draw. The default is 10000.
         algo : str, optional
-            The MCMC (Metropolis) algorithm to use. The default is 'rosenthal', which is 
-            a method that tunes the covariance matrix after each iteration.
-            Other options include 'rwm', which is a simple random metropolis
-            walk with a fixed covariance matrix, and 'lap' which is another 
-            adaptive method that tunes the covariance matrix every K
+            The MCMC (Metropolis) algorithm to use. The default is 'rosenthal',
+            which is a method that tunes the covariance matrix after each
+            iteration. Other options include 'rwm', which is a simple random
+            metropolis walk with a fixed covariance matrix, and 'lap' which is
+            another adaptive method that tunes the covariance matrix every K
             iterations.
         algo_options : dict, optional
             The options to be passed to the MCMC algorithm. Include as a
@@ -97,7 +97,6 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
             If True, a progress bar, along with timestamps, is provided.
             The default is True.
         over_dispersion : bool, optional
-            ---CURRENTLY NOT IMPLEMENTED---
             Whether or not to account for overdispersion in the model.
             The default is False.
         scorer : function or str
@@ -125,7 +124,8 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         self.verbose = verbose
         self.retry_sd = retry_sd
         self.retry_max_tries = retry_max_tries
-        self.scoring = scorer
+        self.scorer = scorer
+        self.over_dispersion = over_dispersion
         if C is None:
             # TODO: Implement over-dispersion
             #if over_dispersion:
@@ -278,6 +278,11 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         self.n_iter_ = self.niter
         self.classes_ = np.unique(y)
         
+        if self.over_dispersion:
+            self.dispersion_estimation_ = self.extra_params_sum_[-1]
+        else:
+            self.dispersion_estimation_ = None
+        
         if self.verbose:
             print_time("Finished MCMC. Stored Coefficients...", t0, dt(), backsn=True)
             
@@ -359,10 +364,10 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
             The result of the scoring function.
 
         '''
-        scoring = self.scoring or 'accuracy'
-        scoring = get_scorer(scoring)
+        scorer = self.scorer or 'accuracy'
+        scorer = get_scorer(scorer)
         
-        return scoring(self, X, y, sample_weight=sample_weight)
+        return scorer(self, X, y, sample_weight=sample_weight)
 
 
 class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
@@ -375,7 +380,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
                  has_constant=False, verbose=True,
-                 over_dispersion=False):
+                 over_dispersion=False, scorer='D2'):
         '''
         The constructor for the BayesPoissonClassifier
 
@@ -429,7 +434,6 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
             If True, a progress bar, along with timestamps, is provided.
             The default is True.
         over_dispersion : bool, optional
-            ---CURRENTLY NOT IMPLEMENTED---
             Whether or not to account for overdispersion in the model.
             The default is False.
 
@@ -454,6 +458,8 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         self.verbose = verbose
         self.retry_sd = retry_sd
         self.retry_max_tries = retry_max_tries
+        self.over_dispersion = over_dispersion
+        self.scorer = scorer
         if C is None:
             if over_dispersion:
                 self.lpost = ap_poisson_lasso_od
@@ -463,12 +469,44 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
                 self.extra_params = 1
         else:
             if over_dispersion:
+                print("using OD")
                 self.lpost = posterior_poisson_lasso_od
                 self.extra_params = 1
             else:
                 self.lpost = posterior_poisson_lasso
                 self.extra_params = 0
-            
+    
+    def _deviance_dispersion_update(self, X, y, sample_weight=None):
+        weights = _check_sample_weight(sample_weight, X)
+        y_pred = self.predict(X)
+        y_mean = np.average(y, weights=weights)
+        deviance_ = np.sum(weights * (2*(xlogy(y, y/y_pred) - y + y_pred)))
+        null_deviance_ = np.sum(weights * (2*(xlogy(y, y/y_mean) - y + y_mean)))
+        # pearson residual:  (raw residual)/(variance function)
+        pearson_residuals_ = (y - y_pred)/np.sqrt(y_pred)
+        pearson_chi2_ = np.sum(pearson_residuals_**2)
+        model_d2_ = 1 - deviance_/null_deviance_
+        # degrees of freedom of the model (all params (including intercept) minus 1)
+        df_model_ = X.shape[1]
+        # degrees of freedom of residuals ((n_obs - 1) - (nparms - 1)), or
+        df_residuals_ = X.shape[0] - X.shape[1] - 1
+        # total degrees of freedom
+        df_total_ = df_residuals_ + df_model_
+        # method of moments estimator for dispersion scale
+        dispersion_scale_ = pearson_chi2_/df_residuals_
+        dispersion_scale_sqrt_ = np.sqrt(dispersion_scale_)
+        results = {'deviance_': deviance_,
+                   'null_deviance_': null_deviance_,
+                   'pearson_residuals_': pearson_residuals_,
+                   'pearson_chi2_': pearson_chi2_,
+                   'model_d2_': model_d2_,
+                   'df_model_': df_model_,
+                   'df_residuals_': df_residuals_,
+                   'df_total_': df_total_,
+                   'dispersion_scale_': dispersion_scale_,
+                   'dispersion_scale_sqrt_': dispersion_scale_sqrt_}
+        return results
+        
     def _create_coefs(self, mcmc_params, param_summary, extra_params):
         '''
         Creates Coefficients for MCMC model by aggregating the MCMC samples,
@@ -539,6 +577,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         '''
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
                                                                                  self.extra_params)
+        
         return self
     
     def fit(self, X, y):
@@ -610,21 +649,26 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
                                                                                  self.extra_params)
         self.n_iter_ = self.niter
         
-        #get model summaries
-        weights = _check_sample_weight(None, X)
-        y_pred = self.predict(X[:, 1:])
-        y_mean = np.average(y, weights=weights)
-        dev = np.sum(weights * (2*(xlogy(y, y/y_pred) - y + y_pred)))
-        dev_null = np.sum(weights * (2*(xlogy(y, y/y_mean) - y + y_mean)))
-        self.deviance_ = dev
-        self.null_deviance_ = dev_null
-        self.pearson_residuals_ = (y - y_pred)/np.sqrt(y_pred)
-        self.pearson_chi2_ = np.sum(self.pearson_residuals_**2)
-        self.model_d2_ = 1 - dev/dev_null
-        self.df_model_ = X.shape[1] - 1
-        self.df_residuals_ = X.shape[0] - X.shape[1]
-        self.dispersion_scale_ = self.pearson_chi2_/self.df_residuals_
-        self.dispersion_scale_sqrt_ = np.sqrt(self.dispersion_scale_)
+        # get model summaries
+        if self.over_dispersion:
+            self.dispersion_delta_ = self.extra_params_sum_[-1]
+            self.dispersion_estimation_ = 1/(1 - self.dispersion_delta_)**2
+        else:
+            self.dispersion_delta_ = 0
+            self.dispersion_estimation_ = None
+        
+        ddu = self._deviance_dispersion_update(X[:, 1:], y,
+                                               sample_weight=None)
+        self.deviance_ = ddu['deviance_']
+        self.null_deviance_ = ddu['null_deviance_']
+        self.pearson_residuals_ = ddu['pearson_residuals_']
+        self.pearson_chi2_ = ddu['pearson_chi2_']
+        self.model_d2_ = ddu['model_d2_']
+        self.df_model_ = ddu['df_model_']
+        self.df_residuals_ = ddu['df_residuals_']
+        self.df_total_ = ddu['df_total_']
+        self.dispersion_scale_ = ddu['dispersion_scale_']
+        self.dispersion_scale_sqrt_ = ddu['dispersion_scale_sqrt_']
         
         return self
     
@@ -634,23 +678,16 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
                         dtype=[np.float64, np.float32], ensure_2d=True,
                         allow_nd=False)
         mu = X @ self.coef_ + self.intercept_
-        return np.exp(mu)
+        #return np.exp(mu)
+        return np.exp(mu)*(1-self.dispersion_delta_)
     
-    def score(self, X, y, sample_weight=None, scorer='D2'):
-        if scorer == 'D2':
-            weights = _check_sample_weight(sample_weight, X)
-            y_pred = self.predict(X)
-            y_mean = np.average(y, weights=weights)
-            dev = np.sum(weights * (2*(xlogy(y, y/y_pred) - y + y_pred)))
-            dev_null = np.sum(weights * (2*(xlogy(y, y/y_mean) - y + y_mean)))
-            self.score_deviance_ = dev
-            self.score_null_deviance_ = dev_null
-            self.score_pearson_residuals_ = (y - y_pred)/np.sqrt(y_pred)
-            self.score_pearson_chi2_ = np.sum(self.score_pearson_residuals_**2)
-            
-            score = 1 - dev/dev_null
+    def score(self, X, y, sample_weight=None):
+        if self.scorer == 'D2':
+            ddu = self._deviance_dispersion_update(X, y,
+                                                   sample_weight=None)
+            score = ddu['model_d2_']
         else:
-            score = scorer(X, y, sample_weight=sample_weight)
+            score = self.scorer(X, y, sample_weight=sample_weight)
         
         return score
 
@@ -795,6 +832,38 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         intercept = np.array(sum_parms[0])
         
         return coefs, intercept, extra_parm
+    
+    def _deviance_dispersion_update(self, X, y, sample_weight=None):
+        weights = _check_sample_weight(sample_weight, X)
+        y_pred = self.predict(X)
+        y_mean = np.average(y, weights=weights)
+        deviance_ = np.sum(weights * (2*(xlogy(y, y/y_pred) - y + y_pred)))
+        null_deviance_ = np.sum(weights * (2*(xlogy(y, y/y_mean) - y + y_mean)))
+        # pearson residual:  (raw residual)/(variance function)
+        # TODO: put correct weibull variance here
+        pearson_residuals_ = (y - y_pred)/np.sqrt(y_pred)
+        pearson_chi2_ = np.sum(pearson_residuals_**2)
+        model_d2_ = 1 - deviance_/null_deviance_
+        # degrees of freedom of the model (all params (including intercept) minus 1)
+        df_model_ = X.shape[1]
+        # degrees of freedom of residuals ((n_obs - 1) - (nparms - 1)), or
+        df_residuals_ = X.shape[0] - X.shape[1] - 1
+        # total degrees of freedom
+        df_total_ = df_residuals_ + df_model_
+        # method of moments estimator for dispersion scale
+        dispersion_scale_ = pearson_chi2_/df_residuals_
+        dispersion_scale_sqrt_ = np.sqrt(dispersion_scale_)
+        results = {'deviance_': deviance_,
+                   'null_deviance_': null_deviance_,
+                   'pearson_residuals_': pearson_residuals_,
+                   'pearson_chi2_': pearson_chi2_,
+                   'model_d2_': model_d2_,
+                   'df_model_': df_model_,
+                   'df_residuals_': df_residuals_,
+                   'df_total_': df_total_,
+                   'dispersion_scale_': dispersion_scale_,
+                   'dispersion_scale_sqrt_': dispersion_scale_sqrt_}
+        return results
         
     def adjust_params_(self, new_param_summary):
         '''
@@ -915,17 +984,9 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
     
     def score(self, X, y, sample_weight=None, scorer='D2'):
         if scorer == 'D2':
-            weights = _check_sample_weight(sample_weight, X)
-            y_pred = self.predict(X)
-            y_mean = np.average(y, weights=weights)
-            dev = np.sum(weights * (2*(xlogy(y, y/y_pred) - y + y_pred)))
-            dev_null = np.sum(weights * (2*(xlogy(y, y/y_mean) - y + y_mean)))
-            self.score_deviance_ = dev
-            self.score_null_deviance_ = dev_null
-            self.score_pearson_residuals_ = (y - y_pred)/np.sqrt(y_pred)
-            self.score_pearson_chi2_ = np.sum(self.score_pearson_residuals_**2)
-            
-            score = 1 - dev/dev_null
+            ddu = self._deviance_dispersion_update(X[:, 1:], y,
+                                                   sample_weight=None)
+            score = 1 - ddu['deviance_']/ddu['null_deviance_']
         else:
             score = scorer(X, y, sample_weight=sample_weight)
         

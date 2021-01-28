@@ -11,6 +11,7 @@ from tsdst import quick_analysis
 from tsdst import sampling
 from tsdst import tmath
 from tsdst import utils
+from tsdst import nn
 
 __version__ = '1.0.0'
 
@@ -20,6 +21,7 @@ __all__ = ['distributions',
            'mcmc',
            'metrics',
            'modeling',
+	   'nn',
 	   'optimization',
            'parallel',
            'quick_analysis',

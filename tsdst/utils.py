@@ -570,3 +570,37 @@ def reshape_to_vect(ar, axis=1):
         else:
             raise('Invalid axis dimension, either 0 or 1')
     return ar
+
+
+def decision_boundary_1D(x, thres=0.5):
+    '''
+    Divides probabilities `x` into two classes based on threshold value. Everything
+    above the threshold is the positive class.
+    '''
+    y = np.zeros(shape=(len(x), 1))
+    y[x >= thres] = 1
+    return y
+
+
+def decision_boundary(x):
+    '''
+    Divides probabilities `x` into classes based on the max probability value.
+    '''
+    y = np.zeros(shape=x.shape)
+    y[np.arange(len(x)), x.argmax(1)] = 1
+    return y
+
+
+def one_hot_encode(x):
+    '''
+    The first column is the 0th class, 2nd column is the 1st class, etc...
+    '''
+    n = np.max(x) + 1
+    return np.eye(n)[x]
+
+
+def one_hot_decode(x):
+    '''
+    The first column is the 0th class, 2nd column is the 1st class, etc...
+    '''
+    return np.argmax(x, axis=1)

@@ -287,9 +287,9 @@ def corr(x, y=None, method='pearson'):
     return cor_mat
 
 
-def mode_histogram(data, delta=75, dataMax_thres=1e9, median_thres=None):
+def mode_histogram(data, bin_max='auto', edge_check=None, approx=False,
+                   surround=True, surround_step=1):
     # TODO: make this work in a multivariate setting
-    # TODO: Go through the function again to provide more useful documentation
     '''
     Calculates the mode (from a continuous distribution) using data provided
     from a histogram. Created because calculating mode from KDE estimate
@@ -299,39 +299,69 @@ def mode_histogram(data, delta=75, dataMax_thres=1e9, median_thres=None):
     ----------
     data : numpy array
         Array of data to calculate the mode from.
-    delta : int, optional
-        Used to calculate histogram bin width. The default is 75.
-    dataMax_thres : float, optional
-        Max value to consider in hisogram calculation (for the right edge).
-        The default is 1e9.
-    median_thres : float, optional
-        Used to limit the center of the distribution, if median is a really 
-        high number. The default is None.
+    bin_max : int or str, optional
+        Number of histogram bins to pass to np.histogram. Can be string or
+        integer. The default is 'auto'.
+    edge_check : str or None, optional
+        The edge of the largest histogram rectangle (mode) to use for
+        comparing to the original data. For example, if the mode
+        rectangle of the histogram created is between 1 and 3 on the x-axis,
+        then 'left' uses 1 for comparison, 'right' uses 3, and 'center' uses
+        the midpoint 2. If None, the optimal metod is used based on the number
+        of bins. Default is None.
+    approx : bool, optional
+        If approx is True, use the histogram output as the mode. If False, find
+        the closest value in data to the histogram value and use that as the
+        mode.
 
     Returns
     -------
     float
         The mode of the array.
-    hist : numpy array
-        The histogram used to calculate mode.
 
     '''
-    bin_min = np.round(np.floor(np.min(data/delta))*delta, 3)
-    bin_max = np.round(np.ceil(np.max(data) / delta + 1)*delta, 3)
-    data_max = np.max(data)
-    if median_thres is None:
-        if data_max > dataMax_thres:
-            bin_max = dataMax_thres
+    if isinstance(bin_max, str):
+        bins = bin_max
     else:
-        data_median = np.median(data)
-        if data_max < dataMax_thres:
-            pass
-        elif data_max >= dataMax_thres and data_median < median_thres:
-            bin_max = np.round(np.ceil((2*data_median) / delta + 1) * delta, 3)
-    bin_array = np.arange(bin_min, bin_max, delta)
-    hist = np.histogram(data, bin_array)
-    return hist[1][np.where(hist[0] == np.max(hist[0]))][0], hist
-
+        if len(data) < bin_max:
+            bins = len(data)
+        else:
+            bins = bin_max
+    hist, edges = np.histogram(data, bins=bins)
+    hist_max_idx = np.argmax(hist)
+    if edge_check is None:
+        if hist.shape[0] % 2 == 0:
+            edge_check = "left"
+        else:
+            edge_check = "center"
+    
+    if surround:
+        hist_max_indices = np.arange(hist_max_idx - surround_step, hist_max_idx + surround_step + 1, 1)
+        if hist_max_indices[0] < 0:
+            hist_max_indices = hist_max_idx
+        hist_max_values = hist[hist_max_indices]
+    else:
+        hist_max_indices = hist_max_idx
+    
+    if edge_check == "center" or edge_check == "centre":
+        max_edge = edges[hist_max_indices] + (edges[hist_max_idx + 1] - edges[hist_max_idx])/2
+    elif edge_check == "left":
+        max_edge = edges[hist_max_indices]
+    elif edge_check == "right":
+        max_edge = edges[hist_max_indices + 1]
+    else:
+        raise ValueError("Not a valid edge_check. See help(mode_histogram)")
+    
+    if surround:
+        max_edge = np.sum(max_edge*(hist_max_values/hist_max_values.sum()))
+    
+    if approx:
+        mode = max_edge
+    else:
+        mode_idx = np.abs(np.asarray(data) - max_edge).argmin()
+        mode = data[mode_idx]
+    return mode
+    
 
 def mode_kde(data, kde_args=None):
     '''
@@ -359,7 +389,7 @@ def mode_kde(data, kde_args=None):
     return mode
 
 
-def norm(data, p):
+def norm(x, p, use_expo=False):
     '''
     Calculate LP norm of a vector.
 
@@ -376,19 +406,37 @@ def norm(data, p):
         Value of LP norm on the vector.
 
     '''
+    expo = 1/p
     if p == 1:
-        return np.sum(np.abs(data))
-    elif p == 2:
-        return np.sum(data*data)**0.5
-    elif p >= 3:
+        return np.sum(np.abs(x))
+    elif p >= 2:
         if p % 2 == 0:
-            return np.sum(data**p)**(1/p)
+            norm = np.sum(x**p)
         else:
-            return np.sum(np.abs(data)**p)**(1/p)
+            norm = np.sum(np.abs(x)**p)
+        # Regression applications with L2 penalty often dismiss the full norm,
+        # particularily in L2 regularization. I'll note here that there is no added benefit
+        # to using norms higher than 2 in those cases. Odd norms (L3 and higher) are non-differntiable at the origin
+        # and they behave the same as L1. L4 and higher norms have the same 
+        # local meaning are differentiable, thus providing no additional useful
+        # information in regularization.
+        if use_expo:
+            return norm**expo
+        else:
+            return norm
     elif p == 0:
-        return 0
+        # Note: Hastie defines the L_0 norm as the number of elements
+        # though this is not derived mathmatically
+        return len(x)
     else:
         raise('Not a valid norm')
+        
+        
+def norm_der(x, p, use_expo=False):
+    norm_der = (p*np.abs(x)**(p-1))*np.sign(x)
+    if use_expo:
+        norm_der = norm_der*((1/p)*np.sum(np.abs(x)**p)**(1/p - 1))
+    return norm_der
 
         
 def mahalanobis(data, produce=None):

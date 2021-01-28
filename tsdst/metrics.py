@@ -7,6 +7,7 @@ from statsmodels.tools import add_constant
 
 from .distributions import (glm_likelihood_bernoulli, glm_likelihood_poisson,
                             glm_likelihood_gaussian)
+from .utils import one_hot_decode, decision_boundary_1D
 
 
 def top_20p(y_true, y_score):
@@ -272,6 +273,8 @@ def conf_mat_metrics(y_true, y_pred, conf_metric='all'):
         metrics['ppv'] = tp/tpfp
     if tnfn != 0:
         metrics['npv'] = tn/tnfn
+    if tpfp*tpfn*tnfp*tnfn != 0:
+        metrics['matthews_coef'] = ((tp*tn) - (fp*fn))/np.sqrt(tpfp*tpfn*tnfp*tnfn)
     metrics['Conf_Mat'] = confMat
     
     if conf_metric == 'all':
@@ -307,9 +310,9 @@ def bias(y_true, y_pred):
     return bias
 
 
-def rpmse(y_true, y_pred):
+def rpmse(y_true, y_pred, root=True):
     '''
-    Calculate model RPMSE (root predictive mean squared error) in
+    Calculate model PMSE/RPMSE (root predictive mean squared error) in
     Linear Regression.
     
     PMSE or MSE is defined as the average squared distance the predictions
@@ -332,15 +335,21 @@ def rpmse(y_true, y_pred):
 
     '''
     ydiff = y_pred - y_true
-    rpmse = np.sqrt(np.mean(ydiff**2))
-    return rpmse
+    if root:
+        return np.sqrt(np.mean(ydiff**2))
+    else:
+        return np.mean(ydiff**2)
 
 
 def r2(y_true, y_pred):
     '''
     R-squared for a linear regression model. The percent of the variance in 
     the response that can be explained by the predictors.
-
+    
+    SSE : Sum of Squares Errors (Residuals)
+    SSR : Sum of Squares Regression
+    SST : Sum of Squares Total
+    
     Parameters
     ----------
     y_true : numpy array
@@ -356,11 +365,20 @@ def r2(y_true, y_pred):
     '''
     y_bar = np.mean(y_true)
     SST = np.sum((y_true - y_bar)**2)
-    #SSE = np.sum((y_true - y_pred)**2)
-    SSR = np.sum((y_pred - y_bar)**2)
-    # also equal to 1 - SSE/SST
+    SSE = np.sum((y_true - y_pred)**2)
+    #SSR = np.sum((y_pred - y_bar)**2)
+    rsquared = 1 - SSE/SST
+    # Note: the following deifinitions are only equal to the above when the
+    # model is linear, and will only be equivalent for the training data (i.e.
+    # the test data is not guarenteed to have equivalent definitions of R2)
+    # The equivalence of these definitions will hold for some non-linear
+    # models, but not for others. Therefore,
+    # Kvalseth TO. Cautionary Note About R2. Am. Statistic. 1985;39:279–285.
+    # recommends using 1 - SSE/SSR for the general cases because by it's 
+    # definition, it is the most robust to a general suite of problems
+    
     # alternative R2: np.corrcoef((ypred, ytrue))**2
-    rsquared = SSR/SST
+    # rsquared = SSR/SST
     return rsquared
 
 
@@ -581,7 +599,7 @@ def glm_regularized_AIC(X, Y, reg_mod, unreg_mod,
 
 def js_div(px, py):
     '''
-    Jensen-Shannon Divergence
+    Jensen-Shannon Divergence, which is a smoothed version of KL divergence.
     
     px: Probability of x (float or array of floats)
     py: Probability of y (float or array of floats)
@@ -589,6 +607,20 @@ def js_div(px, py):
     midpoint = (px + py)*0.5
     js = rel_entr(px, midpoint)*0.5 + rel_entr(py, midpoint)*0.5
     return np.sum(js)
+
+
+def kl_div(px, py):
+    '''
+    KL divergence.
+    
+    Note: scipy has a KL divergence function of the same name, but it adds
+    extra terms. 
+    
+    px: Probability of x (float or array of floats)
+    py: Probability of y (float or array of floats)
+    '''
+    kl = np.sum(px*np.log(px/py))
+    return kl
 
 
 def HellingerDistanceMVN(mu1, mu2, cov1, cov2, squared=False):
@@ -706,3 +738,10 @@ def HotellingsTwoSampleMVTtest(mu1, mu2, cov1, cov2, n1, n2, pval=True):
         return pv
     else:
         return t2
+    
+
+def accuracy(y_true, y_pred):
+    if y_true.shape[1] != 1:
+        return np.mean(one_hot_decode(y_true) == one_hot_decode(y_pred))
+    else:
+        return np.mean(y_true == decision_boundary_1D(y_pred))

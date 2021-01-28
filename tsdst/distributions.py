@@ -1033,11 +1033,13 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
     intercept = parms[0]
     betas = parms[1:-2]
     l_scale = np.exp(parms[-2])
+    delta = parms[-1]
     
     mu = X.dot(parms[:-2]) - parms[-1]
+    lamda = np.exp(mu)
     
-    like = np.sum(Y*mu - np.exp(mu) - loggamma(Y + 1))
-    #like = like/np.exp(parms[-1])
+    like = np.sum(mu + (Y - 1)*np.log(lamda + delta*Y) - lamda - delta*Y - loggamma(Y + 1))
+
     # normal prior on the intercept
     int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - (((intercept - l_loc)**2) / (2.0*(n_sigma**2))))
     # Laplace prior 
@@ -1119,9 +1121,9 @@ def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
     # Laplace prior 
     #parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     # Normal prior
-    parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
+    coef_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
     
-    post = like + parm_prior + int_prior 
+    post = like + coef_prior + int_prior 
     
     if not log:
         post = np.exp(post)
@@ -1137,6 +1139,9 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
     The posterior density for a poisson regression model with an L1 penalty
     term. This function also attempts to adaptively account for overdispersion.
     
+    Uses a generalized poisson model for the dispersion calculation. See
+    https://journals.sagepub.com/doi/pdf/10.1177/1536867X1201200412
+    
     Parameters
     ----------
     parms : numpy array (numeric)
@@ -1149,8 +1154,6 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
         The response value (should be 0 or 1, but could be float as well if 
         you're willing to deal with those consequences).
     l_scale : float, optional
-        ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
-        EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
         The value of the scale parameter in the Laplace distribution.
         A common choice for the laplace prior is scale = 2/lambda, 
         because it can be shown that this is the MAP estimate where
@@ -1183,20 +1186,42 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
     l_loc = 0
     
     intercept = parms[0]
-    betas = parms[1:-1]
+    betas = parms[1:-1]   
     
-    mu = X.dot(parms[:-1]) - parms[-1]
-    #mu = mu/np.exp(parms[-1])
+    # alternative formulation:
+    # see: https://journals.sagepub.com/doi/pdf/10.1177/1536867X1201200412
     
-    like = np.sum(Y*mu - np.exp(mu) - loggamma(Y + 1))
+    # custom bound on delta so it is strictly less than 1
+    #delta = np.log(1/(1+np.exp(-parms[-1]))) + 1
+    # else:
+    delta = parms[-1]
+    
+    lamda = np.exp(X.dot(parms[:-1]))
+    theta = lamda*(1 - delta)
+    
+    log_theta = np.log(theta)
+    like = np.sum(log_theta + xlogy(Y - 1, theta + delta*Y) - theta - delta*Y - loggamma(Y + 1))
+       
     # normal prior on the intercept
     int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - (((intercept - l_loc)**2) / (2.0*(n_sigma**2))))
-    # Laplace prior 
-    #parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
-    # Normal prior
-    parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
-    # assuming uniform for over dispersion prior
-    post = like + parm_prior + int_prior #+ parms[-1]
+    # Laplace prior on beta
+    coef_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
+    # Normal prior on beta
+    #coef_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
+    
+    ## prior on delta
+    # normal
+    delta_prior = (-0.5*np.log(2.0*np.pi) - np.log(0.4) - (((np.exp(delta) - 0)**2) / (2.0*(0.4**2))))
+    
+    # jacobian on custom delta transform
+    # delta_jac = -np.log(np.exp(parms[-1]) + 1)
+
+    post = (like
+            + coef_prior
+            + int_prior
+            + delta_prior
+            #+ delta_jac
+            )
     
     if not log:
         post = np.exp(post)
@@ -1210,7 +1235,7 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
 def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
                             log=True):
     '''
-    --NOT OPERATIONAL-- The posterior density for a weibull regression model with an L1 penalty
+    The posterior density for a weibull regression model with an L1 penalty
     term. 
     
     Parameters
@@ -1273,18 +1298,21 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
 
     fails = Y[status == 1]
     cens = Y[status == 0]
+    shape_fail = shape[status == 1]
+    shape_cens = shape[status == 0]
     gshape = 0.01
     gscale = 100.0
     
-    xly_1 = (shape - 1.0)*np.log(fails/scale)
-    xly_2 = (gshape - 1.0)*np.log(scale)
-    print(shape)
-    if np.any(shape - 1.0 == 0):
-        xly_1[np.where(np.isnan(xly_1))] = 0
+    xly_1 = xlogy(shape - 1.0, fails/scale)
+    xly_2 = xlogy(gshape - 1.0, scale)
     
-    fail_like = (np.log(shape) - np.log(scale) + xly_1 - (fails/scale)**shape)
+    if fails.shape[0] != 0:
+        fail_like = np.sum((np.log(shape_fail) - np.log(scale) + xly_1 - (fails/scale)**shape))
+    else:
+        fail_like = 0
+        
     if cens.shape[0] != 0:
-        cens_like = -(cens/scale)**shape
+        cens_like = np.sum(-(cens/scale)**shape_cens)
     else:
         cens_like = 0
     
@@ -1297,7 +1325,7 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
     # Normal prior
     #parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
     # assuming uniform for over dispersion prior
-    post = np.sum(fail_like) + np.sum(cens_like) + parm_prior + int_prior + scale_prior + parms[-1]
+    post = fail_like + cens_like + parm_prior + int_prior + scale_prior + parms[-1]
     
     if not log:
         post = np.exp(post)

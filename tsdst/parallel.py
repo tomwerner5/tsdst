@@ -6,7 +6,7 @@ from .utils import updateProgBar
 
 def p_prog_simp(args, loop_args, function, n_jobs=2, verbose=True,
                 use_threads=True):
-    # TODO: provide a fix that
+    # TODO: provide a fix that will work more consistently
     '''
     Parallel Progress bar.
 

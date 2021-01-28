@@ -236,7 +236,7 @@ def adaptive_mcmc(start, niter, lpost, postArgs={}, options=None):
         if 'progress' in keys:
             progress = options['progress']
         if 'prev_vals' in keys:
-            prev_vals = options['prev_vals']
+            prev_vals.update(options['prev_vals'])
     
     numParams = start.size
     sqrtNumParams = np.sqrt(numParams)
@@ -358,7 +358,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
         if 'progress' in keys:
             progress = options['progress']
         if 'prev_vals' in keys:
-            prev_vals = options['prev_vals']
+            prev_vals.update(options['prev_vals'])
     
     numParams = start.size
     optimal = 0.444
@@ -473,7 +473,9 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
         continue where you left off.
 
     '''
-    prev_vals = E = None
+    numParams = start.size
+    
+    prev_vals = {'E_0': ((2.38**2)/numParams)*np.diag(np.repeat(1, numParams))}
     progress = True
     if options is not None:
         keys = list(options.keys())
@@ -482,17 +484,15 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
         if 'progress' in keys:
             progress = options['progress']
         if 'prev_vals' in keys:
-            prev_vals = options['prev_vals']
+            prev_vals.update(options['prev_vals'])
     
-    numParams = start.size
     parm = np.zeros(shape=(niter, numParams))
     parm[0, ] = start
     
     accept = 0
     post_old = lpost(start, **postArgs)
     
-    if E is None:
-        E = ((2.38**2)/numParams)*np.diag(np.repeat(1, numParams))
+    E = prev_vals['E_0']
     chol = la.cholesky(E)
     
     acceptDraw = False
@@ -1534,18 +1534,18 @@ class mcmcObject(object):
             Log posterior function.
         algo : function
             The MCMC algorithm to use (could be anything, but needs to have the
-        same arguments as inputs for the algorithms already defined, namely:
-            start : numpy array
-                Starting values for the MCMC.
-            niter : int
-                Number of iterations.
-            lpost : function
-                Log posterior function.
-            postArgs : dict
-                Extra arguments for the log posterior function. The default is
-                an empty dictionary
-            options : dict, optional
-                Extra arguments for the specific MCMC algorithm
+            same arguments as inputs for the algorithms already defined, namely:
+                start : numpy array
+                    Starting values for the MCMC.
+                niter : int
+                    Number of iterations.
+                lpost : function
+                    Log posterior function.
+                postArgs : dict
+                    Extra arguments for the log posterior function. The default is
+                    an empty dictionary
+                options : dict, optional
+                    Extra arguments for the specific MCMC algorithm
         algoOpts : dict, optional
             Extra arguments for the specific MCMC algorithm.
             The default is None.
@@ -1707,7 +1707,7 @@ class mcmcObject(object):
                 plot_trace_args = {'CTres': burnin_param,
                                    'write': False,
                                    'pdir': "./Plots/",
-                                   'fileType': "jpg",
+                                   'fileType': "png",
                                    'figsize': (15, 12)
                                    }
             else:
@@ -1719,7 +1719,7 @@ class mcmcObject(object):
                                      'write': False,
                                      'pdir': "./Plots/",
                                      'vlines': None,
-                                     'fileType': "jpg",
+                                     'fileType': "png",
                                      'figsize': (15, 12)
                                      }
             self.plotDensity(chainName, **plot_density_args)
@@ -1744,7 +1744,7 @@ class mcmcObject(object):
                                      'acfType': acfType,
                                      'write': False,
                                      'pdir': "./Plots/",
-                                     'fileType': "jpg",
+                                     'fileType': "png",
                                      'lw': None,
                                      'figsize': (15, 12)
                                      }
@@ -1752,8 +1752,9 @@ class mcmcObject(object):
 
         self.burnin(chainName, burnVal)
 
-    def plotTrace(self, chainName, CTres=None, write=True, pdir="./Plots/",
-                  fileType="jpg", figsize=(15, 12)):
+    def plotTrace(self, chainName, CTres=None, write=False,
+                  display=True, pdir="./Plots/",
+                  fileType="png", figsize=(15, 12)):
         '''
         Plot the trace of the MCMC chain.
 
@@ -1764,18 +1765,21 @@ class mcmcObject(object):
         CTres : numpy array, optional
             The results of the TJ_Convergence_Test. The default is None.
         write : bool, optional
-            Write plot to a directory. The default is True.
+            Write plot to a directory. The default is False.
+        display : bool, optional
+            Display the plot.
         pdir : str, optional
             The directory to write the plots to. The default is "./Plots/".
         fileType : str, optional
-            The filetype of the image. The default is "jpg".
+            The filetype of the image. The default is "png".
         figsize : tuple, optional
             The figure size (see matplotlib documentation for more details).
             The default is (15, 12).
 
         Returns
         -------
-        None.
+        fig, ax : tuple
+            The figure and axes components of the plot.
 
         '''
         trace = self.chains[chainName]
@@ -1800,13 +1804,14 @@ class mcmcObject(object):
             pathlib.Path(pdir).mkdir(exist_ok=True)
             fig.savefig(''.join([pdir, self.name, '_', chainName,
                                  "_trace.", fileType]))
-        else:
+        if display:
             fig.show()
         #plt.close()
+        return fig, ax
 
-    def plotDensity(self, chainName, smoothing=0.05, write=True,
-                    pdir="./Plots/", vlines=None, fileType="jpg",
-                    figsize=(15, 12)):
+    def plotDensity(self, chainName, smoothing=0.05, write=False,
+                    display=True, pdir="./Plots/", vlines=None,
+                    fileType="png", figsize=(15, 12)):
         '''
         Plot the density of the MCMC chain.
 
@@ -1819,7 +1824,9 @@ class mcmcObject(object):
             See seaborn.kde_plot for details.
             The default is 0.05.
         write : bool, optional
-            Write plot to a directory. The default is True.
+            Write plot to a directory. The default is False.
+        display : bool, optional
+            Display the plot.
         pdir : str, optional
             The directory to write the plots to. The default is "./Plots/".
         vlines : TYPE, optional
@@ -1827,14 +1834,15 @@ class mcmcObject(object):
             density plots, such as mean, median, or mode.
             The default is None.
         fileType : str, optional
-            The filetype of the image. The default is "jpg".
+            The filetype of the image. The default is "png".
         figsize : tuple, optional
             The figure size (see matplotlib documentation for more details).
             The default is (15, 12).
 
         Returns
         -------
-        None.
+        fig, ax : tuple
+            The figure and axes components of the plot.
 
         '''
         trace = self.chains[chainName]
@@ -1855,13 +1863,14 @@ class mcmcObject(object):
             pathlib.Path(pdir).mkdir(exist_ok=True)
             fig.savefig(''.join([pdir, self.name, '_', chainName, "_density.",
                                  fileType]))
-        else:
+        if display:
             fig.show()
         #plt.close()
+        return fig, ax
 
     def plotACF(self, chainName, bounds=True, ci=0.95, acfType="acf",
-                write=False, pdir="./Plots/", fileType="jpg", lw=None,
-                figsize=(15, 12)):
+                write=False, display=True, pdir="./Plots/", fileType="png",
+                lw=None, figsize=(15, 12)):
         '''
         Plot the Autocorrelation function of the chain.
 
@@ -1878,11 +1887,13 @@ class mcmcObject(object):
             The type of acf plot to draw. Can be either 'acf' or 'pacf'.
             The default is "acf".
         write : bool, optional
-            Write plot to a directory. The default is True.
+            Write plot to a directory. The default is False.
+        display : bool, optional
+            Display the plot.
         pdir : str, optional
             The directory to write the plots to. The default is "./Plots/".
         fileType : str, optional
-            The filetype of the image. The default is "jpg".
+            The filetype of the image. The default is "png".
         lw : float, optional
             The line width to use on the plot. If None, it will be calculated
             automatically. The default is None.
@@ -1892,7 +1903,8 @@ class mcmcObject(object):
 
         Returns
         -------
-        None.
+        fig, ax : tuple
+            The figure and axes components of the plot.
 
         '''
         try:
@@ -1929,11 +1941,11 @@ class mcmcObject(object):
         if write:
             pathlib.Path(pdir).mkdir(exist_ok=True)
             fig.savefig(''.join([pdir, self.name, '_', chainName, acfType, ".", fileType]))
-        else:
+        if display:
             fig.show()
         #plt.close()
+        return fig, ax
 
-	
     def acf(self, chainName, lag=50, partial=False, demean=True):
         '''
         ACF definition for a wide-sense stationary process, partial acf uses
