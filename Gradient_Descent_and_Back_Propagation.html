@@ -2830,7 +2830,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Primer on Backpropagation</h1>
 <h4 class="author">Tom Werner</h4>
-<h4 class="date">First Post: 12/22/2020. Last Updated: 23 January 2021</h4>
+<h4 class="date">First Post: 12/22/2020. Last Updated: 28 January 2021</h4>
 
 </div>
 
@@ -2870,10 +2870,10 @@ div.tocify {
 </div>
 <div id="on-to-gradient-descent" class="section level2">
 <h2>On to Gradient Descent</h2>
-<p>The reason we introduced the MLE first is because it builds a basis for transitioning to machine learning terminology and techniques. For example, when the cost function is equivalent to a likelihood function, the outcome of performing gradient descent, or using Adam optimizers, or any other numerical solving method is the same: the parameters that maximize the likelihood of the underlying statistical distribution is obtained. However, if the cost function is something that doesn’t belong to a family of statistical distributions, then this may not be true (and even in some instances, machine learning practitioners impose other constraints on the likelihood such that the solution obtained is not equivalent to the MLE for the same model/cost formulation). Even when the cost function is exactly a likelihood function, it does not mean that the solution will have the same properties as a typical MLE solution (see <a href="#identifiable">Identifiable</a> in the appendix). Often, machine learning textbooks leave out thfese probabilistic roots, which is why I include them here.</p>
+<p>The reason we introduced the MLE first is because it builds a basis for transitioning to machine learning terminology and techniques. For example, when the cost function is equivalent to a likelihood function, the outcome of performing gradient descent, or using Adam optimizers, or any other numerical solving method is the same: the parameters that maximize the likelihood of the underlying statistical distribution is obtained. However, if the cost function is something that doesn’t belong to a family of statistical distributions, then this may not be true (and even in some instances, machine learning practitioners impose other constraints on the likelihood such that the solution obtained is not equivalent to the MLE for the same model/cost formulation). Even when the cost function is exactly a likelihood function, it does not mean that the solution will have the same properties as a typical MLE solution (see <a href="#identifiable">Identifiable</a> in the appendix). Often, machine learning textbooks leave out these probabilistic roots, which is why I include them here.</p>
 </div>
-<div id="definition-and-formulation-of-a-gradient" class="section level2">
-<h2>Definition and formulation of a gradient</h2>
+<div id="definition-of-a-gradient" class="section level2">
+<h2>Definition of a gradient</h2>
 <p>To keep things simple, we’ll talk about gradients in the context of machine learning rather than coordinate systems or vector spaces (as much as possible). I’m also skipping over limits for the time being.</p>
 <p>If you’ll remember from math, the first derivative (or first order derivative) of a function is the slope of the tangent line at a given point. In practical terms, this represents the rate of change in the function at that point. The first derivative tells us when a function is increasing or decreasing, which is very helpful when trying to find minima or maxima (as we saw in the MLE example).</p>
 <p>So a gradient is just a vector of derivatives, specifically the partial derivatives for some function <span class="math inline">\(f(\textbf{x})\)</span>. In one dimension, the gradient is a vector with one element: the derivative. In multiple dimensions, the gradient is a vector with many elements that collectively represent a plane (or other higher dimensional representations). The gradient identifies the normal of the tangent plane (the equivalent of slope of the tangent line in 1D), and therefore can identify the direction of steepest ascent.</p>
@@ -2886,7 +2886,7 @@ div.tocify {
 <h2>The Gradient Descent Algorithm</h2>
 <blockquote>
 <hr />
-<p><strong>Gradient Descent</strong>:</p>
+<p><strong>Gradient Descent: Algorithm 1</strong>:</p>
 <hr />
 <p>Let:</p>
 <ul>
@@ -3152,9 +3152,9 @@ for(i in 1:max_iters){
 <pre><code>[1] &quot;GLM Acc: 0.795&quot;</code></pre>
 <p>Notice that the implementation not only performed less evaluations than regular gradient descent, it also converged on the correct coefficients, which in turn improved the models performance.</p>
 </div>
-<div id="glms-and-neural-networks-nn" class="section level2">
-<h2>GLMs and Neural Networks (NN)</h2>
-<p>A NN has many similarities to a linear model (though it is, by definition, non-linear). The formulation of a GLM can be summarized as <span class="math inline">\(Y = \sigma(X \beta)\)</span> where <span class="math inline">\(\sigma\)</span> is some link function. In neural networks, the link function is referred to as an activation function, but it’s purpose is similar, which is to conform the output of <span class="math inline">\(X \beta\)</span> to some range. In the case of neural networks, the inputs pass through multiple activation functions (one for each layer) of the network. You could also think of a neural network as stacked GLMs, where the output of one GLM becomes the input of another GLM. These input/output combinations form a graph, and in a simple feed-forward network, the graph is straightforward, meaning it can be defined almost 100% in linear algebra. For a network with two hidden layers, it would look like this:</p>
+<div id="glms-and-neural-networks" class="section level2">
+<h2>GLMs and Neural Networks</h2>
+<p>A Neural Network (NN) has many similarities to a linear model (though it is, by definition, non-linear). The formulation of a GLM can be summarized as <span class="math inline">\(Y = \sigma(X \beta)\)</span> where <span class="math inline">\(\sigma\)</span> is some link function. In neural networks, the link function is referred to as an activation function, but it’s purpose is similar, which is to conform the output of <span class="math inline">\(X \beta\)</span> to some range. In the case of neural networks, the inputs pass through multiple activation functions (one for each layer) of the network. You could also think of a neural network as stacked GLMs, where the output of one GLM becomes the input of another GLM. These input/output combinations form a graph, and in a simple feed-forward network, the graph is straightforward, meaning it can be defined almost 100% in linear algebra. For a network with two hidden layers, it would look like this:</p>
 <p>Let:</p>
 <ul>
 <li><span class="math inline">\(X_{m \times n}\)</span> be the design matrix (bias included)</li>
@@ -3174,7 +3174,7 @@ for(i in 1:max_iters){
 <p>This algorithm provides a complete, explicit demonstration of a feed-forward neural network algorithm with backpropagation. This example uses two hidden layers, but the concepts can be applied to an arbitrary number of layers. The following assumes that <span class="math inline">\(f&#39;(X)\)</span> refers to the derivative of a function, <span class="math inline">\(X&#39;\)</span> refers to a matrix containing the direct or indirect result of such a derivative, <span class="math inline">\(X^T\)</span> refers to the transpose of a matrix, and that <span class="math inline">\(A \times B\)</span> means multiply element-wise. If either <span class="math inline">\(A\)</span> or <span class="math inline">\(B\)</span> is a matrix, then <span class="math inline">\(AB\)</span> is assumed to be matrix multiplication.</p>
 <blockquote>
 <hr />
-<p><strong>A Feed-forward, Two hidden layer NN</strong>:</p>
+<p><strong>A Feed-forward, Two hidden layer NN: Algorithm 2</strong>:</p>
 <hr />
 <p>Let:</p>
 <ul>
@@ -3559,14 +3559,14 @@ def cross_entropy_binary_der(y_true, y_pred, delta=1e-9, m=None, m_scale=1):
 <li><span class="math inline">\(Z_1 = A_0W_1 + b_1\)</span></li>
 <li><span class="math inline">\(A_1 = \sigma_1(Z_1)\)</span></li>
 <li><span class="math inline">\(Z_2 = A_1W_2 + b_2\)</span></li>
-<li><span class="math inline">\(A_2 = \psi(Z_2)\)</span></li>
+<li><span class="math inline">\(A_2 = \sigma_2(Z_2)\)</span></li>
 </ul>
 <p>Then:</p>
 <p><span class="math display">\[h&#39;(W_0 | X, b, Y) = \psi &#39; (Y, A_2) \sigma_2 &#39; (Z_2) W_2 \sigma_1 &#39; (Z_1) W_1 \sigma_0 &#39; (Z_0) X\]</span></p>
 <p>To make sure the concept was able to click, let’s try another one. This time, we’ll do w.r.t. <span class="math inline">\(W_2\)</span>.</p>
 <p><span class="math display">\[h&#39;(W_2 | X, b, Y) = \frac{d\psi}{d \sigma_2} \frac{d \sigma_2}{d \delta_2} \frac{d \delta_2}{d W_2} \psi(Y, \sigma_{2}(\sigma_{1}(\sigma_{0}(XW_0 + b_0) W_1 + b_1) W_2 + b_2))\]</span> The equation above is the formulation of the chain rule, and the equation below is the direct expansion using the chain rule.</p>
-<p><span class="math display">\[h&#39;(W_2 | X, b, Y) = \psi&#39;(Y, \sigma_{2}(\sigma_{1}(\sigma_{0}(XW_0 + b_0) W_1 + b_1) W_2 + b_2))\sigma_{2}&#39;(\sigma_{1}(\sigma_{0}(XW_0 + b_0) W_1 + b_1) W_2 + b_2) Z_1\]</span> The following equation is the same as the above, except in the recursive shorthand demonstrated earlier.</p>
-<p><span class="math display">\[h&#39;(W_2 | X, b, Y) = \psi &#39; (Y, A_2) \sigma_2 &#39; (Z_2) Z_1\]</span></p>
+<p><span class="math display">\[h&#39;(W_2 | X, b, Y) = \psi&#39;(Y, \sigma_{2}(\sigma_{1}(\sigma_{0}(XW_0 + b_0) W_1 + b_1) W_2 + b_2))\sigma_{2}&#39;(\sigma_{1}(\sigma_{0}(XW_0 + b_0) W_1 + b_1) W_2 + b_2) A_1\]</span> The following equation is the same as the above, except in the recursive shorthand demonstrated earlier.</p>
+<p><span class="math display">\[h&#39;(W_2 | X, b, Y) = \psi &#39; (Y, A_2) \sigma_2 &#39; (Z_2) A_1\]</span></p>
 <p>By calculating the gradients in a backward fashion (starting from the output layer and working towards the input layer), backpropagation takes advantage of pre-computed gradients for gradient calculations down the line. This recursive nature is what makes back propagation so efficient.</p>
 <pre class="python"><code>def back_prop(X, Y, wb, zs, hzs, dactf, doutf, dcostf):
     &#39;&#39;&#39;
@@ -3608,11 +3608,11 @@ def cross_entropy_binary_der(y_true, y_pred, delta=1e-9, m=None, m_scale=1):
     return dwdb</code></pre>
 </div>
 <div id="bp_innards" class="section level2">
-<h2>Backpropagation and the innards of the NN</h2>
+<h2>Backpropagation and Neural Nets</h2>
 <p>The hard part is over, and we can move on to running the code. But before we do, I’m going to write out the entire process in algorithm form.</p>
 <blockquote>
 <hr />
-<p><strong>A Feed-forward NN General Algorithm</strong>:</p>
+<p><strong>A Feed-forward NN General Algorithm: Algorithm 3</strong>:</p>
 <hr />
 <p>Let:</p>
 <ul>
@@ -3794,7 +3794,7 @@ Iteration 25000: Cost: 0.016502, Acc: 0.992857</code></pre>
 <pre class="python"><code>t1 = dt()
 print(&#39;\nRuntime (s):&#39;, t1 - t0, &#39;\n&#39;) </code></pre>
 <pre><code>
-Runtime (s): 28.732656000000006 </code></pre>
+Runtime (s): 27.669142200000003 </code></pre>
 <pre class="python"><code>plt.figure()
 plt.plot(costs[::100])
 plt.title(&quot;Cost Function Over Time&quot;)
@@ -3981,15 +3981,43 @@ f&#39;(\textbf{x}) = f_i(\textbf{x})(\delta_{ij} - f_j(\textbf{x}))
 <p>It’s also worth noting that sigmoid can also be used in the multiclass case on it’s own, and in this situation, you simply apply the sigmoid function (and it’s derivative during backpropagation) to each element in the weight matrix. In this case, it does not form a probability distribution (i.e. the sum of sigmoid activated values for each observation will not sum to 1), but it can perform multiple classification nonetheless (for example, you could decide that the highest activated value is the single predicted class). Using clever thresholding, this approach can be good for multiple classification where an observation may be classified as multiple things (think of finding multiple objects in an image). This is because applying a sigmoid function to each of the values represents a type of existence for each class (i.e. what is the probability of the observation belonging to this class, and only this class?). By using thresholding (value of 0.5 for example), an observation (with 4 classes) could be classified as [0, 0, 1, 1]. In other words, with a sigmoid activation, you are answering the question “to which of these classes does the observation belong, all of them, some of them, or none of them?” With softmax, there can only be one right answer in the classification sense, so the probabilities must sum to one and the class with the highest probability represents the class that is most likely associated with that observation. When the classes are mutually exclusive sets, then softmax is a good application. If the classes are not mutually exclusive, then use a sigmoid function. Another way to say it is that the sigmoid function is only interested in providing a yes/no answer for a particular class, while the softmax function gives each class an answer with respect to all the other classes. For softmax, if the model can’t find an answer, each class will have a probability of <span class="math inline">\(1/c\)</span>, where <span class="math inline">\(c\)</span> is the number of classes.</p>
 </div>
 </div>
-<div id="regularization-and-batching" class="section level2">
-<h2>Regularization and Batching</h2>
-<p>Coming Soon</p>
-<!---
-Now that we've graduated from binary classification and have all the basic building blocks, we can improve the model through regularization techniques and batching
---->
+<div id="regression-and-multivariate-regression" class="section level2">
+<h2>Regression and Multivariate Regression</h2>
+<p>There isn’t anything new to add here, except to say that for a regression or multivariate regression problem, the output layer has no activation function, or better said, the output layer has a linear activation function. Any linear function will reduce to something more compact (as shown earlier), so unless there is a non-linear function that helps you achieve an output resembling a gaussian distribution or something similar, there isn’t much utility in addaing an activation function to the output layer. Typical cost functions for a numeric case would be RPMSE/MSE or L1 loss, etc.</p>
+</div>
+<div id="improving-the-model" class="section level2">
+<h2>Improving the model</h2>
+<p>Now that we’ve graduated from binary classification and have all the basic building blocks, we can improve the model through regularization techniques and batching.</p>
+<div id="regularization" class="section level3">
+<h3>Regularization</h3>
+<p>This is no different than applying regularization to a GLM. Regularizing the weight matrices is the same as regularizing the regression coefficients. Also, similarly to a GLM, the bias weights are not typically regularized, though in both a GLM and a NN, you are free to do so.</p>
+<p>In the case of the weights, no change is made to the weights in forward propagation. The penalty is added to the cost function, like so:</p>
+<p><span class="math display">\[cost = \psi(Y, \sigma(Z)) + \sum_{i=1}^l \lambda||\textbf{W}_i||^p_p\]</span></p>
+<p>where <span class="math inline">\(\psi\)</span> is the cost function, <span class="math inline">\(Z\)</span> is the affine transformation (<span class="math inline">\(XW+b\)</span>) of the last layer, <span class="math inline">\(\sigma\)</span> is the output layer activation function, <span class="math inline">\(\lambda\)</span> is the penalty strength, <span class="math inline">\(p\)</span> is the <span class="math inline">\(l_p\)</span> norm, and <span class="math inline">\(\textbf{W}_i\)</span> are the weight matrices for <span class="math inline">\(i^{th}\)</span> layer. <span class="math inline">\(||X||_p\)</span> is referred to as the matrix norm, where <span class="math inline">\(p\)</span> represents the type of norming function being used on <span class="math inline">\(X\)</span>. In the regularization equation above, the upper <span class="math inline">\(p\)</span> (<span class="math inline">\(||W_i||^p\)</span>) is an exponent outside the function. Sometimes <span class="math inline">\(\lambda\)</span> is scaled by <span class="math inline">\(\frac{1}{p}\)</span>, which helps the weights tend to zero during the training process, but it is just a scale, and increasing/decreasing lambda could have the same effect. It also gives a meaningful interpretation to the norm derivative in backpropagation such that the weight update in gradient descent becomes <span class="math inline">\(w := w - \alpha(\nabla w + \lambda w)\)</span>. This adjustment then makes the gradient update equal to a direct scaling of the weights.</p>
+<p>The norm function is evaluated as follows:</p>
+<p><span class="math display">\[||\textbf{x}||_p = (\sum_{i=1}^n|x_{i}|^{p})^{\frac{1}{p}}\]</span></p>
+<p>and it’s derivative:</p>
+<p><span class="math display">\[\frac{d}{dx_j}||\textbf{x}||_p = |x_j|^{p-1} sgn(x) \left[ \sum_{i=1}^n |x_i|^p\right]^{\frac{1}{p}-1}\]</span> Without the exponent, the norm function is:</p>
+<p><span class="math display">\[||\textbf{x}||_p^p = \sum_{i=1}^n|x_{i}|^{p}\]</span></p>
+<p>And the derivative is:</p>
+<p><span class="math display">\[\frac{d}{dx_j}||\textbf{x}||_p^p = p|x_j|^{p-1} sgn(x_j)\]</span></p>
+<p>To account for weight regularization in backpropagation, simply add the derivative of the <span class="math inline">\(l_p\)</span> norm function. This would be added to steps 2.3.1.3-4 in <a href="#bp_innards">algorithm 3</a></p>
+</div>
+<div id="dropout" class="section level3">
+<h3>Dropout</h3>
+<p>(Coming Soon)</p>
+</div>
+<div id="batch-normalization" class="section level3">
+<h3>Batch Normalization</h3>
+<p>(Coming Soon)</p>
+</div>
 </div>
 <div id="appendix" class="section level2">
 <h2>Appendix</h2>
+<div id="code" class="section level3">
+<h3>Code</h3>
+<p>Other than the code provided here, a more involved example can be found in the <code>tsdst</code> package, which can be installed with pip. The documentation can be found <a href="https://tomwerner5.github.io/tsdst/Descriptions.html">here</a>.</p>
+</div>
 <div id="identifiable" class="section level3">
 <h3>Identifiable</h3>
 <p>For a model to be identifiable, it must be able to produce unique probabilities for each unique set of weights (given a set of inputs). From a parametric model standpoint, this would mean that we can make inferences about the underlying distribution the data was (assumed) to be generated from. If the model is not identifiable, then inference is not possible (or at least not credible) since there are two or more distributions (i.e. sets of parameters for some underlying distribution that the data was sampled from) that can exactly equivalently describe the data. For most linear models (and most MLE examples in classical statistics), the models are identifiable. In OLS, this is particularly true since the maximum likelihood estimate is a unique solution for a given input <span class="math inline">\(X\)</span>. In OLS, since there is exactly one coefficient for each independent variable in <span class="math inline">\(X\)</span> (not including the intercept), so as long as the matrix <span class="math inline">\(E(XX^T) = \frac{XX^T}{n}\)</span> is invertible, the solution is identifiable (due to the uniqueness of invertible matrices).</p>
@@ -4010,13 +4038,36 @@ all(y_hat1 == y_hat2)</code></pre>
 <div id="cross-entropy" class="section level3">
 <h3>Cross-entropy</h3>
 <p>The relationship between cross-entropy and likelihood functions (specifically the bernoulli likelihood in this case) is straightforward, but can be easy to miss.</p>
-<p>While the definition varies across ML domains, Cross-entropy in general is a method of measuring the difference of information between two probability distributions (i.e. a way of measuring how similar they are). In our context, cross entropy is the difference between our observed values (which can be viewed as a probability distribution where every probability is either 0 or 1, since every value is known and thus has an extreme probability) and the predicted values (which are actual probabilities since the true values are unknown). Since we are interested in predicting values that follow a bernoulli distribution, the cross entropy takes the form of the negative log-likelihood of the bernoulli distribution.</p>
-<p>With this cost function defined, Neural Networks are just performing a type of maximum likelihood estimation. A negative cost is defined because maximizing the likelihood is the same as minimizing the negative likelihood.</p>
+<p>While the definition varies across ML domains, Cross-entropy in general is a method of measuring the difference of information between two probability distributions (i.e. a way of measuring how similar they are). In our context, cross entropy is the difference between our observed values (which can be viewed as a probability distribution where every probability is either 0 or 1, since every value is known and thus has an extreme probability) and the predicted values (which are actual probabilities since the true values are unknown). Since we are interested in predicting values that follow a bernoulli distribution, the cross entropy takes the form of the bernoulli negative log-likelihood.</p>
+<div id="from-log-likelihood" class="section level4">
+<h4>From Log-likelihood</h4>
+<p>Deriving binary cross-entropy from bernoulli log-likelohood:</p>
+<p><span class="math display">\[log(L(\hat{p}| Y)) = log(\prod_{i=1}^N f(Y|\hat{p}))\]</span></p>
+<p><span class="math display">\[log(L(\hat{p}| Y)) = \sum_{i=1}^N log(f(y_i|\hat{p}_i) = \sum_{i=1}^N log( \hat{p}_i^{y_i} (1-\hat{p}_i)^{1-y_i})\]</span></p>
+<p><span class="math display">\[log(L(\hat{p}| Y)) = \sum_{i=1}^N y_i log(\hat{p}_i) + (1-y_i) log(1-\hat{p}_i)\]</span></p>
+<p>For gradient descent (and variants), we are trying to minimize the negative cost (i.e. in this case, higher log-likelihood is better, so lower negative log-likelihood is also better), so the function is multiplied by <span class="math inline">\(-1\)</span>.</p>
+<p><span class="math display">\[-log(L(\hat{p}| Y)) = -\left[ \sum_{i=1}^N y_i log(\hat{p}_i) + (1-y_i) log(1-\hat{p}_i) \right]\]</span></p>
+<p>And thus, we arrive at cross-entropy.</p>
+<p>Cross-entropy can also be derived as the sum of shannon entropy and Kullback-Leibler (KL) divergence.</p>
+<p>Shannon Entropy:</p>
+<p><span class="math display">\[H(p) = -\sum_{x \in X} p(x)log(p(x))\]</span></p>
+<p>KL Divergence:</p>
+<p><span class="math display">\[D_{KL}(p || q) = \sum_{x \in X} p(x)log \left( \frac{p(x)}{q(x)} \right)\]</span> Then:</p>
+<p><span class="math display">\[H(p, q) = H(p) + D_{KL}(p || q) = -\sum_{x \in X} p(x)log(p(x) + \sum_{x \in X} p(x)log \left( \frac{p(x)}{q(x)} \right)\]</span></p>
+<p><span class="math display">\[H(p, q) = \sum_{x \in X} \left( p(x)log \left( \frac{p(x)}{q(x)} \right) - p(x)log(p(x)) \right)\]</span></p>
+<p><span class="math display">\[H(p, q) = \sum_{x \in X} \left( p(x)(log (p(x))-log(q(x))) - p(x)log(p(x)) \right)\]</span></p>
+<p><span class="math display">\[H(p, q) = \sum_{x \in X} p(x)\left(log (p(x))-log(q(x)) - log(p(x)) \right)\]</span></p>
+<p><span class="math display">\[H(p, q) = \sum_{x \in X} p(x)\left(-log(q(x)) \right)\]</span></p>
+<p><span class="math display">\[H(p, q) = \sum_{x \in X} p(x)\left(-log(q(x)) \right) = -\sum_{x \in X} p(x)log(q(x))\]</span></p>
+<p>The above equation is the general form of cross entropy, meaning it generalizes to any number of classes for a classification problem. Now take note that <span class="math inline">\(p(x)\)</span> and <span class="math inline">\(q(x)\)</span> are probability distributions under the same events <span class="math inline">\(x\)</span>. We can change the <span class="math inline">\(x\)</span> in notation here to <span class="math inline">\(y\)</span>, since that’s what we’re really interested in when performing machine learning. So for binary classification, this equates to <span class="math inline">\(p(y)\)</span> being the probability of observation <span class="math inline">\(y\)</span> being a success or failure. Also, y is a conditional probability is our case, so it would be more correct to write <span class="math inline">\(p(y|x, \beta)\)</span>, but for simplicity, I’ll just refer to it as <span class="math inline">\(p(y)\)</span>. Since we already know the outcome of the event for the training observations, <span class="math inline">\(p(y=1)=1\)</span> or <span class="math inline">\(p(y=0)=0\)</span>. Then, <span class="math inline">\(q(y)\)</span> represents the probability that our model prediction (<span class="math inline">\(\hat y\)</span>) of observation <span class="math inline">\(y\)</span> is a success or failure. The distribution for each observation <span class="math inline">\(y\)</span> is a bernoulli distribution such that the probability <span class="math inline">\(p\)</span> is an element of <span class="math inline">\(\left\{ y, 1-y \right\}\)</span>, and the probability <span class="math inline">\(q\)</span> is an element of <span class="math inline">\(\left\{ \hat{y}, 1-\hat{y} \right\}\)</span>. Then, for binary cross-entropy, <span class="math inline">\(H(p, q)\)</span> becomes:</p>
+<p><span class="math display">\[H(p, q) = -\sum_{x \in X} p(y_x=1, 0)log(q(\hat{y}_x=1, 0)) = -\sum_{x \in X} y_x log(\hat{y}_x) + (1-y_x)log(1-\hat{y_x})\]</span> If there were more classes of interest, this can easily be extended to</p>
+<p><span class="math display">\[H(p, q) = -\sum_{x \in X} p(y_x=c_1, c_2, c_3)log(q(\hat{y}_x=c_1, c_2, c_3)) = -\sum_{x \in X} \left[ y_{c_1 x} log(\hat{y}_{c_1 x}) + y_{c_2 x} log(\hat{y}_{c_2 x}) + y_{c_3 x} log(\hat{y}_{c_3 x}) \right]\]</span> and so on.</p>
+</div>
 </div>
 </div>
 <div id="the-end" class="section level2">
 <h2>The End</h2>
-<p>That pretty well sums it up for now. If you have any questions, feel free to reach out.</p>
+<p>If anyone has any questions, notices any errors, etc., please reach out. I welcome feedback.</p>
 </div>
 
 
