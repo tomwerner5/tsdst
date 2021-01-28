@@ -35,7 +35,7 @@ setup(
     url='https://tomwerner5.github.io/tsdst/',
     download_url='https://github.com/tomwerner5/tsdst/archive/v_1.0.0.tar.gz',
     packages=['tsdst'],
-    keywords=['data science', 'statistics', 'neural network', 'bayesian']
+    keywords=['data science', 'statistics', 'neural network', 'bayesian'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Data Scientists',
