@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         conda install anaconda-client conda-build -n base
-    #- name: Lint with flake8 
+    #- name: Lint with flake8 #
     #  run: |
     #    conda install flake8
     #    # stop the build if there are Python syntax errors or undefined names
