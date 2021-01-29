@@ -38,9 +38,11 @@ requirements:
     - sqlalchemy>=1.3.4
     - statsmodels>=0.9.0
 
-test:
-  imports:
-    - tsdst
+# For unknown reasons, the package won't build properly if this is included
+# it fails on `nn` module, but importing nn module from existing package causes no issues
+#test:
+#  imports:
+#    - tsdst
         
 about:
   home: https://tomwerner5.github.io/tsdst/
