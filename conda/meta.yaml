@@ -1,0 +1,48 @@
+{% set name = "tsdst" %}
+{% set version = "1.0.2" %}
+{% set file_ext = "tar.gz" %}
+
+package:
+  name: '{{ name|lower }}'
+  version: '{{ version }}'
+    
+source:
+  path: /tsdst/tsdst-source
+    
+build:
+  number: 0
+  script: 'python setup.py install '
+
+requirements:
+  host:
+    - python
+    - setuptools
+  run:
+    - python
+    - matplotlib
+    - numba
+    - numdifftools
+    - numpy
+    - pandas
+    - scikit-learn
+    - scipy
+    - seaborn
+    - sqlalchemy
+    - statsmodels
+
+test:
+  imports:
+    - tsdst
+        
+about:
+  home: https://www.tmwerner.com/tsdst
+  license: MIT License
+  license_family: MIT
+  license_file: 'LICENSE.txt'
+  summary: "A low-key data science and statistics toolkit"
+  description: "See README"
+  doc_url: 'https://tomwerner5.github.io/tsdst/'
+  dev_url: 'https://github.com/tomwerner5/tsdst/'
+    
+extra:
+  recipe-maintainers: 'Tom W.'
