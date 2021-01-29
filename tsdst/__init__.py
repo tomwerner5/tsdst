@@ -13,7 +13,7 @@ from . import tmath
 from . import utils
 from . import nn
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 __all__ = ['distributions',
            'estimators',
