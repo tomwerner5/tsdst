@@ -14,7 +14,7 @@ jobs:
     - name: Install dependencies
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
-        $CONDA/bin/conda env update --file environment.yml --name base
+        $CONDA/bin/conda env update --file environment.yml --name tomwerner5/tsdst
     - uses: actions/checkout@master
     - name: publish-to-conda
       uses: m0nhawk/conda-package-publish-action@master
