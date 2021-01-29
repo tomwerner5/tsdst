@@ -7,16 +7,15 @@ package:
   version: '{{ version }}'
     
 source:
-  path: /tsdst
+  path: ..
     
 build:
   number: 0
-  script: 'python setup.py install '
+  script: python setup.py install 
 
 requirements:
   host:
     - python
-    - setuptools
   run:
     - python
     - matplotlib
@@ -35,12 +34,12 @@ test:
     - tsdst
         
 about:
-  home: https://www.tmwerner.com/tsdst
+  home: https://tomwerner5.github.io/tsdst/
   license: MIT License
   license_family: MIT
   license_file: 'LICENSE.txt'
   summary: "A low-key data science and statistics toolkit"
-  description: "See README"
+  description: "See https://tomwerner5.github.io/tsdst/"
   doc_url: 'https://tomwerner5.github.io/tsdst/'
   dev_url: 'https://github.com/tomwerner5/tsdst/'
     
