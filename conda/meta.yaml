@@ -7,7 +7,7 @@ package:
   version: '{{ version }}'
     
 source:
-  path: /tsdst/tsdst-source
+  path: /tsdst
     
 build:
   number: 0
