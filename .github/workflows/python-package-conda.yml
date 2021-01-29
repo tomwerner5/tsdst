@@ -1,6 +1,6 @@
 name: Publish to Conda
 
-on: [push]
+on: [release]
 
 jobs:
   build-linux:
