@@ -1,6 +1,5 @@
 {% set name = "tsdst" %}
 {% set version = "1.0.2" %}
-{% set file_ext = "tar.gz" %}
 
 package:
   name: '{{ name|lower }}'
@@ -14,8 +13,6 @@ build:
   script: python setup.py install 
 
 requirements:
-  host:
-    - python
   build:
     - python
     - matplotlib>=3.1.0
