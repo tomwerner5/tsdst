@@ -19,3 +19,9 @@ To Install:
 ```{python}
 pip install tsdst
 ```
+
+Or:
+
+```{python}
+conda install -c tomwerner5 tsdst
+```
