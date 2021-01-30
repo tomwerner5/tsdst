@@ -31,7 +31,7 @@ setup(
     author_email='tomwerner5@gmail.com',
     url='https://tomwerner5.github.io/tsdst/',
     download_url='https://github.com/tomwerner5/tsdst/archive/v_' + get_version("tsdst/__init__.py") + 'tar.gz',
-    packages=find_packages(),
+    packages=find_packages(include=['tsdst', 'tsdst.nn']),
     keywords=['data science', 'statistics', 'neural network', 'bayesian'],
     classifiers=[
         'Development Status :: 3 - Alpha',
