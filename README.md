@@ -12,6 +12,12 @@ To Install:
 pip install tsdst
 ```
 
+Or:
+
+```{python}
+conda install -c tomwerner5 tsdst
+```
+
 ## View Documentation
 
 [See the documentation here](https://tomwerner5.github.io/tsdst/Descriptions.html)
