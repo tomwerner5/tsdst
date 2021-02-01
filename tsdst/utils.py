@@ -489,9 +489,9 @@ def toFrame(todf, fromdf):
 
 def inferFeatureType(X, n_unique=None):
     '''
-    Not all of the Datatypes are stored in the metadata tables of Bedrock,
-    so some need to be inferred. These inferred/derived datatypes are used to
-    simply the plotting mechanisms
+    Infer feature type of a column based on it's `dytpe`. The inferred
+    datatypes are `categorical`, `numeric`, or `date`.
+
     
     Parameters
     ----------
