@@ -1,6 +1,6 @@
 # Tom's Statistics and Data Science Toolkit (tsdst)
 
-![Build](https://github.com/tomwerner5/tsdst/workflows/Upload%20Python%20Package/badge.svg)
+![Build](https://github.com/tomwerner5/tsdst/workflows/Build/badge.svg)
 
 ## Introduction and Motivation
 
