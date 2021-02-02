@@ -184,13 +184,14 @@ def dropCorrProcedure(X, corr_thres, split_key="..&..",
     # TODO: add an option for dropping columns that have a low correlation with
     # the target
     '''
-    Calculates the inter-correlation of the columns in a dataframe, and then
+    Calculates the inter-correlation of the columns in a matrix/dataframe, and then
     drops columns that are above a given threshold.
 
     Parameters
     ----------
-    X : pandas dataframe
-        The data in tabular form (the feature or design matrix).
+    X : numpy array or pandas dataframe
+        The data in tabular form (the feature or design matrix). If not a 
+        dataframe, it will be converted.
     corr_thres : float
         The threshold for correlation to decide which columns to keep or drop.
         Between 0 and 1.
@@ -209,7 +210,9 @@ def dropCorrProcedure(X, corr_thres, split_key="..&..",
         Dataframe with High correlation columns dropped.
 
     '''
-    corr_mat = np.corrcoef(X, rowvar=False)
+    if not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X.copy())
+    corr_mat = X.corr()
     top_corr = getHighCorrs(corr_mat, corr_thres, split_key=split_key)
     dropped_cor = dropHighCorrs(X, top_corr, split_key=split_key,
                                 asList=asList, print_=print_)

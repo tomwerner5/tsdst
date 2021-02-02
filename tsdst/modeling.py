@@ -715,7 +715,7 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False):
     return se
 
 
-def covmat_validity_check(corr_mat, corr_tol=1e-8):
+def corrmat_validity_check(corr_mat, corr_tol=1e-8):
     '''
     Check for perfect correlation and/or a singular covariance matrix. Either
     of these conditions could indicate a matrix unsuitable for Linear
@@ -765,13 +765,8 @@ def vif(data, root=False, corr_tol=1e-8, sing_tol=1e-15):
         The VIFs.
 
     '''
-    if isinstance(data, pd.DataFrame):
-        corr = data.corr().values
-    else:
-        corr = np.corrcoef(data, rowvar=False)
-    
-    perfect_corr, det = covmat_validity_check(corr, corr_tol=corr_tol,
-                                              sing_tol=sing_tol)
+    corr = np.corrcoef(data, rowvar=False)
+    perfect_corr, det = corrmat_validity_check(corr, corr_tol=corr_tol)
     if perfect_corr.sum() > 0:
         warnings.warn("""There are perfectly correlated variables. VIF
                          may not be reliable.""")
