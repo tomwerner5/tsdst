@@ -715,11 +715,40 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False):
     return se
 
 
-def vif(data, root=False):
+def covmat_validity_check(corr_mat, corr_tol=1e-8):
+    '''
+    Check for perfect correlation and/or a singular covariance matrix. Either
+    of these conditions could indicate a matrix unsuitable for Linear
+    Regression.
+
+    Parameters
+    ----------
+    corr_mat : numpy array
+        The correlation matrix.
+    corr_tol : float
+        The floating point error allowed to check for perfect correlation.
+
+    Returns
+    -------
+    has_perfect_corr : numpy array
+        An array of boolean values indicating perfect correlation.
+
+    '''
+    det = np.linalg.det(corr_mat)
+    ncols = corr_mat.shape[0]
+    corr_mat_flat = corr_mat.reshape(-1, )
+    has_perfect_corr = (np.abs(corr_mat_flat) >= 1-corr_tol).reshape(ncols, ncols)
+    np.fill_diagonal(has_perfect_corr, 0)
+    return has_perfect_corr, det
+
+
+def vif(data, root=False, corr_tol=1e-8, sing_tol=1e-15):
     '''
     Calculate Variance Inflation Factors. The sqrt of vif indicates how many
     times larger the standard error is than it would be if that variable had
     no correlation with the other variables 
+    
+    Assumes rows are observations and columns are variables.
     
     Expects pandas.DataFrame or numpy.array
 
@@ -732,13 +761,34 @@ def vif(data, root=False):
 
     Returns
     -------
-    pandas dataframe
+    Either pandas Dataframe or numpy array
         The VIFs.
 
     '''
-    vifs = np.diag(np.linalg.inv(np.corrcoef(data.values, rowvar=False)))
     if isinstance(data, pd.DataFrame):
-        vifs = pd.DataFrame(vifs, index=data.columns, columns=['Variance Inflation Factors'])
+        corr = data.corr().values
+    else:
+        corr = np.corrcoef(data, rowvar=False)
+    
+    perfect_corr, det = covmat_validity_check(corr, corr_tol=corr_tol,
+                                              sing_tol=sing_tol)
+    if perfect_corr.sum() > 0:
+        warnings.warn("""There are perfectly correlated variables. VIF
+                         may not be reliable.""")
+    if det < sing_tol:
+        warnings.warn("""The corr_mat determinant is essentially zero. VIF
+                         may not be reliable.""")
+    
+    vifs = np.diag(np.linalg.inv(corr))
+    
+    if isinstance(data, pd.DataFrame):
+        vifs = pd.DataFrame(vifs,
+                            index=data.columns,
+                            columns=['Variance Inflation Factors'])
+    if np.any(vifs < 1):
+        warnings.warn("""Some vifs are less than one. Model is not correctly
+                      specified or is not a suitable linear model""")
+                      
     if root:
         return np.sqrt(vifs)
     else:
