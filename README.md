@@ -35,6 +35,10 @@ Or:
 conda install -c tomwerner5 tsdst
 ```
 
+## Licensing
+
+I am feeling pretty liberal with what can/can't be done with this project, so I have provisioned it with an MIT license. If anyone does end up using this for something cool, I wouldn't mind a name drop :)
+
 ## Final Remarks
 
 I have recieved much assistance over the years both in documenting the conceptual aspects of these functions and writing the actual code, so here I offer a general thank-you to those individuals (most of you know who you are).
