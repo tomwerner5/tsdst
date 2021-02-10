@@ -73,7 +73,7 @@ def scoreModel(X, Y, model, metrics=['Accuracy',
             'll_null': None, 
             'y_prob_nullmod': None,
             'n_obs': None,
-            'rquared': None,
+            'rsquared': None,
             'cs_r2': None,
             'model': model}
     All_Metrics = {

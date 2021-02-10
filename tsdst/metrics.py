@@ -462,7 +462,7 @@ def adj_r2(y_true, y_pred, X, rsquared=None):
     '''
     if rsquared is None:
         rsquared = r2(y_true, y_pred)
-    adj_r2 = 1 - (1 - r2)*((X.shape[0] - 1)/(X.shape[0] - X.shape[1] - 1))
+    adj_r2 = 1 - (1 - rsquared)*((X.shape[0] - 1)/(X.shape[0] - X.shape[1] - 1))
     return adj_r2
     
 
