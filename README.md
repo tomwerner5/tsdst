@@ -17,10 +17,6 @@ Some of the more useful code here extends functionality of sklearn and other lib
 2. Extend Existing Functionality
     - There are some functions in exisitng data science libraries that I just don't like, or that I wish were done differently. Othertimes, there are methods or functions that just don't exist anywhere else (to my knowledge). And still other times, there are things that I could never figure out myself, but once the groundwork was laid, could extend to other useful situations. 
 
-## Files and Package Content
-
-A detailed description of each module/function/class (with examples) can be found on the documentation page. Documentation can be found [here:](https://tomwerner5.github.io/tsdst/Descriptions.html)
-
 ## Installation
 
 To Install:
@@ -34,6 +30,10 @@ Or:
 ```{python}
 conda install -c tomwerner5 tsdst
 ```
+
+## Using This Package
+
+After installing, simply import to your module with `import tsdst`. A detailed description of each module/function/class (with examples) can be found on the documentation page. Documentation can be found [here:](https://tomwerner5.github.io/tsdst/Descriptions.html)
 
 ## Licensing
 
