@@ -73,7 +73,7 @@ def scoreModel(X, Y, model, metrics=['Accuracy',
             'll_null': None, 
             'y_prob_nullmod': None,
             'n_obs': None,
-            'r2': None,
+            'rquared': None,
             'cs_r2': None,
             'model': model}
     All_Metrics = {
@@ -139,7 +139,7 @@ def scoreModel(X, Y, model, metrics=['Accuracy',
                             },
             'Adj. R2': {
                              'Function': adj_r2,
-                             'arguments': ['y_true', 'y_pred', 'X', 'r2']
+                             'arguments': ['y_true', 'y_pred', 'X', 'rsquared']
                             },
             'Top 20%': {
                         'Function': top_20p,
@@ -476,10 +476,13 @@ def printScores(scores):
     return None
 
         
-def crossVal(X, Y, cv_iterations, model, method='k-fold', mtype='classification',
-             stratified=True, print_=True, random_state=123, method_on_X=None, mox_args={},
-             avg='weighted', shuffle=True, test_size=0.1, calculate=['Out of Sample'],
-             metrics=['Accuracy', 'F1', 'Sens/Recall', 'Specificity', 'ppv', 'npv', 'AUC'],
+def crossVal(X, Y, cv_iterations, model, method='k-fold',
+             mtype='classification', stratified=True, print_=True,
+             random_state=None, method_on_X=None, mox_args={},
+             avg='weighted', shuffle=True, test_size=0.1,
+             calculate=['Out of Sample'],
+             metrics=['Accuracy', 'F1', 'Sens/Recall', 'Specificity',
+                      'ppv', 'npv', 'AUC'],
              Y_for_test_only=None, sample_limit=20):
     # TODO: add parallel support
     '''
@@ -516,7 +519,7 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold', mtype='classification'
     print_ : bool, optional
         Print the results along the way. The default is True.
     random_state : int, optional
-        Set the random seed for reproducibility. The default is 123.
+        Set the random seed for reproducibility. The default is None.
     method_on_X : function, optional
         An optional function to pass that performs an operation on X.
         For example, you could pass a function to perform PCA before
@@ -570,17 +573,22 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold', mtype='classification'
         
     if method == 'k-fold':
         if stratified:
-            splits = StratifiedKFold(cv_iterations, shuffle=shuffle, random_state=random_state)
+            splits = StratifiedKFold(cv_iterations, shuffle=shuffle,
+                                     random_state=random_state)
         else:
-            splits = KFold(cv_iterations, shuffle=shuffle, random_state=random_state)
+            splits = KFold(cv_iterations, shuffle=shuffle,
+                           random_state=random_state)
     else:
         if stratified:
-            splits = StratifiedShuffleSplit(cv_iterations, test_size=test_size, random_state=random_state)
+            splits = StratifiedShuffleSplit(cv_iterations, test_size=test_size,
+                                            random_state=random_state)
         else:
-            splits = ShuffleSplit(cv_iterations, test_size=test_size, random_state=random_state)
+            splits = ShuffleSplit(cv_iterations, test_size=test_size,
+                                  random_state=random_state)
 
-    scores = runScorers(X, Y, splits, model, mtype, metrics=metrics, avg=avg, calculate=calculate,
-                        method_on_X=method_on_X, mox_args=mox_args, Y_for_test_only=Y_for_test_only,
+    scores = runScorers(X, Y, splits, model, mtype, metrics=metrics, avg=avg,
+                        calculate=calculate, method_on_X=method_on_X,
+                        mox_args=mox_args, Y_for_test_only=Y_for_test_only,
                         sample_limit=sample_limit)
 
     if print_:
