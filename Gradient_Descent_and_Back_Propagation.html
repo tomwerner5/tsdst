@@ -2830,7 +2830,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Primer on Backpropagation</h1>
 <h4 class="author">Tom Werner</h4>
-<h4 class="date">First Post: 12/22/2020. Last Updated: 28 January 2021</h4>
+<h4 class="date">First Post: 12/22/2020. Last Updated: 17 February 2021</h4>
 
 </div>
 
@@ -3219,10 +3219,10 @@ for(i in 1:max_iters){
 <li><span class="math inline">\(Z_{h}&#39; = \psi &#39; (Y, Z_h) \times \sigma_{h} &#39; (Z_2 W_h + b_h)\)</span></li>
 <li><span class="math inline">\(W_h &#39; = \frac{Z_2^T Z_h &#39;}{m}\)</span></li>
 <li><span class="math inline">\(b_h &#39; = \frac{\sum Z_h&#39;}{m}\)</span> (sum the columns of <span class="math inline">\(Z_h&#39;\)</span>)</li>
-<li><span class="math inline">\(Z_{2}&#39; = Z_{h}&#39; W_h^T \times \sigma_2 &#39; (Z_2)\)</span></li>
+<li><span class="math inline">\(Z_{2}&#39; = Z_{h}&#39; W_h^T \times \sigma_2 &#39; (Z_1 W_2 + b_2)\)</span></li>
 <li><span class="math inline">\(W_2 &#39; = \frac{Z_1^T Z_2 &#39;}{m}\)</span></li>
 <li><span class="math inline">\(b_2 &#39; = \frac{\sum Z_2&#39;}{m}\)</span> (sum the columns of <span class="math inline">\(Z_2&#39;\)</span>)</li>
-<li><span class="math inline">\(Z_{1}&#39; = Z_{2}&#39; W_2^T \times \sigma_1 &#39; (Z_1)\)</span></li>
+<li><span class="math inline">\(Z_{1}&#39; = Z_{2}&#39; W_2^T \times \sigma_1 &#39; (X W_1 + b_1)\)</span></li>
 <li><span class="math inline">\(W_1 &#39; = \frac{X^T Z_1 &#39;}{m}\)</span></li>
 <li><span class="math inline">\(b_1 &#39; = \frac{\sum Z_1&#39;}{m}\)</span> (sum the columns of <span class="math inline">\(Z_1&#39;\)</span>)</li>
 </ol></li>
@@ -3585,7 +3585,7 @@ def cross_entropy_binary_der(y_true, y_pred, delta=1e-9, m=None, m_scale=1):
             dZ = dcostf(Y, hzs[&quot;hz&quot; + str(i)]) * doutf(zs[&quot;z&quot; + str(i)])
         else:
             # Otherwise, continue with the chain rule
-            dZ = dZ.dot(wb[&quot;Weight&quot; + str(i + 1)].T) * dactf(hzs[&quot;hz&quot; + str(i)])
+            dZ = dZ.dot(wb[&quot;Weight&quot; + str(i + 1)].T) * dactf(zs[&quot;z&quot; + str(i)])
         if i == 0:
             # If i is the last layer, use the input data for the final calculation 
             A = X
@@ -3660,7 +3660,7 @@ def cross_entropy_binary_der(y_true, y_pred, delta=1e-9, m=None, m_scale=1):
 </ol></li>
 <li>Else
 <ol style="list-style-type: decimal">
-<li><span class="math inline">\(Z_{j}&#39; = Z_{j+1}&#39; W_{j+1}^T \times \sigma_{j} &#39; (Z_j)\)</span></li>
+<li><span class="math inline">\(Z_{j}&#39; = Z_{j+1}&#39; W_{j+1}^T \times \sigma_{j} &#39; (Z_{j-1} W_j + b_j)\)</span></li>
 </ol></li>
 <li><span class="math inline">\(W_j &#39; = \frac{Z_{j-1}^T Z_j &#39;}{m}\)</span> (Gradient of the weight in layer j)</li>
 <li><span class="math inline">\(b_j &#39; = \frac{\sum Z_j&#39;}{m}\)</span> (sum the columns of <span class="math inline">\(Z_j&#39;\)</span>)</li>
@@ -3794,7 +3794,7 @@ Iteration 25000: Cost: 0.016502, Acc: 0.992857</code></pre>
 <pre class="python"><code>t1 = dt()
 print(&#39;\nRuntime (s):&#39;, t1 - t0, &#39;\n&#39;) </code></pre>
 <pre><code>
-Runtime (s): 27.669142200000003 </code></pre>
+Runtime (s): 26.374799000000003 </code></pre>
 <pre class="python"><code>plt.figure()
 plt.plot(costs[::100])
 plt.title(&quot;Cost Function Over Time&quot;)
