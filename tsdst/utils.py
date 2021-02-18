@@ -140,9 +140,9 @@ def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None,
     return None
 
 
-def pretty_print_time(ts, te=None):
+def pretty_print_time(ts, te=None, decimals=0):
     '''
-    Convert time in seconds to a clock-like time, i.e. 00:00:00 format.
+    Convert time in seconds to a clock-like time, i.e. 00:00:00.00 format.
 
     Parameters
     ----------
@@ -150,6 +150,9 @@ def pretty_print_time(ts, te=None):
         Start time (or elapsed time if te is None).
     te : float, optional
         End time. The default is None.
+    decimals : int, optional
+        The number of decimal places to use for tracking miliseconds.
+        The default is 0
 
     Returns
     -------
@@ -161,24 +164,30 @@ def pretty_print_time(ts, te=None):
         t = ts
     else:
         t = te - ts
-    h = np.floor(t/3600.0)
-    m = np.floor(((t/3600.0) - h) * 60.0)
-    s = ((((t/3600.0) - h) * 60.0) - m) * 60.0
     
-    if len(str(int(h))) == 1:
-        h = "0" + str(int(h))
-    else:
-        h = str(int(h))
+    hours_placeholder = t/3600.0
+    hours = np.floor(hours_placeholder)
     
-    if len(str(int(m))) == 1:
-        m = "0" + str(int(m))
-    else:
-        m = str(int(m))
+    minutes_placeholder = (hours_placeholder - hours) * 60.0
+    minutes = np.floor(minutes_placeholder)
     
-    if len(str(int(np.round(s)))) == 1:
-        s = "0" + str(int(np.round(s, 3)))
-    else:
-        s = str(int(np.round(s, 3)))
+    seconds = np.round((minutes_placeholder - minutes) * 60.0, decimals)
+    
+    h = str(int(hours))
+    if len(h) == 1:
+        h = "0" + h
+    
+    m = str(int(minutes))
+    if len(m) == 1:
+        m = "0" + m
+    
+    s = str(int(seconds))
+    if len(s) == 1:
+        s = "0" + s
+    
+    if decimals != 0:
+        second_decimal = seconds - int(seconds)
+        s = '.'.join([s, str(int(second_decimal*10**decimals))])
     
     pretty = h + ":" + m + ":" + s
     return pretty
@@ -218,9 +227,10 @@ def checkDir(directory, make=True, verbose=True):
         print(msg)
     return found
 
-def print_message_with_time(msg, ts, te=None, display_realtime=True, backsn=False,
-                            log=False, log_dir="log", log_filename="pmwt.log",
-                            log_args="a", time_first=False):
+def print_message_with_time(msg, ts, te=None, display_realtime=True,
+                            backsn=False, log=False, log_dir="log",
+                            log_filename="pmwt.log", log_args="a",
+                            time_first=False, decimals=0):
     '''
     Print a message with a timestamp. 
 
@@ -249,6 +259,9 @@ def print_message_with_time(msg, ts, te=None, display_realtime=True, backsn=Fals
         details.
     time_first : bool, optional
         Place time at the begininng of the message. The default is False.
+    decimals : int, optional
+        The number of decimal places to use for tracking miliseconds.
+        The default is 0
 
     Returns
     -------
@@ -258,9 +271,9 @@ def print_message_with_time(msg, ts, te=None, display_realtime=True, backsn=Fals
     '''
     date_time = datetime.datetime.now().strftime("%I:%M:%S %p (%b %d)")
     if display_realtime:
-        time_str = pretty_print_time(ts, te) + " Current Time: " + date_time
+        time_str = pretty_print_time(ts, te, decimals) + " Current Time: " + date_time
     else:
-        time_str = pretty_print_time(ts, te)
+        time_str = pretty_print_time(ts, te, decimals)
     if time_first:
         printed = time_str + msg
     else:
@@ -297,7 +310,8 @@ def print_time(*args, **kwargs):
     print_message_with_time(*args, **kwargs)
 
 
-def save_checkpoint(obj, msg, ts=None, te=None, display_realtime=True, backsn=False,
+def save_checkpoint(obj, msg, ts=None, te=None, decimals=0,
+                    display_realtime=True, backsn=False,
                     log=True, log_dir="log", log_filename="", log_args="a",
                     time_first=False, checkpoint_dir="checkpoints",
                     checkpoint_filename="chkpnt", checkpoint_extension="pkl",
@@ -316,6 +330,9 @@ def save_checkpoint(obj, msg, ts=None, te=None, display_realtime=True, backsn=Fa
         Start time in seconds, or elapsed time if te is None.
     te : float, optional
         End time in seconds. The default is None.
+    decimals : int, optional
+        The number of decimal places to use for tracking miliseconds.
+        The default is 0
     display_realtime : bool, optional
         Display the system (calendar) time as part of the output.
         The default is True.
@@ -349,7 +366,7 @@ def save_checkpoint(obj, msg, ts=None, te=None, display_realtime=True, backsn=Fa
     None.
 
     '''
-    print_message_with_time(msg=msg, ts=ts, te=te,
+    print_message_with_time(msg=msg, ts=ts, te=te, decimals=decimals,
                             display_realtime=display_realtime,
                             backsn=backsn, log=log, log_dir=log_dir,
                             log_filename=log_filename,
