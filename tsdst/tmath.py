@@ -399,11 +399,16 @@ def norm(x, p, use_expo=False):
         A 1D numpy array of values.
     p : int
         The LP norm specification (1,2,3, ...).
+    use_expo : bool, optional
+        Use final exponentiation in norm calculation. Particularily for the 
+        L2 norm, regularization applications will use the square of the norm,
+        so in the L2 case, when use_expo=True, a 1/p exponent is
+        added to the final result.
 
     Returns
     -------
     numeric
-        Value of LP norm on the vector.
+        Value of the LP norm on the vector.
 
     '''
     expo = 1/p
@@ -433,6 +438,27 @@ def norm(x, p, use_expo=False):
         
         
 def norm_der(x, p, use_expo=False):
+    '''
+    Calculate LP norm derivative of a vector.
+
+    Parameters
+    ----------
+    data : numpy array
+        A 1D numpy array of values.
+    p : int
+        The LP norm specification (1,2,3, ...).
+    use_expo : bool, optional
+        Use final exponentiation in norm calculation. Particularily for the 
+        L2 norm, regularization applications will use the square of the norm,
+        so in the L2 case, when use_expo=True, a 1/p exponent is
+        added to the final result.
+
+    Returns
+    -------
+    numeric
+        Value of the LP norm derivative on the vector.
+
+    '''
     norm_der = (p*np.abs(x)**(p-1))*np.sign(x)
     if use_expo:
         norm_der = norm_der*((1/p)*np.sum(np.abs(x)**p)**(1/p - 1))
