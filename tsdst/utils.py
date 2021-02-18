@@ -379,7 +379,7 @@ def save_checkpoint(obj, msg, ts=None, te=None, decimals=0,
             pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def updateProgBar(curIter, totalIter, t0, barLength=20):
+def updateProgBar(curIter, totalIter, t0, barLength=20, decimals=0):
     '''
     Update progress bar. Place this function anywhere in a loop where you want
     to keep track of the loop's progress.
@@ -394,6 +394,9 @@ def updateProgBar(curIter, totalIter, t0, barLength=20):
         The start time of the operation (in seconds).
     barLength : int, optional
         The length of the progress bar. The default is 20.
+    decimals : int, optional
+        The number of decimal places to use for tracking miliseconds.
+        The default is 0
 
     Returns
     -------
@@ -410,8 +413,10 @@ def updateProgBar(curIter, totalIter, t0, barLength=20):
     block = int(round(barLength*progress))
     text = "\rPercent: [{0}] {1:.2f}% iter: {2}/{3} {4} Elapsed: {5}, Estimated: {6}".format(
         "#"*block + "-"*(barLength - block), 
-        round(progress*100.0, 2), curIter, totalIter, status, pretty_print_time(t0, dt()),
-        pretty_print_time((dt()-t0)/curIter * (totalIter - curIter)))
+        round(progress*100.0, 2), curIter, totalIter, status,
+        pretty_print_time(t0, dt(), decimals=decimals),
+        pretty_print_time((dt()-t0)/curIter * (totalIter - curIter),
+                          decimals=decimals))
     if progress >= 1:
         sys.stdout.write(text + "\r\n")
         sys.stdout.flush()
