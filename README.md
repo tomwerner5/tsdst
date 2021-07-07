@@ -8,7 +8,7 @@
 
 ## Introduction and Motivation
 
-This project began as a list of functions for tasks I did repeatedly and hated coding every new instance. Now, it has evolved into a statistical utility tool and a notepad. Some of these functions were created because I wanted to learn and understand the innards of some mathematical concept, and are not optimized in any way. Other functions have been used repeatedly on projects and are hopefully optimized to some extent.
+This project began as a list of functions for tasks I did repeatedly and hated coding every new instance. Now, it has evolved into a statistical utility tool and a notepad. Some of these functions were created because I wanted to learn and understand the innards of some mathematical concept, and are not optimized in any way. Other functions have been used repeatedly on projects and are hopefully optimized to some extent. 
 
 Some of the more useful code here extends functionality of sklearn and other libraries. A majority of the functions are either related or similar to popular functions in [sklearn](https://scikit-learn.org/) or [statsmodels](https://www.statsmodels.org/stable/index.html). What makes the implementations here different are generally two things:
 
