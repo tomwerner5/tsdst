@@ -54,7 +54,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
             regularization strength. If None, the MCMC process
             looks for the optimal penalty. The default is None.
             
-            This value is gets converted into the scale parameter for a laplace
+            This value gets converted into the scale parameter for a laplace
             distribution (scale = 2*C).
         start : numpy array (float), optional
             The starting values for the MCMC. If None, the MLE estimate is used
@@ -262,7 +262,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         postArgs = {
             'X': X,
             'Y': y,
-            'l_scale': self.C*2
+            'l_scale': self.C if self.C is None else 2*self.C
         }
         
         algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
@@ -634,7 +634,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         postArgs = {
             'X': X,
             'Y': y,
-            'l_scale': self.C*2
+            'l_scale': self.C if self.C is None else 2*self.C
         }
         
         algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
@@ -941,7 +941,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         postArgs = {
             'X': X,
             'Y': y,
-            'l_scale': self.C*2
+            'l_scale': self.C if self.C is None else 2*self.C
         }
         
         algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,

@@ -1,21 +1,64 @@
 import numpy as np
 from scipy.special import xlogy
+from scipy.stats import norm as normal
+from ..distributions import pnorm_approx
 
 
 def relu(x, alpha=0):
+    '''
+    Rectified Linear Unit.
+    
+    If alpha is between 0 and 1, the function performs leaky relu.
+    alpha values are commonly between 0.1 and 0.3 for leaky relu.
+    
+    Parameters
+    ----------
+    x : numpy array
+        Values to be activated.
+    alpha : float, optional
+        The scale factor for the linear unit.
+        Typical values are between 0.1 and 0.3.
+        The default is 0.1.
+
+    Returns
+    -------
+    z : numpy array
+        The activated values.
+
+    '''
     z = x.copy()
-    # If alpha is between 0 and 1, the function performs leaky relu
-    # alpha values are commonly between 0.1 and 0.3 for leaky relu
-    z[z < 0] = z[z < 0]*alpha
+    z[x < 0] = z[x < 0]*alpha
     return z
 
 
 def relu_der(x, alpha=0):
-    # Note: relu derivative is technically undefined at x=0, but
-    # tensorflow.nn.relu uses 0 for this special case, so that's what
-    # I do here
+    '''
+    Rectified Linear Unit Derivative.
     
-    # If alpha != 0, then derivative is leaky relu
+    If alpha is between 0 and 1, the function performs leaky relu.
+    alpha values are commonly between 0.1 and 0.3 for leaky relu.
+    
+    Note: relu derivative is technically undefined at x=0, but
+    tensorflow.nn.relu uses 0 for this special case, so that's what
+    I do here
+    
+    If alpha != 0, then derivative is leaky relu
+    
+    Parameters
+    ----------
+    x : numpy array
+        Values to be activated.
+    alpha : float, optional
+        The scale factor for the linear unit.
+        Typical values are between 0.1 and 0.3.
+        The default is 0.1.
+
+    Returns
+    -------
+    dz : numpy array
+        The derivative of the activated values.
+
+    '''
     dZ = x.copy()
     dZ[x <= 0] = alpha
     dZ[x > 0] = 1
@@ -45,11 +88,31 @@ def elu(x, alpha=0.1):
     '''
     z = x.copy()
     
-    z[z < 0] = alpha*(np.exp(z[z < 0]) - 1)
+    z[x < 0] = alpha*(np.exp(z[x < 0]) - 1)
     return z
 
 
 def elu_der(x, alpha=0.1):
+    '''
+    Exponential Linear Unit derivative.
+    
+    Main pro is it avoids dead relu. Main con is computation time.
+    
+    Parameters
+    ----------
+    x : numpy array
+        Values to be activated.
+    alpha : float, optional
+        The scale factor for the linear unit.
+        Typical values are between 0.1 and 0.3.
+        The default is 0.1.
+
+    Returns
+    -------
+    dz : numpy array
+        The derivative of the activated values.
+
+    '''
     dZ = x.copy()
     dZ[x <= 0] = alpha*(np.exp(dZ[x <= 0]) - 1) + alpha
     dZ[x > 0] = 1
@@ -57,13 +120,23 @@ def elu_der(x, alpha=0.1):
 
 
 def sigmoid(x):
-    return 1/(1 + np.exp(-x))
+    return 1.0/(1.0 + np.exp(-x))
 
 
 def sigmoid_der(x):
     sigm = sigmoid(x)
     der = sigm * (1 - sigm)
     return der
+
+
+def sigmoid_scale(x, mu=0, scale=1):
+    return 1.0/(1.0 + np.exp(-((x-mu)/s)))
+
+
+def sigmoid_scale_der(x, mu=0, scale=1):
+    num = np.exp(-(x-mu)/scale)
+    denom = scale*(np.exp(-(x-mu)/scale) + 1)**2
+    return num/denom
 
 
 def softmax(x, center=True):
@@ -113,20 +186,44 @@ def selu(x, alpha=1.6732632423543772848170429916717,
     # scaled exponential relu
     # Note: If lambda=1, then selu reduces to elu
     # Note: vanishing/exploding gradients are impossible with selu
-    dZ = x.copy()
-    dZ[x > 0] = lamda
-    dZ[x <= 0] = lamda*(alpha*np.exp(x[x <= 0]))
-    return dZ
+    z = x.copy()
+    z[x > 0] = lamda*z[x > 0]
+    z[x <= 0] = lamda*(alpha*(np.exp(z[x <= 0]) - 1))
+    return z
 
 
 def selu_der(x, alpha=1.6732632423543772848170429916717,
              lamda=1.0507009873554804934193349852946):
     # scaled exponential relu
     # Note: If lambda=1, then selu reduces to elu
-    z = x.copy()
-    z[z > 0] = lamda*z[z > 0]
-    z[z <= 0] = lamda*(alpha*(np.exp(z[z < 0]) - 1))
-    return z
+    dZ = x.copy()
+    dZ[x > 0] = lamda
+    dZ[x <= 0] = lamda*(alpha*np.exp(dZ[x <= 0]))
+    return dZ
+
+
+def gelu(x, mu=0, sigma=1):
+    phi = normal.cdf(x=x, loc=mu, scale=sigma)
+    return x*phi
+
+
+def gelu_approx(x, mu=0, sigma=1):
+    phi = pnorm_approx(x, mu=mu, sigma=sigma, lt=True, log=False)
+    return x*phi
+
+
+def gelu_der(x, mu=0, sigma=1):
+    phi = normal.cdf(x=x, loc=mu, scale=sigma)
+    return phi + x*normal.pdf(x=x, loc=mu, scale=sigma)
+
+
+def gelu_speedy(x):
+    phi = sigmoid(1.702*x)
+    return x*phi
+
+
+def gelu_speedy_der(x):
+    return sigmoid(1.702*x) + x*sigmoid_der(1.702*x)*1.702
 
 
 def cross_entropy_binary(y_true, y_pred, delta=1e-9):

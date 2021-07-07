@@ -2,7 +2,8 @@ import numpy as np
 
 from ..metrics import rpmse, bias, accuracy
 from ..tmath import norm, norm_der
-from .activations import ( relu, elu,
+from .activations import ( relu, elu, gelu, gelu_der, gelu_approx,
+                     gelu_speedy, gelu_speedy_der,
                      sigmoid, sigmoid_der,
                      softmax, softmax_der, relu_der, cross_entropy,
                      cross_entropy_der, selu, selu_der, elu_der,
@@ -258,7 +259,12 @@ class NeuralNetwork(object):
                             'elu': elu,
                             'elu_der': elu_der,
                             'selu': selu,
-                            'selu_dir': selu_der,
+                            'selu_der': selu_der,
+                            'gelu': selu,
+                            'gelu_approx': gelu_approx,
+                            'gelu_speedy': gelu_speedy,
+                            'gelu_der': gelu_der,
+                            'gelu_speedy_der': gelu_speedy_der,
                             'sigmoid': sigmoid,
                             'sigmoid_der': sigmoid_der,
                             'softmax': softmax,
@@ -544,8 +550,8 @@ class NeuralNetwork(object):
             # not use the mean, but having a lower value is helpful to not run
             # into errors with large numbers
             
-            dW = (batch_m*self.m_scale)*(np.dot(A.T, dZ) + lamda_w*norm_der(wb["Weight" + str(i)], p_w)/p_w)
-            dB = (batch_m*self.m_scale)*(np.sum(dZ, axis=0, keepdims=True) + lamda_b*norm_der(wb["bias" + str(i)], p_b)/p_b)
+            dW = (1/(batch_m*self.m_scale))*(np.dot(A.T, dZ) + lamda_w*norm_der(wb["Weight" + str(i)], p_w)/p_w)
+            dB = (1/(batch_m*self.m_scale))*(np.sum(dZ, axis=0, keepdims=True) + lamda_b*norm_der(wb["bias" + str(i)], p_b)/p_b)
             dwdb["Weight" + str(i)] = dW
             dwdb["bias" + str(i)] = dB
         return dwdb

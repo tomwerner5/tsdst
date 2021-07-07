@@ -129,10 +129,15 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
     '''
     t0 = None
     if verbose:
+        # Initialize time for printing
         t0 = dt()
         print_time("\nInitializing...", t0, te=dt())
+    
+    # Initialize
     sortedData = None
     df = False
+    
+    # Check if DataFrame for convenience later
     if isinstance(data, pd.DataFrame):
         df = True
    
@@ -140,8 +145,12 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
         if verbose:
             print_time("\nSorting...", t0, te=dt())
 
+        # Convert to DataFrame, if not already (for easy
+        # column sorting control)
+        # TODO: see if column control could be equally as easy without
+        # converting to DF
         if df:
-            sortedData = data.copy()
+            sortedData = data.copy(deep=True)
         else:
             sortedData = pd.DataFrame(data)
 
@@ -157,9 +166,10 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
         print_time("\nShaping...", t0, te=dt())
 
     if sortedData is not None:
-        sortedData = np.array(sortedData).reshape(data.shape[0], -1)
+        sortedData = sortedData.values.reshape(data.shape[0], -1)
     else:
         sortedData = np.array(data).reshape(data.shape[0], -1)
+    
     rows = sortedData.shape[0]
     cols = sortedData.shape[1]
     LHC = np.zeros(shape=(sampleSize, cols), dtype=data.dtypes)
