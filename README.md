@@ -44,5 +44,3 @@ I am feeling pretty liberal with what can/can't be done with this project, so I 
 I have recieved much assistance over the years both in documenting the conceptual aspects of these functions and writing the actual code, so here I offer a general thank-you to those individuals (most of you know who you are).
 
 I have tried to attribute what is not my own work when appropriate, as well as acknowledge individuals who have given direct or indirect help. All of these attributions can be found in the documentation page (if I appear to have missed anything/anyone, please let me know). Please reach out if you have any feedback.
-
-IGNORE: Addiing a temporary test for my first pycharm test
