@@ -41,7 +41,6 @@ PYPI_DESCRIPTION.txt
 # Folders #
 ###########
 **/__pychace__
-**/.idea
 **/tsdst.egg-info
 **/backup
 **/.ipynb_checkpoints
