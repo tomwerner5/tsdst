@@ -6,7 +6,7 @@ from scipy.stats import norm
 
 
 def signIntervals(fun, lower=-50, upper=50, step=0.01, fun_args=None):
-    '''
+    """
     Returns the boundaries of all possible roots in a function. Works well
     with Brent root method.
 
@@ -30,7 +30,7 @@ def signIntervals(fun, lower=-50, upper=50, step=0.01, fun_args=None):
         A list of tuples containing the upper and lower bounds of possible
         roots.
 
-    '''
+    """
     if fun_args is None:
         fun_args = {}
     x = np.arange(lower, upper, step)
@@ -55,7 +55,7 @@ def signIntervals(fun, lower=-50, upper=50, step=0.01, fun_args=None):
 
 
 def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
-    '''
+    """
     Brent Method for Roots
 
     This function works well with signIntervals. For example, if the function
@@ -87,7 +87,7 @@ def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
     final_res : dict
         A dictionary containing the results.
 
-    '''
+    """
     if fun_args is None:
         fun_args = {}
     
@@ -188,7 +188,7 @@ def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
 
 
 def AdaptiveNMorBrent(fun, start=None, opt=None, print_=True, fun_args=None):
-    '''
+    """
     Nelder-Mead Method and Brent method (if one-dimensional) for finding the
     minimum of a function.
 
@@ -218,7 +218,7 @@ def AdaptiveNMorBrent(fun, start=None, opt=None, print_=True, fun_args=None):
     final_res : dict
         A dictionary containing the results.
 
-    '''
+    """
     dom_tol = 1e-8
     maxiter = 10000
     bounds = [-10000.0, 10000.0]
@@ -445,7 +445,7 @@ def AdaptiveNMorBrent(fun, start=None, opt=None, print_=True, fun_args=None):
 
 
 def max_like(start, lf, opt=None, print_=True, like_args=None):
-    '''
+    """
     Compute maximum likelihood estimation of a function and it's parameters.
 
     Parameters
@@ -468,7 +468,7 @@ def max_like(start, lf, opt=None, print_=True, like_args=None):
         A list containing the parameter MLEs, the standard error, and 
         95% CI for the parameters (each row is a parameter).
 
-    '''
+    """
     if opt is None:
         opt = {'dom_tol': 1e-8, 'maxiter': 500}
     # initialize variables

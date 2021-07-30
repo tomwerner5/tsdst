@@ -1,6 +1,3 @@
-from __future__ import (division, generators, absolute_import,
-                        print_function, with_statement, nested_scopes,
-                        unicode_literals)
 import matplotlib.pyplot as plt
 import numpy as np
 import pathlib
@@ -24,7 +21,7 @@ from .distributions import qnorm_aprox
 
 
 def _updateProgBarMCMC(curIter, totalIter, t0, ar, barLength=20):
-    '''
+    """
     Custom progress bar to output MCMC chain progress.
 
     Parameters
@@ -44,7 +41,7 @@ def _updateProgBarMCMC(curIter, totalIter, t0, ar, barLength=20):
     -------
     None.
 
-    '''
+    """
     status = "Working..."
     progress = float(curIter)/float(totalIter)
     if isinstance(progress, int):
@@ -67,7 +64,7 @@ def _updateProgBarMCMC(curIter, totalIter, t0, ar, barLength=20):
 
 def applyMCMC(st, ni, lp, algo, algoOpts=None, postArgs={},
               sd=0.02, max_tries=100):
-    '''
+    """
     This function iteratively applies the MCMC initialization. Since the MCMC
     algorithms used here involve a cholesky decomposition, the methods
     sometimes get stuck with a covaraince matrix that is not positive definite.
@@ -109,7 +106,7 @@ def applyMCMC(st, ni, lp, algo, algoOpts=None, postArgs={},
     res : tuple
         Returns tuple containing the MCMC results.
 
-    '''
+    """
     try_num = 1
     not_successful = True
     res = None
@@ -133,7 +130,7 @@ def applyMCMC(st, ni, lp, algo, algoOpts=None, postArgs={},
 # For upper triangle rank one update
 @jit
 def cholupdate(L, x, update=True):
-    '''
+    """
     Upper triangle, rank one update for cholesky decomposed matrix. 
 
     Parameters
@@ -150,7 +147,7 @@ def cholupdate(L, x, update=True):
     L : numpy array
         Return updated L matrix.
 
-    '''
+    """
     p = len(x)
     for k in range(p):
         if update:
@@ -170,7 +167,7 @@ def cholupdate(L, x, update=True):
 
 
 def adaptive_mcmc(start, niter, lpost, postArgs={}, options=None):
-    '''
+    """
     A random walk metropolis algorithm that adaptively tunes the covaraince 
     matrix. Based on methods by Rosenthal (who improved on Haario's method).
     The method by Rosenthal is sometimes refered to as Adaptive Mixture
@@ -224,7 +221,7 @@ def adaptive_mcmc(start, niter, lpost, postArgs={}, options=None):
         The ending values of the MCMC algorithm. Useful when you want to
         continue where you left off.
 
-    '''
+    """
     
     beta = 0.05
     progress = True
@@ -296,7 +293,7 @@ def adaptive_mcmc(start, niter, lpost, postArgs={}, options=None):
 
 
 def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
-    '''
+    """
     A random walk metropolis algorithm that adaptively tunes the covaraince 
     matrix with a log-adaptive posterior.
     
@@ -341,7 +338,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
         The ending values of the MCMC algorithm. Useful when you want to
         continue where you left off.
 
-    '''
+    """
     k = 20
     c_0 = 1.0
     c_1 = 0.8
@@ -438,7 +435,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
 
 
 def rwm(start, niter, lpost, postArgs={}, options=None):
-    '''
+    """
     A random walk metropolis algorithm.
 
     Parameters
@@ -472,7 +469,7 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
         The ending values of the MCMC algorithm. Useful when you want to
         continue where you left off.
 
-    '''
+    """
     numParams = start.size
     
     prev_vals = {'E_0': ((2.38**2)/numParams)*np.diag(np.repeat(1, numParams))}
@@ -523,7 +520,7 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
 
 
 def samp_size_calc_raftery(q=0.025, r=0.005, s=0.95):
-    '''
+    """
     Calculate needed sample size for Raftery evaluation.
 
     Parameters
@@ -543,14 +540,14 @@ def samp_size_calc_raftery(q=0.025, r=0.005, s=0.95):
     nmin : int
         Minimum number of samples needed.
 
-    '''
+    """
     phi = qnorm_aprox(0.5 * (1.0 + s))
     nmin = np.ceil((q * (1.0 - q) * phi**2)/r**2).astype(int)
     return phi, nmin
 
 
 def lag(s, b, method):
-    '''
+    """
     Translated from R's mcmcse package
     
     Returns the lag window value for the corresponding window.
@@ -570,7 +567,7 @@ def lag(s, b, method):
     int, float
         Lag window.
 
-    '''
+    """
     if method == "bartlett":
         return 1 - (s/b)
     else:
@@ -578,7 +575,7 @@ def lag(s, b, method):
 
 
 def adjust_matrix(mat, N, epsilon=None, b=9/10):
-    '''
+    """
     Translated from R's mcmcse package.
     
     Function adjusts a non-positive definite estimator to be positive definite.
@@ -600,7 +597,7 @@ def adjust_matrix(mat, N, epsilon=None, b=9/10):
     mat_adj : numpy array
         Adjusted matrix.
 
-    '''
+    """
     if epsilon is None:
         epsilon = np.sqrt(np.log(N)/mat.shape[1])
     mat_adj = mat
@@ -625,7 +622,7 @@ def adjust_matrix(mat, N, epsilon=None, b=9/10):
 
 
 def mbmc(chain, b):
-    '''
+    """
     Translated from R's mcmcse package
 
     Parameters
@@ -640,7 +637,7 @@ def mbmc(chain, b):
     numpy array
         Covaraince matrix estimate.
 
-    '''
+    """
     b = int(b)
     n = chain.shape[0]
     chain = chain.reshape(n, -1)
@@ -666,7 +663,7 @@ def mbmc(chain, b):
 
 
 def mobmc(chain, b):
-    '''
+    """
     Translated from R's mcmcse package
 
     Parameters
@@ -681,7 +678,7 @@ def mobmc(chain, b):
     numpy array
         Covariance matrix estimate.
 
-    '''
+    """
     b = int(b)
     n = chain.shape[0]
     chain = chain.reshape(n, -1)
@@ -709,7 +706,7 @@ def mobmc(chain, b):
 
 
 def msvec(chain, b, method="bartlett"):
-    '''
+    """
     Translated from R's mcmcse package.
 
     Parameters
@@ -726,7 +723,7 @@ def msvec(chain, b, method="bartlett"):
     numpy array
         Covariance matrix estimate.
 
-    '''
+    """
     n = chain.shape[0]
     chain = chain.reshape(n, -1)
     p = chain.shape[1]
@@ -743,7 +740,7 @@ def msvec(chain, b, method="bartlett"):
 
 
 def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
-    '''
+    """
     Translated from R's mcmcse package.
     
     An estimate of the Monte Carlo Standard Error, as well as the Monte Carlo
@@ -789,7 +786,7 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
     dict
         A dictionary of the results.
 
-    '''
+    """
     method_used = method
     if method == "lug":
         method = "bm"
@@ -890,7 +887,7 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
 
 
 def minESS(p, alpha=0.05, eps=0.05, ess=None):
-    '''
+    """
     Translated from the R mcmcse package.
     
     Calculates the minimum Effective Sample Size, independent of the MCMC
@@ -928,7 +925,7 @@ def minESS(p, alpha=0.05, eps=0.05, ess=None):
         If ess is specified, then the value returned is the eps corresponding
         to that ess.
 
-    '''
+    """
     crit = chi2.ppf(1 - alpha, p)
     p2 = 2/p
     if ess is None:
@@ -940,7 +937,7 @@ def minESS(p, alpha=0.05, eps=0.05, ess=None):
 
 
 def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
-    '''
+    """
     This function computes the Effective Sample Size of an MCMC chain. Due to
     correlation between MCMC samples, it is sometimes unclear how much
     information about the parameters has been obtained. If all of the MCMC
@@ -985,7 +982,7 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
     ess : int
         The estimated effective sample size.
 
-    '''
+    """
     if g is not None:
         chain = np.array([g(chain[i, :]) for i in range(chain.shape[0])])
     
@@ -1003,7 +1000,7 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
 
 def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001,
              thin=1, print_=False):
-    '''
+    """
     Calculate the Raftery diagnostic to determine how many more samples are
     needed.
 
@@ -1035,7 +1032,7 @@ def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001,
     -------
     None.
 
-    '''
+    """
 
     if not q > 0 or not q < 1:
         raise ValueError("q must be between 0 and 1")
@@ -1146,16 +1143,16 @@ def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001,
 
 
 class mcmcObject(object):
-    '''
+    """
     An object to hold MCMC chains, and to store/compute useful metrics on them.
     Also has some common plotting functionality.
     
     To get a chain up and running, run the mcmcWithRaftery method after
     instantiating the mcmcObject class.
     
-    '''
+    """
     def __init__(self, name="MCMC Object"):
-        '''
+        """
         Constructor for MCMC object
 
         Parameters
@@ -1168,14 +1165,14 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
         self.name = name
         self.chains = {}
         self.diagnostic_results = {}
         self.previous_values = {}
 
     def addChain(self, newChain, chainName=None, concat=False):
-        '''
+        """
         Adds a chain to your collection of chains.
 
         Parameters
@@ -1194,7 +1191,7 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
         if chainName is None:
             chainName = ''.join(("Chain_", str(len(self.chains) + 1)))
 
@@ -1211,12 +1208,12 @@ class mcmcObject(object):
                 self.chains[chainName] = np.concatenate((self.chains[chainName],
                                                          newChain))
             except (NameError, KeyError):
-                warnings.warn('''Failed to concatenate chains. Created new
-                              chain instead. Check list of chain keys.''')
+                warnings.warn("""Failed to concatenate chains. Created new
+                              chain instead. Check list of chain keys.""")
                 self.chains[chainName] = newChain
 
     def removeChain(self, chainName, print_=True):
-        '''
+        """
         Remove a chain from the collection.
 
         Parameters
@@ -1230,7 +1227,7 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
         try:
             del self.chains[chainName]
             if print_:
@@ -1239,7 +1236,7 @@ class mcmcObject(object):
             print("No chain named ", chainName)
 
     def showChain(self, chainName):
-        '''
+        """
         Display a chain from the collection.
 
         Parameters
@@ -1251,14 +1248,14 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
         try:
             print(self.chains[chainName])
         except KeyError:
             print("No chain named ", chainName)
 
     def burnin(self, chainName, burninVal=3000, replace=False):
-        '''
+        """
         Remove values from chain through burnin process (i.e. remove frist
         burninVal samples)
 
@@ -1278,7 +1275,7 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
         if replace:
             self.chains[chainName] = self.chains[chainName][burninVal:, :]
         else:
@@ -1287,7 +1284,7 @@ class mcmcObject(object):
     def bestRaftery(self, chainName, q=[0.025, 0.5, 0.975],
                     r=0.005, s=0.90, converge_eps=0.001, thin=1,
                     print_each=False, print_final=False):
-        '''
+        """
         Run multiple Raftery evaluations and compare. The final raftery output
         is the maximum value for that criteria obtained from all Raftery
         evaluations.
@@ -1317,7 +1314,7 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
         q = list(q)
         columns = ["Burn-in (M)", "Total (N)", "Lower Bound (Nmin)",
                    "Dependence Factor (I)", "Thinning (k)", "Quantile",
@@ -1355,7 +1352,7 @@ class mcmcObject(object):
     def TJ_Convergence_test(self, chainName, eps=0.025, quantiles=[0.05, 0.95],
                             window_size=None, num_windows=5, slide=50,
                             window_space=0, bin_limit=0.6, print_final=False):
-        '''
+        """
         A homemade test to evaluate convergence. This test evaluates a moving
         window, or a list of moving windows and compares the values of the
         distribution tails in those windows. If the distribution tails of all
@@ -1409,7 +1406,7 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
         chain = np.array(self.chains[chainName])
         # eps must be greater than 0
         # window size needs to be a number between 1 and
@@ -1516,7 +1513,7 @@ class mcmcObject(object):
                 plot_acf_args=None, acfType='pacf', acf_args=None,
                 do_raftery=True, iters_to_go=None, max_iters=750000, burnin=0,
                 lpost_args={}):
-        '''
+        """
         TODO: Update to include ESS option, instead of just raftery.
         
         Generate MCMC samples and evaluate samples size (using Raftery)
@@ -1622,7 +1619,7 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
 
         if algoOpts is None:
             algoOpts = {}
@@ -1755,7 +1752,7 @@ class mcmcObject(object):
     def plotTrace(self, chainName, CTres=None, write=False,
                   display=True, pdir="./Plots/",
                   fileType="png", figsize=(15, 12)):
-        '''
+        """
         Plot the trace of the MCMC chain.
 
         Parameters
@@ -1781,7 +1778,7 @@ class mcmcObject(object):
         fig, ax : tuple
             The figure and axes components of the plot.
 
-        '''
+        """
         trace = self.chains[chainName]
         trace = trace.reshape(trace.shape[0], -1)
         nparam = trace.shape[1]
@@ -1812,7 +1809,7 @@ class mcmcObject(object):
     def plotDensity(self, chainName, smoothing=0.05, write=False,
                     display=True, pdir="./Plots/", vlines=None,
                     fileType="png", figsize=(15, 12)):
-        '''
+        """
         Plot the density of the MCMC chain.
 
         Parameters
@@ -1844,7 +1841,7 @@ class mcmcObject(object):
         fig, ax : tuple
             The figure and axes components of the plot.
 
-        '''
+        """
         trace = self.chains[chainName]
         trace = trace.reshape(trace.shape[0], -1)
         nparam = trace.shape[1]
@@ -1871,7 +1868,7 @@ class mcmcObject(object):
     def plotACF(self, chainName, bounds=True, ci=0.95, acfType="acf",
                 write=False, display=True, pdir="./Plots/", fileType="png",
                 lw=None, figsize=(15, 12)):
-        '''
+        """
         Plot the Autocorrelation function of the chain.
 
         Parameters
@@ -1906,7 +1903,7 @@ class mcmcObject(object):
         fig, ax : tuple
             The figure and axes components of the plot.
 
-        '''
+        """
         try:
             self.diagnostic_results[chainName + "_" + acfType]
         except KeyError:
@@ -1947,7 +1944,7 @@ class mcmcObject(object):
         return fig, ax
 
     def acf(self, chainName, lag=50, partial=False, demean=True):
-        '''
+        """
         ACF definition for a wide-sense stationary process, partial acf uses
         Yule-Walker MLE method.
 
@@ -1967,7 +1964,7 @@ class mcmcObject(object):
         -------
         None.
 
-        '''
+        """
         trace = self.chains[chainName]
         trace = trace.reshape(trace.shape[0], -1)
         params = trace.shape[1]

@@ -7,7 +7,7 @@ from .utils import updateProgBar
 def p_prog_simp(args, loop_args, function, n_jobs=2, verbose=True,
                 use_threads=True):
     # TODO: provide a fix that will work more consistently
-    '''
+    """
     Parallel Progress bar.
 
     Note: it is a known bug for this function to fail while using sypder.
@@ -40,7 +40,7 @@ def p_prog_simp(args, loop_args, function, n_jobs=2, verbose=True,
     list
         Returns a list of the function outputs for each iteration.
 
-    '''
+    """
     t0 = dt()
     niter = len(loop_args)
     
@@ -73,7 +73,7 @@ def p_prog_simp(args, loop_args, function, n_jobs=2, verbose=True,
 
 
 def p_prog_simp_memorySafe(args, loop_args, function, n_jobs=2):
-    '''
+    """
     Parallel Progress bar. The same as p_prog_simp, except it is more explicit
     in it's definition. This function was developed to try and limit
     memory consumption for parallel operations. I'm not 100% sure if it
@@ -100,7 +100,7 @@ def p_prog_simp_memorySafe(args, loop_args, function, n_jobs=2):
     list
         Returns a list of the function outputs for each iteration.
 
-    '''
+    """
     t0 = dt()
     niter = len(loop_args)
     

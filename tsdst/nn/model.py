@@ -37,7 +37,7 @@ class NeuralNetwork(object):
                  shuffle=False,
                  print_cost=True,
                  random_state=42):
-        '''
+        """
         The constructor for the NeuralNetwork class.
 
         Parameters
@@ -237,7 +237,7 @@ class NeuralNetwork(object):
         -------
         None.
 
-        '''
+        """
         self.model = model
         self.num_layers = len(model.keys())
         self.eval_size = eval_size
@@ -296,7 +296,7 @@ class NeuralNetwork(object):
     
 
     def initialize_wb(self, X):
-        '''
+        """
         Initialize the network.
 
         Parameters
@@ -309,7 +309,7 @@ class NeuralNetwork(object):
         wb_list : dict
             A dictionary of the weights/biases for each layer.
 
-        '''
+        """
         wb_list = {}
         xrows = X.shape[0]
         X = X.reshape(xrows, -1)
@@ -338,7 +338,7 @@ class NeuralNetwork(object):
         return wb_list
 
     def forward_prop(self, X, wb, batch_norm, train=True, sample=False):
-        '''
+        """
         The forward propagation step
 
         Parameters
@@ -376,7 +376,7 @@ class NeuralNetwork(object):
         regularizers : dict
             A dictionary of the regularization status for each layer.
 
-        '''
+        """
         hz = X
         zs = {}
         hzs = {}
@@ -447,7 +447,7 @@ class NeuralNetwork(object):
         return hz, zs, batch_norm, hzs, dropout, regularizers
         
     def back_prop(self, X, Y, wb, zs, batch_norm, hzs, dropout):
-        '''
+        """
         The backward propagation step.
 
         Parameters
@@ -475,7 +475,7 @@ class NeuralNetwork(object):
             A dictionary of the gradients with respect to the weights and
             biases.
 
-        '''
+        """
         dwdb = {}
         batch_m = X.shape[0]
         keys = list(self.model.keys())
@@ -558,7 +558,7 @@ class NeuralNetwork(object):
 
 
     def fit(self, X, Y):
-        '''
+        """
         Fits the Neural Network.
 
         Parameters
@@ -573,7 +573,7 @@ class NeuralNetwork(object):
         self
             The fitted model.
 
-        '''
+        """
         # This is only here for debugging or reproducibility
         if self.random_state is not None:
             np.random.seed(self.random_state)
@@ -695,7 +695,7 @@ class NeuralNetwork(object):
         return self
     
     def predict(self, X):
-        '''
+        """
         Predict the Y values based on the input X.
 
         Parameters
@@ -708,13 +708,13 @@ class NeuralNetwork(object):
         hz : numpy array
             The predicted Y values.
 
-        '''
+        """
         hz, _, _, _, _, _ = self.forward_prop(X, self.wb, self.batch_norm,
                                            train=False, sample=False)
         return hz
     
     def draw_predictive_samples(self, X, n_samples=1000, n_outputs=1):
-        '''
+        """
         Draws predictive samples for each observation from the distribution
         created by using dropout.
         
@@ -744,7 +744,7 @@ class NeuralNetwork(object):
         draws : numpy array
             The sampled predicted values.
 
-        '''
+        """
         draws = np.zeros(shape=(X.shape[0], n_samples*n_outputs))
         for i in range(n_samples):
             hz, _, _, _, _ = self.forward_prop(X, self.wb, self.batch_norm,
@@ -753,7 +753,7 @@ class NeuralNetwork(object):
         return draws
     
     def score(self, X, y):
-        '''
+        """
         A method to score/test the model based on the inputs X, y. This can
         be a custom function or called with a string from something built-in.
 
@@ -769,7 +769,7 @@ class NeuralNetwork(object):
         float or numpy array
             The score result for X, y.
 
-        '''
+        """
         if isinstance(self.scorer, str):
             score_func = self.scorer_list[self.scorer]
         else:

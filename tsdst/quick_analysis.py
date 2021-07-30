@@ -18,7 +18,7 @@ from .utils import print_time, updateProgBar
 
 def calcAICsLasso(penalty, Xtrain, Ytrain, sample_size, unreg_full_mod=None,
                   random_state=123):
-    '''
+    """
     Utility function for quick_analysis. Need to update this to include more
     GLM models.
 
@@ -44,7 +44,7 @@ def calcAICsLasso(penalty, Xtrain, Ytrain, sample_size, unreg_full_mod=None,
     aics : list
         A list containing the AIC values.
 
-    '''
+    """
     cur_mod_reg = LogisticRegression(C=penalty, max_iter=10000, penalty="l1",
                                      solver='liblinear',
                                      random_state=random_state,
@@ -75,7 +75,7 @@ def calcAICsLasso(penalty, Xtrain, Ytrain, sample_size, unreg_full_mod=None,
 def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
                                 unreg_full_mod, random_state, target_var,
                                 cur_pred_list, penalty):
-    '''
+    """
     Utility function for QuickAnalysis. Not to be used externally.
 
     Parameters
@@ -104,7 +104,7 @@ def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
     res : tuple
         Tuple of results (non-zero coefficients and aic values).
 
-    '''
+    """
     # Note: Should probably update this to feather (as of 2019)
     # since it is faster and better on memory in general.
     # Since this is not long term storage, feather would be a 
@@ -137,14 +137,14 @@ def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
 
 
 class QuickAnalysis(object):
-    '''
+    """
     A class for performing a quick sweep of the data. Helps establish a
     baseline model to get started with, as well as quickly identify potentially
     useful features.
-    '''
+    """
     def __init__(self, train, holdout, target_var, low_memory=False,
                  name="QuickAnalysis"):
-        '''
+        """
         Constructor for QuickAnalysis
 
         Parameters
@@ -165,7 +165,7 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         self._full_analysis_arglist = None
         self._bdp_analysis_arglist = None
         self._fsa_analysis_arglist = None
@@ -200,7 +200,7 @@ class QuickAnalysis(object):
         
     
     def GenCorrStats(self, is_raw=False):
-        '''
+        """
         Generate Correlation Statistics.
 
         Parameters
@@ -212,7 +212,7 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         corr_mat = None
         if is_raw:
             corr_mat = pd.DataFrame(np.corrcoef(self.train_raw.values,
@@ -228,7 +228,7 @@ class QuickAnalysis(object):
         self.corr_mat = corr_mat
     
     def sort_y_corr(self):
-        '''
+        """
         Sort columns by their correlation with the target variable.
 
         Returns
@@ -236,21 +236,21 @@ class QuickAnalysis(object):
         pandas series
             Sorted Correlations.
 
-        '''
+        """
         if self.y_corr is None:
             print("No y_corr recorded. Run GenCorrMat")
         else:
             return self.y_corr.abs().sort_values(ascending=False)
     
     def plot_y_corr(self):
-        '''
+        """
         Plot variable correlations with the target variable.
 
         Returns
         -------
         None.
 
-        '''
+        """
         sorted_corrs_with_y = self.y_corr.sort_values()
 
         plt.figure(figsize=(10, 5))
@@ -264,7 +264,7 @@ class QuickAnalysis(object):
         sorted_corrs_with_y = []
     
     def genHighCorrs(self, corr_cutoff):
-        '''
+        """
         Generate a list of variables that are highly correlated with one
         another.
 
@@ -277,12 +277,12 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         self.highCorr = getHighCorrs(self.corr_mat, corr_cutoff)
     
     def calcAICs(self, num_cs, try_parallel, n_jobs, random_state, remove_msg,
                  chunk):
-        '''
+        """
         Calculate AIC values for the models to prepare for comparison.
 
         Parameters
@@ -306,7 +306,7 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         nonzero_coefs = []
         aics = np.zeros(shape=(num_cs, 6))
         
@@ -383,14 +383,14 @@ class QuickAnalysis(object):
         self.nonzero_coefs = list(nonzero_coefs)
     
     def plotAICs(self):
-        '''
+        """
         Plot the AIC calculations.
 
         Returns
         -------
         None.
 
-        '''
+        """
         fig, ax = plt.subplots(figsize=(16,10))
         ax.plot(self.nonzero_coefs, self.aics[:, 1])
         ax.plot(self.nonzero_coefs, self.aics[:, 2])
@@ -406,7 +406,7 @@ class QuickAnalysis(object):
         plt.show()
         
     def forwardElimMetricCalc(self, coef_ord_red, stride, random_state):
-        '''
+        """
         Run a very basic forward elimination procedure, and calculate model 
         metrics.
 
@@ -425,7 +425,7 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         num_params = np.arange(1, self.train.shape[1]-1, stride)
         # f1, acc, sens, spec, auc
         metrics = np.zeros(shape=(len(num_params), 10))
@@ -458,14 +458,14 @@ class QuickAnalysis(object):
         self.num_params_forward = num_params
         
     def plotForwardMetrics(self):
-        '''
+        """
         Plot forward elimination metric results.
 
         Returns
         -------
         None.
 
-        '''
+        """
         
         plt.figure(figsize=(10,7))
         
@@ -504,7 +504,7 @@ class QuickAnalysis(object):
         plt.show()
     
     def confusion_matrix(self, print_=True):
-        '''
+        """
         Generate a confusion matrix (for classification data).
 
         Parameters
@@ -517,7 +517,7 @@ class QuickAnalysis(object):
         confmat : pandas dataframe
             A dataframe containing the confusion matrix.
 
-        '''
+        """
         confmat = None
         if self.Ytest is None:
             print("Run QuickAnalysis first")
@@ -528,7 +528,7 @@ class QuickAnalysis(object):
         return confmat
     
     def build_model(self, name, cv_iterations, penalty, random_state):
-        '''
+        """
         A utility function for building the model at different steps of the 
         QuickAnalysis process.
 
@@ -547,7 +547,7 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         mod_crossval = crossVal(self.train.loc[:, self.cur_pred_list],
                                 self.train.loc[:, self.target_var],
                                 cv_iterations=cv_iterations,
@@ -575,7 +575,7 @@ class QuickAnalysis(object):
                                cv_iterations=5,
                                random_state=123, default_penalty=0.01,
                                verbose=True, t0=None):
-        '''
+        """
         Create Baseline model and begin dropping features from the model 
         based on given criteria.
 
@@ -616,7 +616,7 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         self._bdp_analysis_arglist = {'freshStart': freshStart,
                                  'downsample': downsample,
                                  'dropCols': dropCols,
@@ -728,7 +728,7 @@ class QuickAnalysis(object):
                                  default_penalty=0.01, for_stride=2,
                                  reduce_features_by=30, red_metric='bic',
                                  verbose=True, t0=None):
-        '''
+        """
         Run very basic forward selection procedure on the model.
 
         Parameters
@@ -755,7 +755,7 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         # TODO: make final feature selection automatic
         self._fsa_analysis_arglist = {
                                       'cv_iterations': cv_iterations,
@@ -863,7 +863,7 @@ class QuickAnalysis(object):
                         num_cs=100, red_metric='bic', red_log_low=-5,
                         red_log_high=1, n_jobs=1, remove_msg=True,
                         chunk=False):
-        '''
+        """
         Performs a quick analysis by first considering which features/variables
         may be uninformative predictors based on preliminary models. Then,
         it performs a very basic forward selection procedure to limit
@@ -928,7 +928,7 @@ class QuickAnalysis(object):
         -------
         None.
 
-        '''
+        """
         t0 = dt()
         self._full_analysis_arglist = {'freshStart': freshStart,
                                  'downsample': downsample,

@@ -1,21 +1,25 @@
 from __future__ import (division, generators, absolute_import,
                         print_function, with_statement, nested_scopes,
                         unicode_literals)
-import datetime
-import numpy as np
-import os
-import pandas as pd
-import pickle
-import sys
 
+import datetime
+import os
+import pickle
+import random
+import sys
+from bisect import bisect_left
 from getpass import getpass
-from sqlalchemy import create_engine
+from itertools import accumulate
 from timeit import default_timer as dt
 
+import numpy as np
+import pandas as pd
+from sqlalchemy import create_engine
 
-def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args={},
-                 read_sql_args={}):
-    '''
+
+def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args=None,
+                 read_sql_args=None):
+    """
     Load data into python from a sql database. 
     
     Requires a DSN or connection string. Uses sqlAlchemy to make the
@@ -56,10 +60,16 @@ def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args={},
     data : pandas dataframe or list
         A dataframe (or list of dataframes) containing the returned data.
 
-    '''
+    """
     if pw is None or pw == '':
         pw = getpass(prompt='Password: ')
-    
+
+    if create_engine_args is None:
+        create_engine_args = {}
+
+    if read_sql_args is None:
+        read_sql_args = {}
+
     # TODO: include better support for sqlite, since it has a weird
     # OS-dependent connection string.
     conn = '{dialect}://{user}:{password}@{dsn}'.format(
@@ -71,7 +81,6 @@ def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args={},
 
     engine = create_engine(conn, **create_engine_args)
 
-    data = None
     if isinstance(sql, str):
         data = pd.read_sql(sql=sql, con=engine, **read_sql_args)
     else:
@@ -84,8 +93,8 @@ def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args={},
 
 
 def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None,
-                  create_engine_args={}, to_sql_args={}):
-    '''
+                  create_engine_args=None, to_sql_args=None):
+    """
     Save pandas dataframe to database.
 
     Parameters
@@ -100,7 +109,7 @@ def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None,
         The database flavor (oracle, mysql, etc.)
     dsn : str, optional
         Can either be a saved DSN from your computer, or a string that
-        represents all the relevant information provided in a DSN. 
+        represents all the relevant information provided in a DSN.
         It can also be a host:port combination. See sqlalchemy
         documentation for more details.
     pw : str, optional
@@ -119,9 +128,15 @@ def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None,
     -------
     None.
 
-    '''    
+    """
     if pw is None or pw == '':
         pw = getpass(prompt='Password: ')
+
+    if create_engine_args is None:
+        create_engine_args = {}
+
+    if to_sql_args is None:
+        to_sql_args = {}
     
     # TODO: include better support for sqlite, since it has a weird
     # OS-dependent connection string.
@@ -141,7 +156,7 @@ def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None,
 
 
 def pretty_print_time(ts, te=None, decimals=0):
-    '''
+    """
     Convert time in seconds to a clock-like time, i.e. 00:00:00.00 format.
 
     Parameters
@@ -159,7 +174,7 @@ def pretty_print_time(ts, te=None, decimals=0):
     pretty : str
         Prettified time.
 
-    '''
+    """
     if te is None:
         t = ts
     else:
@@ -194,12 +209,12 @@ def pretty_print_time(ts, te=None, decimals=0):
 
 
 def checkDir(directory, make=True, verbose=True):
-    '''
+    """
     Check if a directory exists. If it doesn't, create it.
 
     Parameters
     ----------
-    dir : str
+    directory : str
         Directory to check.
     make : bool, optional
         Whether or not to create a missing directory. The default is True.
@@ -211,7 +226,7 @@ def checkDir(directory, make=True, verbose=True):
     bool
         True if the directory exists.
 
-    '''
+    """
     found = False
     msg = ''
     if not os.path.isdir(directory):
@@ -227,11 +242,12 @@ def checkDir(directory, make=True, verbose=True):
         print(msg)
     return found
 
+
 def print_message_with_time(msg, ts, te=None, display_realtime=True,
                             backsn=False, log=False, log_dir="log",
                             log_filename="pmwt.log", log_args="a",
                             time_first=False, decimals=0):
-    '''
+    """
     Print a message with a timestamp. 
 
     Parameters
@@ -268,7 +284,7 @@ def print_message_with_time(msg, ts, te=None, display_realtime=True,
     printed : str
         Printed message with time.
 
-    '''
+    """
     date_time = datetime.datetime.now().strftime("%I:%M:%S %p (%b %d)")
     if display_realtime:
         time_str = pretty_print_time(ts, te, decimals) + " Current Time: " + date_time
@@ -292,7 +308,7 @@ def print_message_with_time(msg, ts, te=None, display_realtime=True,
     
 
 def print_time(*args, **kwargs):
-    '''
+    """
     Wrapper for print_message_with_time. Shortened for ease of use.
 
     Parameters
@@ -306,7 +322,7 @@ def print_time(*args, **kwargs):
     -------
     None.
 
-    '''
+    """
     print_message_with_time(*args, **kwargs)
 
 
@@ -316,7 +332,7 @@ def save_checkpoint(obj, msg, ts=None, te=None, decimals=0,
                     time_first=False, checkpoint_dir="checkpoints",
                     checkpoint_filename="chkpnt", checkpoint_extension="pkl",
                     checkpoint_args="wb"):
-    '''
+    """
     Save a python object to a pickle file as a checkpoint. Log message as 
     logfile with the export.
 
@@ -365,12 +381,12 @@ def save_checkpoint(obj, msg, ts=None, te=None, decimals=0,
     -------
     None.
 
-    '''
+    """
     print_message_with_time(msg=msg, ts=ts, te=te, decimals=decimals,
                             display_realtime=display_realtime,
                             backsn=backsn, log=log, log_dir=log_dir,
                             log_filename=log_filename,
-                            log_args=log_args)
+                            log_args=log_args, time_first=time_first)
     checkDir(checkpoint_dir)
     file = checkpoint_dir + '/' + checkpoint_filename + "." + checkpoint_extension
     file = file.replace('//', '/')
@@ -380,7 +396,7 @@ def save_checkpoint(obj, msg, ts=None, te=None, decimals=0,
 
 
 def updateProgBar(curIter, totalIter, t0, barLength=20, decimals=0):
-    '''
+    """
     Update progress bar. Place this function anywhere in a loop where you want
     to keep track of the loop's progress.
 
@@ -402,7 +418,7 @@ def updateProgBar(curIter, totalIter, t0, barLength=20, decimals=0):
     -------
     None.
 
-    '''
+    """
     status = "Working..."
     progress = float(curIter)/float(totalIter)
     if isinstance(progress, int):
@@ -426,7 +442,7 @@ def updateProgBar(curIter, totalIter, t0, barLength=20, decimals=0):
         
         
 def move_columns_to_end(data, col):
-    '''
+    """
     Rearrange a pandas dataframe by moving a column (or list of columns)
     to the end of the dataframe.
 
@@ -442,7 +458,7 @@ def move_columns_to_end(data, col):
     data : pandas dataframe
         Data with rearranged columns.
 
-    '''
+    """
     if not isinstance(col, list):
         col = list(col)
     data = data[[c for c in data if c not in col] + col]
@@ -452,7 +468,7 @@ def move_columns_to_end(data, col):
 # Searches a list of text arguments and returns a list that includes/excludes
 # the list elements that contain the keywords
 def keywordSearch(text_list, include_keywords, exclude_keywords=None):
-    '''
+    """
     Searches a list of text arguments and returns a list that includes/excludes
     the list elements that contain the keywords.
     
@@ -473,7 +489,7 @@ def keywordSearch(text_list, include_keywords, exclude_keywords=None):
     found_list : list
         Returns items from the original list that match the keywords.
 
-    '''
+    """
     found_list = []
     for text in text_list:
         is_in_i_keys = sum((1 if i_key in text else 0 for i_key in include_keywords))
@@ -486,7 +502,7 @@ def keywordSearch(text_list, include_keywords, exclude_keywords=None):
 
 
 def toFrame(todf, fromdf):
-    '''
+    """
     Convert numpy array to pandas dataframe using past dataframe structure. 
 
     Useful when you want to store the dataframe values as a seperate numpy
@@ -505,12 +521,12 @@ def toFrame(todf, fromdf):
     pandas dataframe
         The converted dataframe.
 
-    '''
+    """
     return pd.DataFrame(todf, index=fromdf.index, columns=fromdf.columns)
 
 
 def inferFeatureType(X, n_unique=None):
-    '''
+    """
     Infer feature type of a column based on it's `dytpe`. The inferred
     datatypes are `categorical`, `numeric`, or `date`.
 
@@ -546,7 +562,7 @@ def inferFeatureType(X, n_unique=None):
     U : unicode string
     V : raw data (void)
     
-    '''
+    """
     d_type = None
     if X.dtype.kind in "OSUVaBb": # ?/b numeric or categorical?
         d_type = "categorical"
@@ -564,8 +580,8 @@ def inferFeatureType(X, n_unique=None):
     return d_type
 
 
-def reshape_to_vect(ar, axis=1):
-    '''
+def reshape_to_vector(ar, axis=1):
+    """
     Flatten or reshape an array to be a vector (or transpose an already
     flat array).
 
@@ -580,8 +596,7 @@ def reshape_to_vect(ar, axis=1):
     -------
     ar : numpy array
         The flattened array.
-
-    '''
+    """
     # TODO: Need to look at the use case for this again. There may be a more
     # efficient way to do this.
     if len(ar.shape) == 1:
@@ -590,39 +605,107 @@ def reshape_to_vect(ar, axis=1):
         elif axis == 0:
             return ar.reshape(1, ar.shape[0])
         else:
-            raise('Invalid axis dimension, either 0 or 1')
+            raise ValueError('Invalid axis dimension, either 0 or 1')
     return ar
 
 
 def decision_boundary_1D(x, thres=0.5):
-    '''
+    """
     Divides probabilities `x` into two classes based on threshold value. Everything
     above the threshold is the positive class.
-    '''
+    """
     y = np.zeros(shape=(len(x), 1))
     y[x >= thres] = 1
     return y
 
 
 def decision_boundary(x):
-    '''
+    """
     Divides probabilities `x` into classes based on the max probability value.
-    '''
+    """
     y = np.zeros(shape=x.shape)
     y[np.arange(len(x)), x.argmax(1)] = 1
     return y
 
 
 def one_hot_encode(x):
-    '''
+    """
     The first column is the 0th class, 2nd column is the 1st class, etc...
-    '''
+    """
     n = np.max(x) + 1
     return np.eye(n)[x]
 
 
 def one_hot_decode(x):
-    '''
+    """
     The first column is the 0th class, 2nd column is the 1st class, etc...
-    '''
+    """
     return np.argmax(x, axis=1)
+
+
+def sample(array, nsamples, prob=None, replace=False, random_state=None):
+    """
+    Mimics the R sample function.
+
+    Parameters
+    ----------
+    array : list or list-like
+        The array to sample from.
+    nsamples : int
+        The number of samples to return.
+    prob : list or list-like, optional
+        The probability of each element in array. Must be of the same length
+        as array. If None, all elements have equal probability.
+        The default is None.
+    replace : bool, optional
+        Sample with replacement. The default is False.
+    random_state : int, optional
+        Set seed for reproducible results. The default is None.
+
+    Raises
+    ------
+    ValueError
+        Raises error if array lengths are not equal or if sampling without
+        replacement is not possible.
+
+    Returns
+    -------
+    samp : list
+        List of sampled values.
+
+    """
+    len_array = len(array)
+    if prob is None:
+        inv_len_array = 1 / len_array
+        prob = [inv_len_array for _ in array]
+
+    prob_sum = sum(prob)
+    if prob_sum != 1:
+        inv_prob_sum = 1. / prob_sum
+        prob = [p * inv_prob_sum for p in prob]
+        prob_sum = 1
+
+    if len_array != len(prob):
+        raise ValueError("len(array) must equal len(prob)")
+
+    if not replace:
+        if nsamples > len_array:
+            raise ValueError("""Number of samples larger than the population
+                             for sampling without replacement. Change
+                             replace=True or lower nsamples.""")
+
+    if random_state is not None:
+        random.seed(random_state)
+
+    samp = []
+
+    for _ in range(nsamples):
+        acc_prob = list(accumulate(prob))
+        rand = random.random()
+        indx = bisect_left(acc_prob, rand * prob_sum)
+        samp.append(array[indx])
+        if not replace:
+            prob_sum -= prob[indx]
+            prob[indx] = 0
+
+    return samp

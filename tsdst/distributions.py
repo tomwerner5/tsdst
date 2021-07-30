@@ -1,10 +1,6 @@
 """
 Statistical Distribution Functions
 """
-
-from __future__ import (division, generators, absolute_import,
-                        print_function, with_statement, nested_scopes,
-                        unicode_literals)
 import numpy as np
 
 from scipy.stats import norm as normal, lognorm, gamma
@@ -21,7 +17,7 @@ from .tmath import norm
 # This is a faster approximation of the normal quantile function.
 # Accurate to 2 or 3 digits. For exact solutions, use dwrap or scipy
 def qnorm_aprox(p, mu=0, sigma=1, lt=True):
-    '''
+    """
     This is a faster approximation of the normal quantile function (At least
     this was true at the time I last benchmarked it). Accurate to 2 or 3
     digits. For exact solutions, use dwrap or scipy.
@@ -42,7 +38,7 @@ def qnorm_aprox(p, mu=0, sigma=1, lt=True):
     quant : float or numpy array
         Return quantile of interest.
 
-    '''
+    """
     p = np.array(p)
     if not lt:
         p = 1 - p
@@ -56,7 +52,7 @@ def qnorm_aprox(p, mu=0, sigma=1, lt=True):
 
 
 def pnorm_approx(q, mu=0, sigma=1, lt=True, log=False):
-    '''
+    """
     This is a fast approximation of the normal cdf, accurate to 1.5e-7.
     For exact solutions, use dwrap or SciPy.
 
@@ -78,7 +74,7 @@ def pnorm_approx(q, mu=0, sigma=1, lt=True, log=False):
     prob : float
         The probability at the given quantile.
 
-    '''
+    """
     q = np.array(q)
     p = 0.3275911
     a1 = 0.254829592
@@ -105,7 +101,7 @@ def pnorm_approx(q, mu=0, sigma=1, lt=True, log=False):
 
 
 def dpoibin_PA(k, p):
-    '''
+    """
     Poisson approximation of the Poisson-Binomial probability mass function.
     Fast, but possibly inaccurate.
 
@@ -121,14 +117,14 @@ def dpoibin_PA(k, p):
     prob : float
         The mass of the poisson-binomial distribution.
 
-    '''
+    """
     lmbda = np.sum(p)
     prob = np.exp(k * np.log(lmbda) - lmbda - loggamma(k + 1.0))
     return prob
 
 
 def ppoibin_RNA(k, p, p_weight=None):
-    '''
+    """
     Refined normal approximation of Poisson-Binomial Cumulative Distribution.
     This code is adapted from the R package 'poibin'.
     Very fast for p > 10000.
@@ -147,7 +143,7 @@ def ppoibin_RNA(k, p, p_weight=None):
     vkk_r : numpy array or float
         cumulative probabilities.
 
-    '''
+    """
     p = np.array(p).reshape(-1, )
     k = np.array(k).reshape(-1, )
     if any(p < 0) or any(p > 1):
@@ -169,7 +165,7 @@ def ppoibin_RNA(k, p, p_weight=None):
 
 
 def dpoibin_FT(k, p):
-    '''
+    """
     The probability mass function for the poisson-binomial distribution.
     This function is written by the author of this package, and uses the
     discrete fourier transform.
@@ -186,7 +182,7 @@ def dpoibin_FT(k, p):
     karray : float or numpy array
         The mass of the poisson-binomial distribution.
 
-    '''
+    """
     n = len(p)
     nk = len(k)
     inp1 = (1/(n + 1))
@@ -213,7 +209,7 @@ def dpoibin_FT(k, p):
 # Link: https://stats.stackexchange.com/questions/242233/efficiently-computing-poisson-binomial-sum
 # Computes both the pdf and the cdf
 def dpoibin_exact(k, p, cdf=False):
-    '''
+    """
     The probability mass function for the poisson-binomial distribution.
     
     This function is adapted from Mark Lodato of StackExchange, Nov 7'16
@@ -236,7 +232,7 @@ def dpoibin_exact(k, p, cdf=False):
     karray : float or numpy array
         The mass of the poisson-binomial distribution.
 
-    '''
+    """
     k = np.array(k).reshape(-1,)
     p = np.array(p).reshape(-1,)
     
@@ -265,7 +261,7 @@ def dpoibin_exact(k, p, cdf=False):
 
 
 def dwrap(data, params, disttype, funct, log=False):
-    '''
+    """
     This function is meant to be similar to the R distribution functions,
     such as dnorm, pnorm, qnorm, etc. It calculates variations of the 
     cdf or pdf depending on the funct selected.
@@ -309,7 +305,7 @@ def dwrap(data, params, disttype, funct, log=False):
     numpy array 
         an array containing the evaluation of the distribution.
 
-    '''
+    """
     try:
         num_parms = params.shape[1]
         params = np.array(params).reshape(-1, num_parms)
@@ -458,7 +454,7 @@ def dwrap(data, params, disttype, funct, log=False):
 
 
 def likelihood_bernoulli(y_true, y_score, neg=True, log=True):
-    '''
+    """
     The likelihood for a binary output or bernoulli model 
     
     Parameters
@@ -477,7 +473,7 @@ def likelihood_bernoulli(y_true, y_score, neg=True, log=True):
     float
         The likelihood.
 
-    '''
+    """
     
     ### Alternate formulation (placing here for my notes)
     # loglike = y_true*y_score - np.log(1 + np.exp(y_score))
@@ -493,7 +489,7 @@ def likelihood_bernoulli(y_true, y_score, neg=True, log=True):
 
 
 def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
-    '''
+    """
     The likelihood for a logistic regression or bernoulli model with a penalty
     term (can accept any norm, default is 1 for L1)
     
@@ -523,7 +519,7 @@ def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
     float
         The likelihood.
 
-    '''
+    """
     #intercept = parms[0]
     betas = parms[1:]
     
@@ -543,7 +539,7 @@ def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
 
 
 def likelihood_poisson(y_true, y_score, neg=True, log=True):
-    '''
+    """
     The likelihood for a count output or poisson model 
     
     Parameters
@@ -562,7 +558,7 @@ def likelihood_poisson(y_true, y_score, neg=True, log=True):
     float
         The likelihood.
 
-    '''
+    """
     loglike = np.sum(y_true*np.log(y_score) - y_score - loggamma(y_true + 1))
 
     if not log:
@@ -575,7 +571,7 @@ def likelihood_poisson(y_true, y_score, neg=True, log=True):
 
 
 def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
-    '''
+    """
     The likelihood for a poisson regression model with a penalty
     term (can accept any norm, default is 1 for L1)
     
@@ -605,7 +601,7 @@ def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
     float
         The likelihood.
 
-    '''
+    """
     #intercept = parms[0]
     betas = parms[1:]
     
@@ -623,7 +619,7 @@ def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
 
 
 def likelihood_gaussian(y_true, y_score, neg=True, log=True, sigma=None):
-    '''
+    """
     The likelihood for a normal(ish) output or gaussian model 
     
     Parameters
@@ -642,7 +638,7 @@ def likelihood_gaussian(y_true, y_score, neg=True, log=True, sigma=None):
     float
         The likelihood.
 
-    '''
+    """
     if sigma is None:
         # The MLE estimate of sigma
         sigma = np.sqrt(np.mean((y_true - y_score)**2))
@@ -660,7 +656,7 @@ def likelihood_gaussian(y_true, y_score, neg=True, log=True, sigma=None):
 
 def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
                             log=True):
-    '''
+    """
     The likelihood for a gaussian regression model with a penalty
     term (can accept any norm, default is 1 for L1)
     
@@ -690,7 +686,7 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
     float
         The likelihood.
 
-    '''
+    """
     #intercept = parms[0]
     betas = parms[1:]
     
@@ -711,7 +707,7 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
     
 
 def ExactMLE_exp(data, censored):
-    '''
+    """
     Maximum Likelihood Estimate of an exponential distribution (with an option
     for right-censoring).
 
@@ -730,7 +726,7 @@ def ExactMLE_exp(data, censored):
         A list containing (in order) the MLE, the standard error, and the 
         95% confidence interval for the estimate.
 
-    '''
+    """
     f = data[censored == 1]
     c = data[censored == 0]
     nf = f.size
@@ -746,7 +742,7 @@ def ExactMLE_exp(data, censored):
 
 
 def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
-    '''
+    """
     The posterior density for a logistic regression model with an L1 penalty
     term.
     
@@ -787,7 +783,7 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
     float
         The posterior density (height of the posterior density)
 
-    '''
+    """
     n_mu = 0
     n_sigma = 10
     l_loc = 0
@@ -814,7 +810,7 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
 
 
 def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
-    '''
+    """
     The posterior density for a logistic regression model with an L1 penalty
     term. However, unlike the posterior_logreg_lasso function, this is made to
     addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
@@ -859,7 +855,7 @@ def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
-    '''
+    """
     n_mu = 0
     n_sigma = 1
     l_loc = 0
@@ -893,7 +889,7 @@ def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
 
 
 def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
-    '''
+    """
     The posterior density for a poisson regression model with an L1 penalty
     term. However, unlike the poisson_regression function, this is made to
     addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
@@ -938,7 +934,7 @@ def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
-    '''
+    """
     n_sigma = 10
     l_loc = 0
     # assuming an exponential prior for the scale parameter of the laplace
@@ -975,7 +971,7 @@ def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
 
 
 def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
-    '''
+    """
     The posterior density for a poisson regression model with an L1 penalty
     term. However, unlike the poisson_regression function, this is made to
     addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
@@ -1021,7 +1017,7 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
-    '''
+    """
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
     # to both the normal mu parameter and the laplace location parameter
@@ -1063,7 +1059,7 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
 
 
 def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
-    '''
+    """
     The posterior density for a poisson regression model with an L1 penalty
     term.
     
@@ -1104,7 +1100,7 @@ def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
-    '''
+    """
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
     # to both the normal mu parameter and the laplace location parameter
@@ -1135,7 +1131,7 @@ def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
 
 
 def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
-    '''
+    """
     The posterior density for a poisson regression model with an L1 penalty
     term. This function also attempts to adaptively account for overdispersion.
     
@@ -1179,7 +1175,7 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
-    '''
+    """
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
     # to both the normal mu parameter and the laplace location parameter
@@ -1234,7 +1230,7 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
 
 def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
                             log=True):
-    '''
+    """
     The posterior density for a weibull regression model with an L1 penalty
     term. 
     
@@ -1282,7 +1278,7 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
     -------
     float
         The posterior density (height of the posterior density)
-    '''
+    """
     l_loc = 0
     n_sigma = 10
     
@@ -1337,7 +1333,7 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
 
 
 def pois_uniform(param, count, neg=False, log=True):
-    '''
+    """
     Posterior density for the Poisson distribution (assuming uniform prior)
 
     Parameters
@@ -1356,7 +1352,7 @@ def pois_uniform(param, count, neg=False, log=True):
     float
         The posterior density (height of the posterior density).
 
-    '''
+    """
     lmbda = np.exp(param)
     like = np.sum(count * param - lmbda - loggamma(count + 1.0))
     jac = param
@@ -1373,7 +1369,7 @@ def pois_uniform(param, count, neg=False, log=True):
 
 
 def pois_gamma(param, count, gshape=0.01, gscale=100, neg=False, log=True):
-    '''
+    """
     Posterior density for the Poisson distribution (assuming gamma prior)
 
     Parameters
@@ -1396,7 +1392,7 @@ def pois_gamma(param, count, gshape=0.01, gscale=100, neg=False, log=True):
     float
         The posterior density (height of the posterior density).
 
-    '''
+    """
     lmbda = np.exp(param)
     like = np.sum(count * param - lmbda - loggamma(count + 1.0))
     prior = (-(loggamma(gshape) + gshape*np.log(gscale)) +
@@ -1415,7 +1411,7 @@ def pois_gamma(param, count, gshape=0.01, gscale=100, neg=False, log=True):
 
 
 def pois_gamma_ada(param, count, neg=False, log=True):
-    '''
+    """
     Posterior density for the Poisson distribution (assuming gamma prior),
     learns the gamma shape/scale as part of mcmc
 
@@ -1436,7 +1432,7 @@ def pois_gamma_ada(param, count, neg=False, log=True):
     float
         The posterior density (height of the posterior density).
 
-    '''
+    """
     lmbda = np.exp(param[0])
     gshape = np.exp(param[1])
     gscale = np.exp(param[2])
@@ -1458,7 +1454,7 @@ def pois_gamma_ada(param, count, neg=False, log=True):
 
 def exp_gamma(param, data, status, gshape=0.01, gscale=100, neg=False,
               log=True):
-    '''
+    """
     Posterior distribution for an exponential likelihood with a gamma prior.
     Allows for censoring.
 
@@ -1485,7 +1481,7 @@ def exp_gamma(param, data, status, gshape=0.01, gscale=100, neg=False,
     post : float
         The posterior density.
 
-    '''
+    """
     if status is None:
         status = np.repeat(1, data.shape[0])
     
@@ -1510,7 +1506,7 @@ def exp_gamma(param, data, status, gshape=0.01, gscale=100, neg=False,
 
 def weibull_gamma(param, data, status=None, gshape=0.01, gscale=100,
                   neg=False, log=True):
-    '''
+    """
     The posterior density for a weibull distribution with a gamma prior
 
     Parameters
@@ -1538,7 +1534,7 @@ def weibull_gamma(param, data, status=None, gshape=0.01, gscale=100,
     float
         The posterior density (height of the posterior density).
 
-    '''
+    """
     shape = np.exp(param[0])
     scale = np.exp(param[1])
 
@@ -1573,7 +1569,7 @@ def weibull_gamma(param, data, status=None, gshape=0.01, gscale=100,
 
 def NHPP_posterior(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False,
                    log=True):
-    '''
+    """
     The posterior density of the non-homogenous Poisson distribution with
     a power-law process. 
 
@@ -1607,7 +1603,7 @@ def NHPP_posterior(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False,
     float
         The posterior density (height of the posterior density).
 
-    '''
+    """
     # The Log postirior for NHPP with rate = (phi/eta)*(t/eta)**(phi-1) using
     # only Math no premade distributions.
 

@@ -12,20 +12,23 @@ from timeit import default_timer as dt
 from .metrics import (cox_snell_r2, nagelkerke_r2, tjur_r2, mcfadden_r2,
                       conf_mat_metrics, bias, rpmse, r2, adj_r2, top_20p,
                       number_of_nonzero_coef)
-from .utils import reshape_to_vect
+from .utils import reshape_to_vector
 
 
-def scoreModel(X, Y, model, metrics=['Accuracy',
-                                    'F1',
-                                    'Sens/Recall',
-                                    'Specificity',
-                                    'ppv',
-                                    'npv',
-                                    'AUC'
-                                    ],
+DEFAULT_METRICS = ['Accuracy',
+                   'F1',
+                   'Sens/Recall',
+                   'Specificity',
+                   'ppv',
+                   'npv',
+                   'AUC'
+                   ]
+
+
+def scoreModel(X, Y, model, metrics=None,
                thres=None, mtype='classification',
                print_=True, avg="weighted"):
-    '''
+    """
     Score a model using the given metrics.
 
     Parameters
@@ -61,7 +64,10 @@ def scoreModel(X, Y, model, metrics=['Accuracy',
     res : dict
         A dictionary containing the results for each metric.
 
-    '''
+    """
+    if metrics is None:
+        metrics = DEFAULT_METRICS
+
     res = {}
     args = {'average': avg,
             'conf_metric': None,
@@ -168,7 +174,8 @@ def scoreModel(X, Y, model, metrics=['Accuracy',
             
             args['y_prob_nullmod'] = np.repeat(np.mean(y_temp), args['n_obs'])
             args['ll_est'] = np.sum(y_temp*np.log(args['y_score']) + (1 - y_temp)*np.log(1 - args['y_score']))
-            args['ll_null'] = np.sum(y_temp*np.log(args['y_prob_nullmod']) + (1 - y_temp)*np.log(1 - args['y_prob_nullmod']))
+            args['ll_null'] = np.sum(y_temp*np.log(args['y_prob_nullmod']) +
+                                     (1 - y_temp)*np.log(1 - args['y_prob_nullmod']))
                   
     else:
         if isinstance(Y, pd.DataFrame) or isinstance(Y, pd.Series):
@@ -224,11 +231,11 @@ def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=Tr
         t_r2 = np.abs(y_mu1 - y_mu0)
 
         # Assumes 1 as the positive class
-        confMat = confusion_matrix(Y, Ypred)
-        tn = confMat[0, 0]
-        tp = confMat[1, 1]
-        fn = confMat[0, 1]
-        fp = confMat[1, 0]
+        confmat = confusion_matrix(Y, Ypred)
+        tn = confmat[0, 0]
+        tp = confmat[1, 1]
+        fn = confmat[0, 1]
+        fp = confmat[1, 0]
         tnfp = tn + fp
         tpfn = tp + fn
         tpfp = tp + fp
@@ -254,7 +261,7 @@ def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=Tr
             print("Accuracy       : ", accs)
             print("F1             : ", f1s)
             print("Sens/Recall    : ", sens)
-            print("Specificty     : ", spec)
+            print("Specificity     : ", spec)
             print("Pos Prev Val   : ", ppv)
             print("Neg Prev Val   : ", npv)
             print("AUC            : ", aucs)
@@ -270,7 +277,7 @@ def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=Tr
             'Specificity': spec,
             'ppv': ppv,
             'npv': npv,
-            'Conf_Mat': confMat,
+            'Conf_Mat': confmat,
             'AUC': aucs,
             'McFadden R2': m_r2,
             'Tjur R2': t_r2,
@@ -286,7 +293,7 @@ def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=Tr
         bias = np.mean(Ydiff)
         rpmse = np.sqrt(np.mean(Ydiff**2))
         SST = np.sum((Y.values - Ybar)**2)
-        #SSE = np.sum((Y.values - Ypred)**2)
+        # SSE = np.sum((Y.values - Ypred)**2)
         SSR = np.sum((Ypred - Ybar)**2)
         # also equal to 1 - SSE/SST
         # alternative R2: np.corrcoef((ypred, ytrue))**2
@@ -309,23 +316,17 @@ def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=Tr
     return res
 
 
-def runScorers(X, Y, splits, model, mtype, metrics=['Accuracy',
-                                                    'F1',
-                                                    'Sens/Recall',
-                                                    'Specificity',
-                                                    'ppv',
-                                                    'npv',
-                                                    'AUC'],
-               avg='weighted', calculate=['Out of Sample'],
-               method_on_X=None, mox_args={}, Y_for_test_only=None,
+def runScorers(X, Y, splits, model, mtype, metrics=None,
+               avg='weighted', calculate=None,
+               method_on_X=None, mox_args=None, Y_for_test_only=None,
                sample_limit=20):
-    '''
+    """
     Performs the cross-validation.
 
     Parameters
     ----------
     X : pandas dataframe
-        Feature or design marix.
+        Feature or design matrix.
     Y : pandas series
         Response or Target variable.
     splits : sklearn.model_selection object
@@ -342,7 +343,7 @@ def runScorers(X, Y, splits, model, mtype, metrics=['Accuracy',
                         'Specificity', 'ppv', 'npv', 'AUC'].
     avg : str, optional
         for metrics where it applies, such as AUC, how to calculate the
-        metric (see sklearn docs for more details, particularily with AUC).
+        metric (see sklearn docs for more details, particularly with AUC).
         The default is "weighted".
     calculate : list or str, optional
         What to calculate the metrics on, either in-sample or out-of-sample,
@@ -377,9 +378,13 @@ def runScorers(X, Y, splits, model, mtype, metrics=['Accuracy',
     keys : dict
         A dictionary containing the results.
 
-    '''
-    #is_score = None
-    #oos_score = None
+    """
+    if metrics is None:
+        metrics = DEFAULT_METRICS
+    if calculate is None:
+        calculate = ['Out of Sample']
+    if mox_args is None:
+        mox_args = {}
     keys = {}
  
     for train_idx, test_idx in splits.split(X, Y):
@@ -411,7 +416,8 @@ def runScorers(X, Y, splits, model, mtype, metrics=['Accuracy',
             Xtest = method_fit.transform(Xtest)
         
         mod = copy(model).fit(Xtrain, Ytrain.values.ravel())
-        
+
+        score = None
         if len(keys) == 0:
             for sk in calculate:
                 keys[sk] = {}
@@ -439,7 +445,7 @@ def runScorers(X, Y, splits, model, mtype, metrics=['Accuracy',
 
 
 def printScores(scores):
-    '''
+    """
     A helper function to print the outputs of the crossVal function.
 
     Currently, it does not print confusion matrices.    
@@ -453,7 +459,7 @@ def printScores(scores):
     -------
     None.
 
-    '''
+    """
     longest_key = 0
     for sample in scores.keys():
         for score_type in scores[sample].keys():
@@ -478,14 +484,12 @@ def printScores(scores):
         
 def crossVal(X, Y, cv_iterations, model, method='k-fold',
              mtype='classification', stratified=True, print_=True,
-             random_state=None, method_on_X=None, mox_args={},
+             random_state=None, method_on_X=None, mox_args=None,
              avg='weighted', shuffle=True, test_size=0.1,
-             calculate=['Out of Sample'],
-             metrics=['Accuracy', 'F1', 'Sens/Recall', 'Specificity',
-                      'ppv', 'npv', 'AUC'],
+             calculate=None, metrics=None,
              Y_for_test_only=None, sample_limit=20):
     # TODO: add parallel support
-    '''
+    """
     A custom cross-validation strategy. While sklearn has a lot of beefed up
     functionality regarding cross-validation strategies, I like this one
     because it puts most of the strategies I like to use in one place. Also,
@@ -553,7 +557,7 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
     Y_for_test_only : pandas series or numpy array, optional
         An alternate target variable to test on, mainly for the use case of
         training on one response (perhaps one that is more informative or
-        restrictive), but then predicting on a seperate test set.
+        restrictive), but then predicting on a separate test set.
         The default is None.
     sample_limit : int, optional
         The minimum acceptable samples in a split for the response
@@ -565,7 +569,14 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
     scores : dict
         Dictionary of performance metrics.
 
-    '''
+    """
+    if mox_args is None:
+        mox_args = {}
+    if metrics is None:
+        metrics = DEFAULT_METRICS
+    if calculate is None:
+        calculate = ['Out of Sample']
+
     splits = None
     scores = None
     if mtype != 'classification':
@@ -602,7 +613,7 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
 # is the current class value
 def prettyConfMat(Ytrue, Ypred,
                   print_=True, margins=True, labels=None):
-    '''
+    """
     Print a pretty confusion matrix.
 
     Parameters
@@ -631,7 +642,7 @@ def prettyConfMat(Ytrue, Ypred,
     confmat : pandas dataframe
         A dataframe containing the confusion matrix.
 
-    '''
+    """
     if labels is not None:
         if isinstance(Ytrue, pd.DataFrame) or isinstance(Ytrue, pd.Series):
             Ytrue = Ytrue.copy().values
@@ -668,7 +679,7 @@ def prettyConfMat(Ytrue, Ypred,
 
 
 def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False):
-    '''
+    """
     Since sklearn doesn't generate the standard errors by default...
 
     Parameters
@@ -690,7 +701,7 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False):
     se : numpy array
         The standard error of the coefficients.
 
-    '''
+    """
     se = np.nan
     Xt = np.hstack([np.ones((X.shape[0], 1)), X])
     if logit:
@@ -724,7 +735,7 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False):
 
 
 def corrmat_validity_check(corr_mat, corr_tol=1e-8):
-    '''
+    """
     Check for perfect correlation and/or a singular covariance matrix. Either
     of these conditions could indicate a matrix unsuitable for Linear
     Regression.
@@ -741,7 +752,7 @@ def corrmat_validity_check(corr_mat, corr_tol=1e-8):
     has_perfect_corr : numpy array
         An array of boolean values indicating perfect correlation.
 
-    '''
+    """
     det = np.linalg.det(corr_mat)
     ncols = corr_mat.shape[0]
     corr_mat_flat = corr_mat.reshape(-1, )
@@ -751,7 +762,7 @@ def corrmat_validity_check(corr_mat, corr_tol=1e-8):
 
 
 def vif(data, root=False, corr_tol=1e-8, sing_tol=1e-15):
-    '''
+    """
     Calculate Variance Inflation Factors. The sqrt of vif indicates how many
     times larger the standard error is than it would be if that variable had
     no correlation with the other variables 
@@ -772,7 +783,7 @@ def vif(data, root=False, corr_tol=1e-8, sing_tol=1e-15):
     Either pandas Dataframe or numpy array
         The VIFs.
 
-    '''
+    """
     corr = np.corrcoef(data, rowvar=False)
     perfect_corr, det = corrmat_validity_check(corr, corr_tol=corr_tol)
     if perfect_corr.sum() > 0:
@@ -799,7 +810,7 @@ def vif(data, root=False, corr_tol=1e-8, sing_tol=1e-15):
 
 
 def beta_trans(coef, type_="percent"):
-    '''
+    """
     Transform the model coefficients in a logistic regression model.
 
     Parameters
@@ -818,7 +829,7 @@ def beta_trans(coef, type_="percent"):
     numpy array
         Transformed Coefficients.
 
-    '''
+    """
     val = np.exp(coef)
     if type_ == "odds":
         return val
@@ -831,7 +842,7 @@ def beta_trans(coef, type_="percent"):
     
 
 def getPriors(data, Ycol):
-    '''
+    """
     Calculate the class distributions across each column of the dataset.
     
     For classification problems, but could easily be used with regression
@@ -850,7 +861,7 @@ def getPriors(data, Ycol):
     alltab : pandas dataframe
         A dataframe containing all of the results.
 
-    '''
+    """
     tab = None
     alltab = None
     #numeric = False
@@ -878,16 +889,16 @@ def getPriors(data, Ycol):
     
 
 class EstimatorSelectionHelper(object):
-    '''
+    """
     This is adapted from David Batista, so credit goes to him. 
     
     see here: davidsbatista.net/blog/2018/02/23/model_optimization
     
     I added some functionality that will extend to the sklearn-deap package
     as well. see here: https://github.com/rsteca/sklearn-deap
-    '''
+    """
     def __init__(self, models, params, searchCV, searchCVparams):
-        '''
+        """
         Constructor for the EstimatorSelectionHelper class.
 
         Parameters
@@ -910,7 +921,7 @@ class EstimatorSelectionHelper(object):
         -------
         None.
 
-        '''
+        """
         if not set(models.keys()).issubset(set(params.keys())):
             missing_params = list(set(models.keys()) - set(params.keys()))
             raise ValueError("Some estimators are missing parameters: %s" % missing_params)
@@ -924,7 +935,7 @@ class EstimatorSelectionHelper(object):
         self.gs_name = ""
         
     def fit(self, X, y):
-        '''
+        """
         perform the search.
 
         Parameters
@@ -939,7 +950,7 @@ class EstimatorSelectionHelper(object):
         self
             Adds fitted parameters/models to the object.
 
-        '''
+        """
         for key in self.keys:
             t0 = dt()
             print("Running GridSearch for %s." % key)
@@ -953,7 +964,7 @@ class EstimatorSelectionHelper(object):
         return self
     
     def _score_summary_ea(self, sort_by):
-        '''
+        """
         Create a summary of the evolutionary algorithm results.
 
         Parameters
@@ -966,7 +977,7 @@ class EstimatorSelectionHelper(object):
         pandas dataframe
             A dataframe containing the results.
 
-        '''
+        """
         rows = []
         for k in self.grid_searches:
             params = self.grid_searches[k].cv_results_['params']
@@ -995,7 +1006,7 @@ class EstimatorSelectionHelper(object):
         return df[columns]
     
     def _score_summary_skgs(self, sort_by):
-        '''
+        """
         Create a summary of the Grid Search results.
 
         Parameters
@@ -1008,7 +1019,7 @@ class EstimatorSelectionHelper(object):
         pandas dataframe
             A dataframe containing the results.
 
-        '''
+        """
         def row(key, scores, params, score_type):
             d = {
                 'estimator': key,
@@ -1042,7 +1053,7 @@ class EstimatorSelectionHelper(object):
         return df[columns]
     
     def score_summary(self, sort_by='mean_score'):
-        '''
+        """
         Create a summary of the scores and results.
 
         Parameters
@@ -1055,7 +1066,7 @@ class EstimatorSelectionHelper(object):
         scores : pandas dataframe
             A dataframe containing the results.
 
-        '''
+        """
         scores = None
         if self.gs_name == 'EvolutionaryAlgorithmSearchCV':
             scores = self._score_summary_ea(sort_by=sort_by)
@@ -1065,7 +1076,7 @@ class EstimatorSelectionHelper(object):
 
 
 def BPCA_initmodel(y, q):
-    '''
+    """
     Initialize the bPCA model.
 
     Parameters
@@ -1080,7 +1091,7 @@ def BPCA_initmodel(y, q):
     M : dict
         A dictionary of the initialized values.
 
-    '''
+    """
     M = {}
     M['N'] = y.shape[0]
     M['d'] = y.shape[1]
@@ -1129,7 +1140,7 @@ def BPCA_initmodel(y, q):
 
 
 def BPCA_dostep(M, y):
-    '''
+    """
     The workhorse of the bPCA algorithm, the Expectation-Maximization
     step.
 
@@ -1145,7 +1156,7 @@ def BPCA_dostep(M, y):
     M : dict
         The updated results.
 
-    '''
+    """
     N = M['N']
     d = M['d']
     
@@ -1175,7 +1186,7 @@ def BPCA_dostep(M, y):
         dy[M['missidx'][i]] = dym.T
         M['yest'][i, :] = dy + M['mu']
 
-        Tt = Tt + reshape_to_vect(dy).dot(reshape_to_vect(x).T)
+        Tt = Tt + reshape_to_vector(dy).dot(reshape_to_vector(x).T)
         Tt[M['missidx'][i], :] = Tt[M['missidx'][i], :] + Wm.dot(Rxinv)
         trS = trS + dy.dot(dy.T) + len(M['missidx'][i])/M['tau'] + np.trace(Wm.dot(Rxinv).dot(Wm.T))
 
@@ -1196,7 +1207,7 @@ def BPCA_dostep(M, y):
 
 # assumes no rows of all NaNs
 def bPCA(data, k=None, maxepoch=200, stepsize=10, dtau_tol=1e-8):
-    '''
+    """
     An algorithm to compute missing values using Bayesian PCA. Translated from
     MATLAB code by Shigeyuki OBA, 2002 May. 5th.
 
@@ -1225,7 +1236,7 @@ def bPCA(data, k=None, maxepoch=200, stepsize=10, dtau_tol=1e-8):
             tau: The estimated precision (inverse variance) of the residual 
                  error
 
-    '''
+    """
     N, d = data.shape
     if k is None:
         k = d - 1

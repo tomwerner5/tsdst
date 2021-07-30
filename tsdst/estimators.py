@@ -1,6 +1,3 @@
-from __future__ import (division, generators, absolute_import,
-                        print_function, with_statement, nested_scopes,
-                        unicode_literals)
 import numpy as np
 
 from scipy.optimize import minimize
@@ -33,18 +30,18 @@ from .utils import print_time
 
 
 class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
-    '''
+    """
     A Logistic Regression Classifier that uses MCMC to evaluate the parameters.
     This objects inherits from sklearn\'s BaseEstimator and
     LinearClassifierMixin.
-    '''
+    """
     def __init__(self, C=None, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
                  has_constant=False, verbose=True,
                  over_dispersion=False, scorer=None):
         # TODO: Implement random_state for reporduceability
-        '''
+        """
         The constructor for the BayesLogRegClassifier
 
         Parameters
@@ -107,7 +104,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         -------
         None.
 
-        '''
+        """
         self.C = C
         self.start = start
         self.niter = niter
@@ -143,7 +140,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
             self.extra_params = 0
             
     def _create_coefs(self, mcmc_params, param_summary, extra_params):
-        '''
+        """
         Creates Coefficients for MCMC model by aggregating the MCMC samples,
         using mean, median, mode, or last sampled value.
 
@@ -168,7 +165,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
             Any extra parameters that were solved with the model (aggregated
             from the MCMC chain).
 
-        '''
+        """
         sum_parms = None
         if param_summary == 'mean':
             sum_parms = mcmc_params.mean(axis=0)
@@ -192,7 +189,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return coefs, intercept, extra_parm
         
     def adjust_params_(self, new_param_summary):
-        '''
+        """
         This method is intended to update the aggregated paramters with a new 
         summary as defined in new_param_summary. For example, if someone wanted
         to switch from coef_ representing the mean to coef_ representing 
@@ -209,13 +206,13 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         self
             Updates the coef_, intercept_, and extra_params_sum_ attributes.
 
-        '''
+        """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
                                                                                  self.extra_params)
         return self
     
     def fit(self, X, y):
-        '''
+        """
         Fit the model
 
         Parameters
@@ -230,7 +227,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         self
             Updates internal attributes, such as coef_ and intercept_.
 
-        '''
+        """
         t0 = dt()
         X = check_array(X, force_all_finite='allow-nan', estimator=self, copy=True)
         if not self.has_constant:
@@ -305,7 +302,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return self.classes_[indices]
     
     def predict_proba(self, X):
-        '''
+        """
         Generate predicted probability.
 
         Parameters
@@ -318,7 +315,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         numpy array (float)
             The predicted probabilities.
 
-        '''
+        """
         check_is_fitted(self, 'coef_')
         
         decision = self.decision_function(X)
@@ -327,7 +324,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return softmax(decision_2d, copy=False)
     
     def predict_log_proba(self, X):
-        '''
+        """
         Generate predicted log probability.
 
         Parameters
@@ -340,11 +337,11 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         numpy array (float)
             The predicted log probabilities.
 
-        '''
+        """
         return np.log(self.predict_proba(X))
     
     def score(self, X, y, sample_weight=None):
-        '''
+        """
         Scores the model using the scoring method passed, or, the default
         scorer. In this case, the default scorer is accuracy.
 
@@ -363,7 +360,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         score
             The result of the scoring function.
 
-        '''
+        """
         scorer = self.scorer or 'accuracy'
         scorer = get_scorer(scorer)
         
@@ -371,17 +368,17 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
 
 
 class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
-    '''
+    """
     A Poisson Regressor that uses MCMC to evaluate the parameters.
     This objects inherits from sklearn\'s BaseEstimator and
     LinearClassifierMixin.
-    '''
+    """
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
                  has_constant=False, verbose=True,
                  over_dispersion=False, scorer='D2'):
-        '''
+        """
         The constructor for the BayesPoissonClassifier
 
         Parameters
@@ -441,7 +438,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         -------
         None.
 
-        '''
+        """
         self.C = C
         self.start = start
         self.niter = niter
@@ -508,7 +505,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         return results
         
     def _create_coefs(self, mcmc_params, param_summary, extra_params):
-        '''
+        """
         Creates Coefficients for MCMC model by aggregating the MCMC samples,
         using mean, median, mode, or last sampled value.
 
@@ -533,7 +530,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
             Any extra parameters that were solved with the model (aggregated
             from the MCMC chain).
 
-        '''
+        """
         sum_parms = None
         if param_summary == 'mean':
             sum_parms = mcmc_params.mean(axis=0)
@@ -557,7 +554,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         return coefs, intercept, extra_parm
         
     def adjust_params_(self, new_param_summary):
-        '''
+        """
         This method is intended to update the aggregated paramters with a new 
         summary as defined in new_param_summary. For example, if someone wanted
         to switch from coef_ representing the mean to coef_ representing 
@@ -574,14 +571,14 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         self
             Updates the coef_, intercept_, and extra_params_sum_ attributes.
 
-        '''
+        """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
                                                                                  self.extra_params)
         
         return self
     
     def fit(self, X, y):
-        '''
+        """
         Fit the model
 
         Parameters
@@ -596,7 +593,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         self
             Updates internal attributes, such as coef_ and intercept_.
 
-        '''
+        """
         t0 = dt()
         X = check_array(X, force_all_finite='allow-nan', estimator=self, copy=True)
         if not self.has_constant:
@@ -693,17 +690,17 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
 
     
 class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
-    '''
+    """
     A Weibull Regressor that uses MCMC to evaluate the parameters.
     This objects inherits from sklearn\'s BaseEstimator and
     LinearClassifierMixin.
-    '''
+    """
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
                  has_constant=False, verbose=True,
                  over_dispersion=False):
-        '''
+        """
         The constructor for the BayesWeibullClassifier
 
         Parameters
@@ -764,7 +761,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         -------
         None.
 
-        '''
+        """
         self.C = C
         self.start = start
         self.niter = niter
@@ -785,7 +782,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         self.extra_params = 0
             
     def _create_coefs(self, mcmc_params, param_summary, extra_params):
-        '''
+        """
         Creates Coefficients for MCMC model by aggregating the MCMC samples,
         using mean, median, mode, or last sampled value.
 
@@ -810,7 +807,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
             Any extra parameters that were solved with the model (aggregated
             from the MCMC chain).
 
-        '''
+        """
         sum_parms = None
         if param_summary == 'mean':
             sum_parms = mcmc_params.mean(axis=0)
@@ -866,7 +863,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         return results
         
     def adjust_params_(self, new_param_summary):
-        '''
+        """
         This method is intended to update the aggregated paramters with a new 
         summary as defined in new_param_summary. For example, if someone wanted
         to switch from coef_ representing the mean to coef_ representing 
@@ -883,13 +880,13 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         self
             Updates the coef_, intercept_, and extra_params_sum_ attributes.
 
-        '''
+        """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
                                                                                  self.extra_params)
         return self
     
     def fit(self, X, y):
-        '''
+        """
         Fit the model
 
         Parameters
@@ -904,7 +901,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         self
             Updates internal attributes, such as coef_ and intercept_.
 
-        '''
+        """
         t0 = dt()
         X = check_array(X, force_all_finite='allow-nan', estimator=self, copy=True)
         if not self.has_constant:
@@ -994,13 +991,13 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
     
 
 class LogReg(BaseEstimator, LinearClassifierMixin):
-    '''
+    """
     A class for performing Logistic Regression using scipy.optimize.minimize.
     This is not meant to replace skleaarn's implementation, and in fact, it
     is mainly built on sklearn. This was mainly a test for the author to get a
     better understanding of both the internals of sklearn and
     Logistic Regression
-    '''
+    """
     def __init__(self, x0=None, lamb=1, l_norm=1, method=None, jac=None,
                  hess=None, hessp=None, bounds=None, constraints=(), tol=None,
                  callback=None, options=None, has_constant=False):
@@ -1022,7 +1019,7 @@ class LogReg(BaseEstimator, LinearClassifierMixin):
         
         
     def fit(self, X, y):
-        '''
+        """
         Fit the model
 
         Parameters
@@ -1037,7 +1034,7 @@ class LogReg(BaseEstimator, LinearClassifierMixin):
         self
             Updates internal attributes, such as coef_ and intercept_.
 
-        '''
+        """
         
         if not self.has_constant:
             X = add_constant(X, prepend=True)
@@ -1073,7 +1070,7 @@ class LogReg(BaseEstimator, LinearClassifierMixin):
         return self.classes_[indices]
     
     def predict_proba(self, X):
-        '''
+        """
         Generate predicted probability.
 
         Parameters
@@ -1086,7 +1083,7 @@ class LogReg(BaseEstimator, LinearClassifierMixin):
         numpy array (float)
             The predicted probabilities.
 
-        '''
+        """
         #check_is_fitted(self)
         
         decision = self.decision_function(X)

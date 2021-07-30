@@ -17,7 +17,7 @@ from .utils import updateProgBar, print_time
 
 def naiveVarDrop(X, searchCols, tol=0.0001, standardize=False, asList=False,
                  print_=False):
-    '''
+    """
     Drop columns based on which columns have variance below the threshold.
 
     Parameters
@@ -39,7 +39,7 @@ def naiveVarDrop(X, searchCols, tol=0.0001, standardize=False, asList=False,
     list or dataframe
         Either list of columns to be dropped or dataframe with columns removed.
 
-    '''
+    """
     cols_to_drop = []
     if searchCols is None:
         searchCols = list(X.columns)
@@ -56,7 +56,7 @@ def naiveVarDrop(X, searchCols, tol=0.0001, standardize=False, asList=False,
 
 
 def naiveScoreDrop(X, scores, tol=0.001, asList=False):
-    '''
+    """
     Drop columns based on which columns have scores below the threshold. This 
     could be used with any arbitrary score function, where scores is a 
     1-column dataframe, in which the index are column names, and the values
@@ -78,7 +78,7 @@ def naiveScoreDrop(X, scores, tol=0.001, asList=False):
     -------
     list or dataframe
         Either list of columns to be dropped or dataframe with columns removed.
-    '''
+    """
     cols_to_drop = []
     for i in scores.index:
         score = scores.loc[i].values
@@ -91,7 +91,7 @@ def naiveScoreDrop(X, scores, tol=0.001, asList=False):
     
     
 def getHighCorrs(corr_mat, corr_thres, split_key="..&.."):
-    '''
+    """
     Given a correlation matrix, return the
     correlations that are above the threshold.
     
@@ -115,7 +115,7 @@ def getHighCorrs(corr_mat, corr_thres, split_key="..&.."):
         A dataframe containing a list of the top correlations from the
         correlation matrix.
 
-    '''
+    """
     top_corr = {}
     columns = corr_mat.columns
     for i in corr_mat.columns:
@@ -132,7 +132,7 @@ def getHighCorrs(corr_mat, corr_thres, split_key="..&.."):
 
 
 def dropHighCorrs(X, top_corr, split_key="..&..", asList=False, print_=False):
-    '''
+    """
     Remove high inter-correlations from the dataset. When dropping a column,
     the column with the lowest variance is selected.
     
@@ -161,7 +161,7 @@ def dropHighCorrs(X, top_corr, split_key="..&..", asList=False, print_=False):
     list or dataframe
         Either list of columns to be dropped or dataframe with columns removed.
 
-    '''
+    """
     cols_to_drop = []
     for i in top_corr.keys():
         cols = i.split(split_key)
@@ -183,7 +183,7 @@ def dropCorrProcedure(X, corr_thres, split_key="..&..",
                       asList=False, print_=False):
     # TODO: add an option for dropping columns that have a low correlation with
     # the target
-    '''
+    """
     Calculates the inter-correlation of the columns in a matrix/dataframe, and then
     drops columns that are above a given threshold.
 
@@ -209,7 +209,7 @@ def dropCorrProcedure(X, corr_thres, split_key="..&..",
     dropped_cor : dataframe
         Dataframe with High correlation columns dropped.
 
-    '''
+    """
     if not isinstance(X, pd.DataFrame):
         X = pd.DataFrame(X.copy())
     corr_mat = X.corr()
@@ -221,7 +221,7 @@ def dropCorrProcedure(X, corr_thres, split_key="..&..",
 
 def permutation_importance(fit_model, Xtest, Ytest,
                            metric_func, seed=None, sort="dsc"):
-    '''
+    """
     Performs permutation importance on a fitted model.
     
     Assumes that your metric function takes inputs in this order: ytrue, yperd.
@@ -255,7 +255,7 @@ def permutation_importance(fit_model, Xtest, Ytest,
     res : dataframe
         A dataframe containing the results of the permutation test.
 
-    '''
+    """
     Ypred = fit_model.predict(Xtest)
     baseline = metric_func(Ytest, Ypred)
     imps = []
@@ -279,7 +279,7 @@ def permutation_importance(fit_model, Xtest, Ytest,
 
 
 def permutation_importance_CV(model, X, Y, metric_func, num_splits=8, seed=None, sort="dsc"):
-    '''
+    """
     Performs a cross-validated permutation importance on a non-fitted model.
     
     Assumes that your metric function takes inputs in this order: ytrue, yperd.
@@ -316,7 +316,7 @@ def permutation_importance_CV(model, X, Y, metric_func, num_splits=8, seed=None,
     res : dataframe
         A dataframe containing the results of the permutation test.
 
-    '''
+    """
     splits = StratifiedKFold(n_splits=num_splits, shuffle=True, random_state=seed)
     pi_total = np.zeros((X.shape[1], 1))
     i = 0
@@ -341,7 +341,7 @@ def permutation_importance_CV(model, X, Y, metric_func, num_splits=8, seed=None,
 
 
 def _calcForwardAICs(X, Y, model, metric, family):
-    '''
+    """
     A utility function for the forwardSelection algorithm. Calculates AIC
     values for a two-class classification model.
 
@@ -364,7 +364,7 @@ def _calcForwardAICs(X, Y, model, metric, family):
     score : float
         The AIC (or variant) score.
 
-    '''
+    """
     mod = model.fit(X, Y)
 
     ss = X.shape[0]
@@ -393,7 +393,7 @@ def _doParallelForward(save_path, save_name, save_ext, metric, model,
                       target_var, new_predictor, use_probabilities,
                       mod_cols, family, Yprob=None,
                       serialize_flavor='feather'):
-    '''
+    """
     A helper function to lessen the load on memory when computing in parallel.
 
     Parameters
@@ -436,7 +436,7 @@ def _doParallelForward(save_path, save_name, save_ext, metric, model,
     res : float
         The AIC (or variant) result.
 
-    '''
+    """
     
     # Note: Should probably update this to feather (as of 2019)
     # since it is faster and better on memory in general.
@@ -478,7 +478,7 @@ def _doParallelForward(save_path, save_name, save_ext, metric, model,
     return res
 
 def _prepare_for_parallel(XY, serialize_flavor='feather'):
-    '''
+    """
     Utility function to setup the data for parallel processing with low
     memory overhead.
 
@@ -506,7 +506,7 @@ def _prepare_for_parallel(XY, serialize_flavor='feather'):
         
         Note: using feather requires pyarrow
 
-    '''
+    """
         
     save_path = 'forward_tmp'
     if not os.path.isdir(save_path):
@@ -535,7 +535,7 @@ def forwardSelection(XY, target_var, model, metric='bic', family='gaussian',
                      stop_at_p=1000, stop_when=5, use_probabilities=False,
                      return_type='all', serialze_flavor='feather',
                      use_threads=True):
-    '''
+    """
     A forward selection algorithm for classification only right now. Still 
     needs some work.
     
@@ -594,7 +594,7 @@ def forwardSelection(XY, target_var, model, metric='bic', family='gaussian',
     list, model, data, or tuple of objects
         Either return as list, model, data, or all. The default is 'all'.
 
-    '''
+    """
     
     t0 = dt()
     

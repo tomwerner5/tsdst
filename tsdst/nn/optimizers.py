@@ -2,7 +2,7 @@ import numpy as np
 
 
 def gradient_descent(wb, dwdb, optimizer_args):
-    '''
+    """
     The simple gradient descent update.
 
     Parameters
@@ -20,14 +20,14 @@ def gradient_descent(wb, dwdb, optimizer_args):
     wb : dict
         A dictionary of the updated weights and biases.
 
-    '''
+    """
     for key in wb.keys():
         wb[key] = wb[key] - optimizer_args['learning_rate']*dwdb[key]
     return wb
 
 
 def adam(wb, dwdb, optimizer_args):
-    '''
+    """
     The Adam optimizer. (Adaptive Moment Estimation)
 
     Parameters
@@ -45,7 +45,7 @@ def adam(wb, dwdb, optimizer_args):
     wb : dict
         A dictionary of the updated weights and biases.
 
-    '''
+    """
     for key in wb.keys():
         optimizer_args['mt'][key] = (optimizer_args['beta1']*optimizer_args['mt'][key] +
                                      (1-optimizer_args['beta1'])*dwdb[key])

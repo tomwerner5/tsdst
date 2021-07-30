@@ -1,7 +1,3 @@
-from __future__ import (division, generators, absolute_import,
-                        print_function, with_statement, nested_scopes,
-                        unicode_literals)
-
 import numpy as np
 import pandas as pd
 import warnings
@@ -12,7 +8,7 @@ from scipy.stats import rankdata, kendalltau, gaussian_kde
 
 
 def custom_abs(x):
-    '''
+    """
     Innards of the absolute value function. (This is just here for fun).
     
     Parameters
@@ -25,14 +21,14 @@ def custom_abs(x):
     int or float
         The absolute value of x.
 
-    '''
+    """
     m = x % (x**2 - x + 2)
     p = m % (x**2 + 2)
     return 2*p - x
 
 
 def powerset(iterable):
-    '''
+    """
     Create the powerset (all possible combinations) of a list.
 
     Parameters
@@ -45,13 +41,13 @@ def powerset(iterable):
     list of lists
         list containing all possible combinations.
 
-    '''
+    """
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
   
 
 def percentIncrease(old, new):
-    '''
+    """
     Calculates the percent increase between two numbers.
 
     Parameters
@@ -66,7 +62,7 @@ def percentIncrease(old, new):
     numeric
         The percent increase (as a decimal).
 
-    '''
+    """
     return (new - old)/old
 
 
@@ -74,7 +70,7 @@ def percentIncrease(old, new):
 # For R-like rank functionality, import scipy's rankdata from 
 # this module
 def rank(x, small_rank_is_high_num=True, rank_from_1=True):
-    '''
+    """
     Rank items in an array. Using the 'first' method, which ranks ties using
     the order of appearance. For rank functionality similar to R, see scipy's
     rankdata function (which is imported from this module for convenience).'
@@ -94,7 +90,7 @@ def rank(x, small_rank_is_high_num=True, rank_from_1=True):
     rk : numpy array
         An array containing the ranks.
 
-    '''
+    """
     rk = np.argsort(np.argsort(x))
     if small_rank_is_high_num:
         rk = (len(x) - 1) - rk
@@ -104,7 +100,7 @@ def rank(x, small_rank_is_high_num=True, rank_from_1=True):
 
 
 def cov2cor(V):
-    '''
+    """
     Translation of R's cov2cor function
 
     Parameters
@@ -117,7 +113,7 @@ def cov2cor(V):
     R : numpy array
         Correlation matrix.
 
-    '''
+    """
     p, n = V.shape
     if len(V.shape) != 2 or p != n:
         raise ValueError('V is not a square matrix')
@@ -130,7 +126,7 @@ def cov2cor(V):
     
 
 def mann_whitney(x, y, y_is='groups'):
-    '''
+    """
     Mann-Whitney sum-rank test.
 
     Parameters
@@ -151,7 +147,7 @@ def mann_whitney(x, y, y_is='groups'):
     res : dict
         The results of the Mann-Whitney test.
 
-    '''
+    """
     if isinstance(y, (list, tuple)):
         y = np.array(y)
     if isinstance(x, (pd.DataFrame, pd.Series)):
@@ -194,7 +190,7 @@ def mann_whitney(x, y, y_is='groups'):
 
 
 def biserial_rank_corr(x, y, y_is='groups'):
-    '''
+    """
     Biserial Rank Correlation.
 
     Parameters
@@ -215,7 +211,7 @@ def biserial_rank_corr(x, y, y_is='groups'):
     r : float
         Biserial rank correlation.
 
-    '''
+    """
     mw = mann_whitney(x, y, y_is=y_is)
     max_u = mw[mw['max_U']]
     r = (2*max_u)/(mw['n1']*mw['n2']) - 1
@@ -225,7 +221,7 @@ def biserial_rank_corr(x, y, y_is='groups'):
 # mimics R cor function. Columns are correlation variables.
 # X and Y must at least have the same length
 def corr(x, y=None, method='pearson'):
-    '''
+    """
     Mimics the R cor function to calculate correlations.
 
     Parameters
@@ -249,7 +245,7 @@ def corr(x, y=None, method='pearson'):
     numpy array
         Array containing the correlation.
 
-    '''
+    """
     cor_mat = None
     X = np.array(x, ndmin=2)
     if X.shape[0] == 0:
@@ -290,7 +286,7 @@ def corr(x, y=None, method='pearson'):
 def mode_histogram(data, bin_max='auto', edge_check=None, approx=False,
                    surround=True, surround_step=1):
     # TODO: make this work in a multivariate setting
-    '''
+    """
     Calculates the mode (from a continuous distribution) using data provided
     from a histogram. Created because calculating mode from KDE estimate
     can be slow.
@@ -319,7 +315,7 @@ def mode_histogram(data, bin_max='auto', edge_check=None, approx=False,
     float
         The mode of the array.
 
-    '''
+    """
     if isinstance(bin_max, str):
         bins = bin_max
     else:
@@ -364,7 +360,7 @@ def mode_histogram(data, bin_max='auto', edge_check=None, approx=False,
     
 
 def mode_kde(data, kde_args=None):
-    '''
+    """
     Calculate mode from gaussian kernel density estimate (using scipy
     gaussian_pde).
 
@@ -380,7 +376,7 @@ def mode_kde(data, kde_args=None):
     mode : 
         A numeric value, which is the mode.
 
-    '''
+    """
     if kde_args is None:
         kde_args = {}
     kernel = gaussian_kde(data, **kde_args)
@@ -390,7 +386,7 @@ def mode_kde(data, kde_args=None):
 
 
 def norm(x, p, use_expo=False):
-    '''
+    """
     Calculate LP norm of a vector.
 
     Parameters
@@ -410,7 +406,7 @@ def norm(x, p, use_expo=False):
     numeric
         Value of the LP norm on the vector.
 
-    '''
+    """
     expo = 1/p
     if p == 1:
         return np.sum(np.abs(x))
@@ -438,7 +434,7 @@ def norm(x, p, use_expo=False):
         
         
 def norm_der(x, p, use_expo=False):
-    '''
+    """
     Calculate LP norm derivative of a vector.
 
     Parameters
@@ -458,7 +454,7 @@ def norm_der(x, p, use_expo=False):
     numeric
         Value of the LP norm derivative on the vector.
 
-    '''
+    """
     norm_der = (p*np.abs(x)**(p-1))*np.sign(x)
     if use_expo:
         norm_der = norm_der*((1/p)*np.sum(np.abs(x)**p)**(1/p - 1))
@@ -466,7 +462,7 @@ def norm_der(x, p, use_expo=False):
 
         
 def mahalanobis(data, produce=None):
-    '''
+    """
     Calculate mahalanobis distance on a matrix of column vectors. 
     Assumes that rows are observations and columns are features.
     
@@ -484,7 +480,7 @@ def mahalanobis(data, produce=None):
     numpy array
         Array containing the distances.
 
-    '''
+    """
     arr = np.array(data).reshape(data.shape[0], -1)
     cent = arr - arr.mean(axis=0)
     covmat = np.cov(cent, rowvar=False)
@@ -508,7 +504,7 @@ def mahalanobis(data, produce=None):
 
 def scaling(x, a=0, b=1, percentile=(0, 100),
             center=None, scale=None, ddof=0):
-    '''
+    """
     Common scaling algorithm. Either min-max (with any desired bound),
     standardizing, max absolute scaling, or robust scaling.
 
@@ -546,7 +542,7 @@ def scaling(x, a=0, b=1, percentile=(0, 100),
     scaled : numpy array
         The scaled values.
 
-    '''
+    """
     lower = upper = centVal = scaleVal = None
     if center is not None:
         try:

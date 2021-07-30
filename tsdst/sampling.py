@@ -8,7 +8,7 @@ from .utils import print_time, updateProgBar
 
 def downSample(data, target_var, majority=0, minority=1, bal=0.5,
                random_state=123):
-    '''
+    """
     In a low base-rate classification problem, it is sometimes advantageous to downsample
     the majority class until the classes are balanced (or close enough). This 
     is done by randomly removing a proportion of observations from only the
@@ -34,7 +34,7 @@ def downSample(data, target_var, majority=0, minority=1, bal=0.5,
     data_sub : pandas dataframe
         The downsampled data.
 
-    '''
+    """
     data_min = data[data[target_var] == minority]
     data_maj = data[data[target_var] == majority]
 
@@ -53,7 +53,7 @@ def downSample(data, target_var, majority=0, minority=1, bal=0.5,
 
 
 def genRandSampFromDF(data, sampSize, replace=False, random_state=None):
-    '''
+    """
     Creates a Random sample of observations (rows) from a Dataframe (data). If replace=True,
     this function can be used for bootstrap samples. 
 
@@ -73,7 +73,7 @@ def genRandSampFromDF(data, sampSize, replace=False, random_state=None):
     rand : pandas dataframe
         The randomly sampled data.
 
-    '''
+    """
     if random_state is not None:
         np.random.seed(random_state)
     idx = list(np.random.choice(np.arange(0, data.shape[0]), sampSize, replace=replace))
@@ -87,7 +87,7 @@ def genRandSampFromDF(data, sampSize, replace=False, random_state=None):
 def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
                      sort_=True, sort_method="quicksort", sort_cols=None,
                      stratified=True, bin_placement="random", verbose=False):
-    '''
+    """
     Creates a sample from a Dataframe (data). If replace=True,
     this function can be used for bootstrap samples. 
 
@@ -126,7 +126,7 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
     LHC : pandas dataframe or numpy array
         The samples.
 
-    '''
+    """
     t0 = None
     if verbose:
         # Initialize time for printing

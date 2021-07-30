@@ -11,7 +11,7 @@ from .utils import one_hot_decode, decision_boundary_1D
 
 
 def top_20p(y_true, y_score):
-    '''
+    """
     Measures the percent of true positives that are captured in the top 20%
     of the population (sorted by predicted probabilities).
 
@@ -28,7 +28,7 @@ def top_20p(y_true, y_score):
         Percent of true positives that are captured in the top 20% 
         of the population.
 
-    '''
+    """
     if isinstance(y_true, pd.DataFrame) or isinstance(y_true, pd.Series):
         y_true = y_true.values
     cutoff = int(0.2*y_true.shape[0])
@@ -39,7 +39,7 @@ def top_20p(y_true, y_score):
 
 # For use with custom scorers in sklearn, otherwise, use top_20p
 def top_20p_score(estimator, X, y, yprob=None):
-    '''
+    """
     Measures the percent of true positives that are captured in the top 20%
     of the population (sorted by predicted probabilities).
     
@@ -62,7 +62,7 @@ def top_20p_score(estimator, X, y, yprob=None):
         Percent of true positives that are captured in the top 20% 
         of the population.
 
-    '''
+    """
     if isinstance(y, pd.DataFrame) or isinstance(y, pd.Series):
         y_true = y.values
     else:
@@ -75,7 +75,7 @@ def top_20p_score(estimator, X, y, yprob=None):
 
 
 def auc_score(estimator, X, y):
-    '''
+    """
     Area under the ROC curve. Wrapper for compatibility with sklearn
     custom scorers.
 
@@ -93,7 +93,7 @@ def auc_score(estimator, X, y):
     auc : float
         The area under the roc curve.
 
-    '''
+    """
     if isinstance(y, pd.DataFrame) or isinstance(y, pd.Series):
         y_true = y.values
     else:
@@ -104,7 +104,7 @@ def auc_score(estimator, X, y):
 
 
 def cox_snell_r2(ll_est, ll_null, n_obs):
-    '''
+    """
     Cox-Snell Pseudo R-squared.
 
     Parameters
@@ -121,14 +121,14 @@ def cox_snell_r2(ll_est, ll_null, n_obs):
     cs_r2 : float
         Cox-Snell Pseudo R-squared.
 
-    '''
+    """
     ratio = 2/n_obs
     cs_r2 = 1 - np.exp(ratio*(ll_null - ll_est))
     return cs_r2
 
 
 def nagelkerke_r2(ll_null, n_obs, cs_r2=None, ll_est=None):
-    '''
+    """
     Nagelkerke Pseudo R-squared. Provides a correction to Cox-Snell Pseudo
     R-squared to bound between 0, 1.
 
@@ -149,7 +149,7 @@ def nagelkerke_r2(ll_null, n_obs, cs_r2=None, ll_est=None):
     cs_r2 : float
         Nagelkerke Pseudo R-squared.
 
-    '''
+    """
     ratio = 2/n_obs
     r2_max = 1 - np.exp(ratio*ll_null)
     if cs_r2 is None:
@@ -160,7 +160,7 @@ def nagelkerke_r2(ll_null, n_obs, cs_r2=None, ll_est=None):
 
 
 def tjur_r2(y_true, y_score):
-    '''
+    """
     Tjur Pseudo R-squared
 
     Parameters
@@ -175,7 +175,7 @@ def tjur_r2(y_true, y_score):
     t_r2 : float
         Tjur Pseudo R-squared.
 
-    '''
+    """
     y_mu1 = y_score[y_true == 1].mean()
     y_mu0 = y_score[y_true == 0].mean()
     t_r2 = np.abs(y_mu1 - y_mu0)
@@ -183,7 +183,7 @@ def tjur_r2(y_true, y_score):
 
 
 def mcfadden_r2(ll_est, ll_null):
-    '''
+    """
     McFadden's Pseudo R-squared when the saturated model is not available.
 
     Parameters
@@ -198,13 +198,13 @@ def mcfadden_r2(ll_est, ll_null):
     m_r2 : float
         McFadden Pseudo R-squared.
 
-    '''
+    """
     m_r2 = 1 - (ll_est/ll_null)
     return m_r2
 
 
 def number_of_nonzero_coef(X, model):
-    '''
+    """
     Calculates the number of non-zero coefficients in a model. Useful for
     evaluating models with an L1 penalty.
 
@@ -220,7 +220,7 @@ def number_of_nonzero_coef(X, model):
     num_coef : int
         Number of non-zero coefficients.
 
-    '''
+    """
     num_coef = None
     try:
         num_coef = sum((True if c != 0 else False for c in model.coef_.reshape(-1,)))
@@ -230,7 +230,7 @@ def number_of_nonzero_coef(X, model):
 
 
 def conf_mat_metrics(y_true, y_pred, conf_metric='all'):
-    '''
+    """
     Confusion Matrix metrics for 0/1 class classification. Assumes 1 is the
     positive class (i.e. 1 == true positive, 0 == true negative).
 
@@ -250,7 +250,7 @@ def conf_mat_metrics(y_true, y_pred, conf_metric='all'):
         Returns dictionary for `all`, otherwise, float for the metric of
         interest.
 
-    '''
+    """
     confMat = confusion_matrix(y_true, y_pred)
     metrics = {'Sens/Recall': 0,
                'Specificity': 0,
@@ -284,7 +284,7 @@ def conf_mat_metrics(y_true, y_pred, conf_metric='all'):
 
     
 def bias(y_true, y_pred):
-    '''
+    """
     Calculate model bias (systemic errors in estimation) in Linear Regression.
     
     Defined as The average distance (and direction) the predictions are from
@@ -304,14 +304,14 @@ def bias(y_true, y_pred):
     bias : float
         Model bias.
 
-    '''
+    """
     ydiff = y_pred - y_true
     bias = np.mean(ydiff)
     return bias
 
 
 def rpmse(y_true, y_pred, root=True):
-    '''
+    """
     Calculate model PMSE/RPMSE (root predictive mean squared error) in
     Linear Regression.
     
@@ -333,7 +333,7 @@ def rpmse(y_true, y_pred, root=True):
     bias : float
         Model bias.
 
-    '''
+    """
     ydiff = y_pred - y_true
     if root:
         return np.sqrt(np.mean(ydiff**2))
@@ -342,7 +342,7 @@ def rpmse(y_true, y_pred, root=True):
 
 
 def r2(y_true, y_pred):
-    '''
+    """
     R-squared for a linear regression model. The percent of the variance in 
     the response that can be explained by the predictors.
     
@@ -362,7 +362,7 @@ def r2(y_true, y_pred):
     rsquared : float
         R-squared.
 
-    '''
+    """
     y_bar = np.mean(y_true)
     SST = np.sum((y_true - y_bar)**2)
     SSE = np.sum((y_true - y_pred)**2)
@@ -383,7 +383,7 @@ def r2(y_true, y_pred):
 
 
 def lr_se_fromModel(estimator, X, y):
-    '''
+    """
     Linear Regression Model Standard deviation (error) estimate, or,
     the estimate of the true standard deviation of the underlying distribution
     for y_true. This is the maximum likelihood estimate for sigma, where
@@ -403,7 +403,7 @@ def lr_se_fromModel(estimator, X, y):
     sigma : float
         Model error estimate.
 
-    '''
+    """
     p = X.shape[1]
     y_pred = estimator.predict(X)
     sigma = np.sqrt(np.sum((y - y_pred)**2)/(y.shape[0] - p - 1))
@@ -411,7 +411,7 @@ def lr_se_fromModel(estimator, X, y):
 
 
 def lr_se_fromPrediction(y_true, y_pred, num_params=2):
-    '''
+    """
     Linear Regression Model Standard deviation (error) estimate, or,
     the estimate of the true standard deviation of the underlying distribution
     for y_true. This is the maximum likelihood estimate for sigma, where
@@ -431,13 +431,13 @@ def lr_se_fromPrediction(y_true, y_pred, num_params=2):
     sigma : float
         Model error estimate.
 
-    '''
+    """
     sigma = np.sqrt(np.sum((y_true - y_pred)**2)/(y_true.shape[0] - num_params - 1))
     return sigma
 
 
 def adj_r2(y_true, y_pred, X, rsquared=None):
-    '''
+    """
     Adjusted R-squared for a linear regression model. The percent of the
     variance in the response that can be explained by the predictors. The 
     adjustment is for the ratio or predictors to observations.
@@ -459,7 +459,7 @@ def adj_r2(y_true, y_pred, X, rsquared=None):
     rsquared : float
         R-squared.
 
-    '''
+    """
     if rsquared is None:
         rsquared = r2(y_true, y_pred)
     adj_r2 = 1 - (1 - rsquared)*((X.shape[0] - 1)/(X.shape[0] - X.shape[1] - 1))
@@ -467,7 +467,7 @@ def adj_r2(y_true, y_pred, X, rsquared=None):
     
 
 def aicCalc(loglike, num_model_params, sample_size, c=2, metric="aicc"):
-    '''
+    """
     Generic Akaike information criterion (AIC) calculation for models.
     Includes metrics for AIC: `aic`, Corrected AIC: `aicc`, Bayesian
     Information Criterion (BIC): `bic`, or extended BIC: `ebic`.
@@ -495,7 +495,7 @@ def aicCalc(loglike, num_model_params, sample_size, c=2, metric="aicc"):
     ic : float
         The IC value.
 
-    '''
+    """
     ic = None
     if metric == "aic" or metric == "aicc":
         ic = (2*num_model_params) - 2*(loglike)
@@ -516,7 +516,7 @@ def aicCalc(loglike, num_model_params, sample_size, c=2, metric="aicc"):
 
 def glm_regularized_AIC(X, Y, reg_mod, unreg_mod,
              tol=1e-6, method="kawano", family="binomial"):
-    '''
+    """
     Calculate AIC for a Generalized Linear Model with regularization.
     
     See 'AIC for the Lasso in GLMs', Y. Ninomiya and S. Kawano (2016)
@@ -550,7 +550,7 @@ def glm_regularized_AIC(X, Y, reg_mod, unreg_mod,
     aic : float
         The calculated AIC.
 
-    '''
+    """
     # requires predict_proba method for logreg, and predict method for others, for poisson, predict output should be lambda, i.e. it should already be exponentiated
     if isinstance(X, pd.DataFrame):
         X = X.values
@@ -598,19 +598,19 @@ def glm_regularized_AIC(X, Y, reg_mod, unreg_mod,
 
 
 def js_div(px, py):
-    '''
+    """
     Jensen-Shannon Divergence, which is a smoothed version of KL divergence.
     
     px: Probability of x (float or array of floats)
     py: Probability of y (float or array of floats)
-    '''
+    """
     midpoint = (px + py)*0.5
     js = rel_entr(px, midpoint)*0.5 + rel_entr(py, midpoint)*0.5
     return np.sum(js)
 
 
 def kl_div(px, py):
-    '''
+    """
     KL divergence.
     
     Note: scipy has a KL divergence function of the same name, but it adds
@@ -618,13 +618,13 @@ def kl_div(px, py):
     
     px: Probability of x (float or array of floats)
     py: Probability of y (float or array of floats)
-    '''
+    """
     kl = np.sum(px*np.log(px/py))
     return kl
 
 
 def HellingerDistanceMVN(mu1, mu2, cov1, cov2, squared=False):
-    '''
+    """
     Quantifies the similarity between two multivariate normal distributions.
 
     Parameters
@@ -645,7 +645,7 @@ def HellingerDistanceMVN(mu1, mu2, cov1, cov2, squared=False):
     float
         Hellinger Distance.
 
-    '''
+    """
     mu_diff = mu1 - mu2
     det_cov1 = np.linalg.det(cov1)
     det_cov2 = np.linalg.det(cov2)
@@ -663,7 +663,7 @@ def HellingerDistanceMVN(mu1, mu2, cov1, cov2, squared=False):
         return np.sqrt(H2)
 
 def HellingerDistanceUN(mu1, mu2, sd1, sd2, squared=False):
-    '''
+    """
     Quantifies the similarity between two Univariate normal distributions.
 
     Parameters
@@ -684,7 +684,7 @@ def HellingerDistanceUN(mu1, mu2, sd1, sd2, squared=False):
     float
         Hellinger Distance.
 
-    '''
+    """
     mu_diff2 = (mu1 - mu2)**2
     sd_sum = (sd1**2 + sd2**2)
     H2 = 1 - np.sqrt((2*sd1*sd2)/sd_sum)*np.exp(-0.25*(mu_diff2/sd_sum))
@@ -696,7 +696,7 @@ def HellingerDistanceUN(mu1, mu2, sd1, sd2, squared=False):
     
 
 def HotellingsTwoSampleMVTtest(mu1, mu2, cov1, cov2, n1, n2, pval=True):
-    '''
+    """
     Used for multivariate hypothesis testing. Can test the similarity of two
     Multivariate samples assumed to follow a normal distribution.
 
@@ -722,7 +722,7 @@ def HotellingsTwoSampleMVTtest(mu1, mu2, cov1, cov2, n1, n2, pval=True):
     float
         Either p-value or t-statistic.
 
-    '''
+    """
     mu_diff = mu1 - mu2
     pooled_cov = (((n1 - 1)*cov1) + ((n2 - 1)*cov2))/(n1 + n2 - 2)
     inv_pooled_cov = np.linalg.inv(pooled_cov)
