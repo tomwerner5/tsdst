@@ -15,7 +15,7 @@ Some of the more useful code here extends functionality of sklearn and other lib
 1. Remove Code Abstractions
     - For a majority of the functions, I tried to make it easy for someone (including me) to review and understand what is happening inside a function or set of functions so that the data science or statistical concepts can be clearly read and understood. I tried to avoid writing code that didn't make it clear what was happening mathmatically. This sometimes mean that I ignore (purposefully) programming conccepts that could make these functions much faster. However, most of the time I simply missed something that could easily be done another way and not affect the readability at all. I am not opposed to this being practically useful to others, so if there are obvious improvements, please let me know.
 2. Extend Existing Functionality
-    - There are some functions in exisitng data science libraries that I just don't like, or that I wish were done differently. Othertimes, there are methods or functions that just don't exist anywhere else (to my knowledge). And still other times, there are things that I could never figure out myself, but once the groundwork was laid, could extend to other useful situations. 
+    - There are some functions in existing data science libraries that I just don't like, or that I wish were done differently. Other times, there are methods or functions that just don't exist anywhere else (to my knowledge). And still other times, there are things that I could never figure out myself, but once the groundwork was laid, could extend to other useful situations. 
 
 ## Installation
 
@@ -37,7 +37,7 @@ After installing, simply import to your module with `import tsdst`. A detailed d
 
 ### View Documentation
 
-[See the documentation here](https://tomwerner5.github.io/tsdst/Descriptions.html)
+[See the documentation here](tsdst-main/Descriptions.html)
 
 ### View the Code
 
@@ -55,4 +55,4 @@ I have tried to attribute what is not my own work when appropriate, as well as a
 
 ## Other Original Content
 
-[Primer on Gradient Descent and Backpropagation](Gradient_Descent_and_Back_Propagation.html)
+[Primer on Gradient Descent and Backpropagation](tsdst-main/Gradient_Descent_and_Back_Propagation.html)
