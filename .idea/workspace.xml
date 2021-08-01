@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="updated .gitignore" />
+    <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -57,7 +57,7 @@
       <option name="presentableId" value="Default" />
       <updated>1627574068444</updated>
       <workItem from="1627574069946" duration="17033000" />
-      <workItem from="1627686931275" duration="166000" />
+      <workItem from="1627686931275" duration="944000" />
     </task>
     <task id="LOCAL-00001" summary="Updated readme. Completed pycharm integration with git">
       <created>1627574652582</created>
@@ -87,11 +87,29 @@
       <option name="project" value="LOCAL" />
       <updated>1627686566289</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="updated .gitignore">
+      <created>1627687261612</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1627687261612</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+        <option value="Space.CommitStatus" />
+      </list>
+    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
