@@ -792,8 +792,8 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
         method = "bm"
         r = 3
     if r > 5:
-        warnings.warn("""It's recommended to use r <= 5. Also, r cannot be
-                      negative""")
+        warnings.warn("It's recommended to use r <= 5. Also, r cannot be "
+                      "negative")
     if r < 0:
         raise ValueError("r cannot be negative.")
     if g is not None:
@@ -811,8 +811,8 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
         b = np.floor(n**(1/3))
     else:
         if size < 1 or size >= n or np.floor(n/size) <= 1:
-            raise ValueError("""'size' must be a numeric quantity not
-                             larger than n.""")
+            raise ValueError("'size' must be a numeric quantity not "
+                             "larger than n.")
         b = np.floor(size)
 
     if b == 1 and r != 1:
@@ -1208,8 +1208,8 @@ class mcmcObject(object):
                 self.chains[chainName] = np.concatenate((self.chains[chainName],
                                                          newChain))
             except (NameError, KeyError):
-                warnings.warn("""Failed to concatenate chains. Created new
-                              chain instead. Check list of chain keys.""")
+                warnings.warn("Failed to concatenate chains. Created new "
+                              "chain instead. Check list of chain keys.")
                 self.chains[chainName] = newChain
 
     def removeChain(self, chainName, print_=True):
@@ -1415,8 +1415,8 @@ class mcmcObject(object):
         if float(bin_limit) <= 0 or float(bin_limit) >= 1:
             raise ValueError("bin_limit must be between 0 and 1")
         if float(eps) <= 0:
-            raise ValueError("""eps must be greater than 0 (its good to pick a
-                                decimal close to zero, but not equal to it)""")
+            raise ValueError("eps must be greater than 0 (its good to pick a "
+                             "decimal close to zero, but not equal to it)")
         if np.round(float(num_windows)) <= 0:
             raise ValueError("num_windows must be greater than 0")
 
@@ -1465,14 +1465,14 @@ class mcmcObject(object):
 
             if bin_i > bins:
                 msg = "Unsuccessful"
-                sub_msg = """Fully iterated before meeting criteria, may not
-                have stabilized on a distribution. Try adjusting the settings
-                and try again, or take a look at the plot"""
+                sub_msg = ("Fully iterated before meeting criteria, may not "
+                           "have stabilized on a distribution. Try adjusting the settings "
+                           "and try again, or take a look at the plot")
             elif np.any(np.abs(per_ratios - 1) >= eps):
                 msg = "Unsuccessful"
-                sub_msg = """Did not appear to stabilize on a distribution.
-                          Try adjusting the settings and try again, or take a
-                          look at the plot"""
+                sub_msg = ("Did not appear to stabilize on a distribution. "
+                           "Try adjusting the settings and try again, or take a "
+                           "look at the plot")
             else:
                 msg = "Successful"
                 sub_msg = ""
@@ -1907,8 +1907,8 @@ class mcmcObject(object):
         try:
             self.diagnostic_results[chainName + "_" + acfType]
         except KeyError:
-            print("""No ACF found. Please calculate ACF, pACF,
-                  or a variant using available methods""")
+            print("No ACF found. Please calculate ACF, pACF, or "
+                  "a variant using available methods")
         allacf = self.diagnostic_results[chainName + "_" + acfType]
         allacf = allacf.reshape(allacf.shape[0], -1)
         (samples, nparam) = allacf.shape

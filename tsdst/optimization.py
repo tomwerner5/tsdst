@@ -110,8 +110,8 @@ def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
         if len(bounds) != 2:
             raise ValueError("Bounds option must be of length 2")
         if not isinstance(bounds, (tuple, list, np.ndarray)):
-            raise TypeError("""must be array or list-like
-                                (np.ndarray, tuple, or list""")
+            raise TypeError("must be array or list-like "
+                            "(np.ndarray, tuple, or list")
     except KeyError:
         bounds = [-10000.0, 10000.0]
 
@@ -121,8 +121,8 @@ def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
     fb = fun(b, **fun_args)
 
     if fa*fb >= 0:
-        raise ValueError("""Root is not bracketed, or root does not exist.
-                          (try changing the interval)""")
+        raise ValueError("Root is not bracketed, or root does not exist. "
+                         "(try changing the interval)")
 
     if abs(fa) < abs(fb):
         a, b = b, a
@@ -242,8 +242,8 @@ def AdaptiveNMorBrent(fun, start=None, opt=None, print_=True, fun_args=None):
             if len(bounds) != 2:
                 raise ValueError("Bounds option must be of length 2")
             if not isinstance(bounds, (tuple, list, np.ndarray)):
-                raise TypeError("""must be array or list-like
-                                (np.ndarray, tuple, or list)""")
+                raise TypeError("must be array or list-like "
+                                "(np.ndarray, tuple, or list)")
         except KeyError:
             bounds = [-10000.0, 10000.0]
         # 1/(phi^2) where phi is the golden ratio

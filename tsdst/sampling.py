@@ -200,9 +200,9 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
                                    dtype=np.int)[:rem]
                     f_array = np.insert(r1, a1, high)
             else:
-                raise ValueError("""Not a valid bin placement. Change to 'spaced' or
-                                 'random'. To order the bins from high to low, change
-                                 stratified to False""")
+                raise ValueError("Not a valid bin placement. Change to 'spaced' or "
+                                 "'random'. To order the bins from high to low, change "
+                                 "stratified to False")
         else:
             f_array = np.repeat(high, sampleSize)
         splits = np.cumsum(f_array)[:-1]
