@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="" />
+    <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Changes.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/shelf/Changes.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/Descriptions.Rmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/Descriptions.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/bibliography.bib" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GithubDefaultAccount">
@@ -23,6 +34,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
@@ -58,6 +70,8 @@
       <updated>1627574068444</updated>
       <workItem from="1627574069946" duration="17033000" />
       <workItem from="1627686931275" duration="944000" />
+      <workItem from="1627922061876" duration="107000" />
+      <workItem from="1628227714512" duration="322000" />
     </task>
     <task id="LOCAL-00001" summary="Updated readme. Completed pycharm integration with git">
       <created>1627574652582</created>
