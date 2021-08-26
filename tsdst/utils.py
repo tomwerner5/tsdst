@@ -238,6 +238,7 @@ def checkDir(directory, make=True, verbose=True):
             msg = msg + 'Directory ' + directory + 'not created.'
     else:
         found = True
+    
     if verbose:
         print(msg)
     return found
