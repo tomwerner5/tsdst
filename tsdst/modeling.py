@@ -13,6 +13,7 @@ from timeit import default_timer as dt
 from .metrics import (cox_snell_r2, nagelkerke_r2, tjur_r2, mcfadden_r2,
                       conf_mat_metrics, bias, rpmse, r2, adj_r2, top_20p,
                       number_of_nonzero_coef)
+from .nn.activations import sigmoid, sigmoid_der
 from .utils import reshape_to_vector
 
 
@@ -786,7 +787,7 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
   
 
 def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_param=0,
-            confidence_level=0.95, logit_transform=False):
+            confidence_level=0.95, logit_transform=False, logit_se_method='wald'):
     """
     Mimics predict function in R. 
 
@@ -813,8 +814,11 @@ def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_
         The type of prediction, either "confidence" for prediction on the mean value, or
         "prediction" for interval around newly sampled values.
     logit_transform : bool, optional
-        If True, perform logit transform on output. Does nothing if logit=False.
-        Default is False.
+        If True, perform logit transform on output. Does nothing if logit=False or
+        method='delta'. Default is False.
+    logit_se_method : str, optional
+        Which SE calculation method to use for logistic regression. Does nothing if
+        logit=False. Options are wald or delta. Default is wald.
 
     Returns
     -------
@@ -833,20 +837,25 @@ def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_
     yhat = Xc_test.dot(betas)
     
     if logit:
-        # Using Wald Endpoint transformations
         if interval == 'prediction':
             warnings.warn("There's generally not a meaningful definition for "
                           "a prediction interval in this case. Instead, using "
                           "the confidence interval for the mean value.")
-        var = Xc.dot(cov).dot(Xc.T)
-        se = np.sqrt(np.diag(var))
-        upper_int = yhat + tstat*se
-        lower_int = yhat - tstat*se 
         
-        if logit_transform:
-            yhat = sigmoid(yhat)
-            upper_int = sigmoid(upper_int)
-            lower_int = sigmoid(lower_int)
+        if logit_se_method == 'wald':
+            # Using Wald Endpoint transformations
+            var = Xc.dot(cov).dot(Xc.T)
+            se = np.sqrt(np.diag(var))
+            upper_int = yhat + tstat*se
+            lower_int = yhat - tstat*se
+            
+            if logit_transform:
+                yhat = sigmoid(yhat)
+                upper_int = sigmoid(upper_int)
+                lower_int = sigmoid(lower_int)
+        else:
+            # Using delta method
+            
     else: 
         xtXt_Xx = Xc_test.T.dot(XtX_inv).dot(Xc_test)
     
