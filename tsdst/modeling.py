@@ -854,8 +854,11 @@ def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_
                 upper_int = sigmoid(upper_int)
                 lower_int = sigmoid(lower_int)
         else:
+            # TODO: fill in delta method
             # Using delta method
-            
+            raise NotImplementedError("Delta method has not been included in this"
+                                      "version")
+            #sigmoid_der(yhat).T.dot(Xc_test.T).dot(
     else: 
         xtXt_Xx = Xc_test.T.dot(XtX_inv).dot(Xc_test)
     
