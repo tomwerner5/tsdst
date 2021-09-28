@@ -364,9 +364,9 @@ def r2(y_true, y_pred):
 
     """
     y_bar = np.mean(y_true)
-    SST = np.sum((y_true - y_bar)**2)
-    SSE = np.sum((y_true - y_pred)**2)
-    #SSR = np.sum((y_pred - y_bar)**2)
+    SST = np.sum((y_true - y_bar)**2) # sum of squares total
+    SSE = np.sum((y_true - y_pred)**2) # sum of squares error
+    #SSR = np.sum((y_pred - y_bar)**2) # sum of squares regression
     rsquared = 1 - SSE/SST
     # Note: the following deifinitions are only equal to the above when the
     # model is linear, and will only be equivalent for the training data (i.e.
@@ -374,7 +374,7 @@ def r2(y_true, y_pred):
     # The equivalence of these definitions will hold for some non-linear
     # models, but not for others. Therefore,
     # Kvalseth TO. Cautionary Note About R2. Am. Statistic. 1985;39:279–285.
-    # recommends using 1 - SSE/SSR for the general cases because by it's 
+    # recommends using 1 - SSE/SST for the general cases because by it's 
     # definition, it is the most robust to a general suite of problems
     
     # alternative R2: np.corrcoef((ypred, ytrue))**2
@@ -382,21 +382,21 @@ def r2(y_true, y_pred):
     return rsquared
 
 
-def lr_se_fromModel(estimator, X, y):
+def lr_sd_fromModel(estimator, X, y):
     """
     Linear Regression Model Standard deviation (error) estimate, or,
     the estimate of the true standard deviation of the underlying distribution
     for y_true. This is the maximum likelihood estimate for sigma, where
-    y_true ~ N(y_pred, sigma^2).
+    y_true ~ N(y_pred, sigma^2), or equivalently, error ~ N(0, sigma^2).
 
     Parameters
     ----------
-    y_true : numpy array
-        True values (observed response).
-    y_pred : numpy array
-        Predicted values.
-    num_params : int
-        Number of Model Parameters
+    estimator : sklearn model, or similar
+        The model needs to have a predict method.
+    X : numpy array or pandas dataframe
+        The design or feature matrix.
+    y : numpy array or pandas series
+        The target or response variable.
 
     Returns
     -------
@@ -410,21 +410,21 @@ def lr_se_fromModel(estimator, X, y):
     return sigma
 
 
-def lr_se_fromPrediction(y_true, y_pred, num_params=2):
+def lr_sd_fromPrediction(y_true, y_pred, num_params=2):
     """
     Linear Regression Model Standard deviation (error) estimate, or,
     the estimate of the true standard deviation of the underlying distribution
     for y_true. This is the maximum likelihood estimate for sigma, where
-    y_true ~ N(y_pred, sigma^2).
+    y_true ~ N(y_pred, sigma^2), or equivalently, error ~ N(0, sigma^2).
 
     Parameters
     ----------
-    estimator : sklearn model, or similar
-        The model. Needs to have a predict_proba method.
-    X : numpy array or pandas dataframe
-        The design or feature matrix.
-    y : numpy array or pandas series
-        The target or response variable.
+    y_true : numpy array
+        True values (observed response).
+    y_pred : numpy array
+        Predicted values.
+    num_params : int
+        Number of Model Parameters
 
     Returns
     -------
