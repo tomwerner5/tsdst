@@ -187,9 +187,9 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return coefs, intercept, extra_parm
         
     def adjust_params_(self, new_param_summary):
-        """This method is intended to update the aggregated paramters with a new
+        """This method is intended to update the aggregated parameters with a new
         summary as defined in new_param_summary. For example, if someone wanted
-        to switch from coef_ representing the mean to coef_ representing 
+        to switch from `coef_` representing the mean to `coef_` representing
         the median, they could use this function to do so.
 
         Parameters
@@ -201,7 +201,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         Returns
         -------
         self
-            Updates the coef_, intercept_, and extra_params_sum_ attributes.
+            Updates the `coef_`, `intercept_`, and `extra_params_sum_` attributes.
 
         """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
@@ -221,7 +221,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         Returns
         -------
         self
-            Updates internal attributes, such as coef_ and intercept_.
+            Updates internal attributes, such as `coef_` and `intercept_`.
 
         """
         t0 = dt()
@@ -548,10 +548,9 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         return coefs, intercept, extra_parm
         
     def adjust_params_(self, new_param_summary):
-        """
-        This method is intended to update the aggregated paramters with a new 
+        """This method is intended to update the aggregated parameters with a new
         summary as defined in new_param_summary. For example, if someone wanted
-        to switch from coef\_ representing the mean to coef\_ representing
+        to switch from `coef_` representing the mean to `coef_` representing
         the median, they could use this function to do so.
 
         Parameters
@@ -563,7 +562,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         Returns
         -------
         self
-            Updates the coef\_, intercept\_, and extra_params_sum\_ attributes.
+            Updates the `coef_`, `intercept_`, and `extra_params_sum_` attributes.
 
         """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
@@ -572,8 +571,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         return self
     
     def fit(self, X, y):
-        """
-        Fit the model
+        """Fit the model
 
         Parameters
         ----------
@@ -585,7 +583,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         Returns
         -------
         self
-            Updates internal attributes, such as coef_ and intercept_.
+            Updates internal attributes, such as `coef_` and `intercept_`.
 
         """
         t0 = dt()
@@ -858,10 +856,9 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         return results
         
     def adjust_params_(self, new_param_summary):
-        """
-        This method is intended to update the aggregated paramters with a new 
+        """This method is intended to update the aggregated parameters with a new
         summary as defined in new_param_summary. For example, if someone wanted
-        to switch from coef_ representing the mean to coef_ representing 
+        to switch from `coef_` representing the mean to `coef_` representing
         the median, they could use this function to do so.
 
         Parameters
@@ -873,7 +870,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         Returns
         -------
         self
-            Updates the coef_, intercept_, and extra_params_sum_ attributes.
+            Updates the `coef_`, `intercept_`, and `extra_params_sum_` attributes.
 
         """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
@@ -881,8 +878,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         return self
     
     def fit(self, X, y):
-        """
-        Fit the model
+        """Fit the model
 
         Parameters
         ----------
@@ -894,7 +890,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         Returns
         -------
         self
-            Updates internal attributes, such as coef_ and intercept_.
+            Updates internal attributes, such as `coef_` and `intercept_`.
 
         """
         t0 = dt()

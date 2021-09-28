@@ -491,8 +491,7 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
              calculate=None, metrics=None,
              Y_for_test_only=None, sample_limit=20):
     # TODO: add parallel support
-    """
-    A custom cross-validation strategy. While sklearn has a lot of beefed up
+    """A custom cross-validation strategy. While sklearn has a lot of beefed up
     functionality regarding cross-validation strategies, I like this one
     because it puts most of the strategies I like to use in one place. Also,
     it allows for you to output and calculate several cross-validation metrics
@@ -554,8 +553,7 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
         The default is ['Out of Sample'].
     metrics : list, optional
         The metrics to include in the analysis.
-        The default is ['Accuracy', 'F1', 'Sens/Recall',
-                        'Specificity', 'ppv', 'npv', 'AUC'].
+        The default is ['Accuracy', 'F1', 'Sens/Recall', 'Specificity', 'ppv', 'npv', 'AUC'].
     Y_for_test_only : pandas series or numpy array, optional
         An alternate target variable to test on, mainly for the use case of
         training on one response (perhaps one that is more informative or
@@ -868,9 +866,9 @@ def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_
         upper_int = yhat + tstat*np.sqrt(sigma2)*np.sqrt(xtXt_Xx)
         lower_int = yhat - tstat*np.sqrt(sigma2)*np.sqrt(xtXt_Xx)
     
-    prediction = pd.DataFrame(np.array([yhat.reshape(-1, )
-                                        lower_int.reshape(-1, )
-                                        upper_int.reshape(-1, )]).T
+    prediction = pd.DataFrame(np.array([yhat.reshape(-1, ),
+                                        lower_int.reshape(-1, ),
+                                        upper_int.reshape(-1, )]).T,
                               columns=['yhat', 'lower_int', 'upper_int']
                              )
     

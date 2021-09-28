@@ -38,7 +38,7 @@ Likelihood Functions
     distributions.glm_likelihood_bernoulli
     distributions.glm_likelihood_gaussian
     distributions.glm_likelihood_poisson
-    distributions.exactMLE_exp
+    distributions.ExactMLE_exp
 
 Posterior Functions
 ~~~~~~~~~~~~~~~~~~~
@@ -103,7 +103,7 @@ Feature Selection
     feature_selection.naiveVarDrop
     feature_selection.permutation_importance
     feature_selection.permutation_importance_CV
-    feature_selection.vif_drop
+    feature_selection.vifDrop
 
 .. _mcmc_api:
 
@@ -142,4 +142,4 @@ MCMC Algorithms
 
     mcmc.adaptive_mcmc
     mcmc.rwm
-    mcmc.rwm_lap
+    mcmc.rwm_with_lap

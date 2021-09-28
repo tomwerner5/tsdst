@@ -1,6 +1,10 @@
 blockquote {
-    padding: 10px 20px;
-    margin: 0 0 20px;
-    font-size: 14px;
-    border-left: 5px solid #eee;
+    padding: 0px 5px;
+    margin: 5px 0 0 15px;
+    font-size: 12px;
+    border-left: 3px solid #eee;
+}
+
+tr {
+    text-align: left
 }

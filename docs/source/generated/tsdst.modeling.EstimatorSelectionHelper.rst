@@ -11,7 +11,6 @@ tsdst.modeling.EstimatorSelectionHelper
 .. autoclass:: EstimatorSelectionHelper
 
    
-   .. automethod:: __init__
 
    
    .. rubric:: Methods

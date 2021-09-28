@@ -189,7 +189,8 @@ def adaptive_mcmc(start, niter, lpost, postArgs=None, options=None):
             is above some threshold (beta in this case). If it is, sample from the first distribution, otherwise, \
             sample from the second.
             - progress \: (:obj:`bool`) Whether to display progress bar.
-            - prev_vals \: (:obj:`dict`) The previous values of the last run, namely\:
+            - prev_vals \: (:obj:`dict`) The previous values of the last run, namely:
+
                 - chol2 \: (:obj:`numpy array`) The decomposed covariance matrix of the parameters.
                 - sumx \: (:obj:`numpy array`) The current sum of the parameter value (for each parameter)
                 - prev_i \: (:obj:`int` or :obj:`float`) The number of samples represented in sumx. Used in averaging \
@@ -281,7 +282,7 @@ def adaptive_mcmc(start, niter, lpost, postArgs=None, options=None):
 
 
 def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
-    """A random walk metropolis algorithm that adaptively tunes the covaraince
+    """A random walk metropolis algorithm that adaptively tunes the covariance
     matrix with a log-adaptive posterior.
     
     See "Exploring an Adaptive Metropolis Algorithm" by Ben Shaby, 2010.
@@ -299,6 +300,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
         an empty dictionary.
     options : dict, optional
         Extra arguments for the MCMC algorithm, namely:
+
             k : int
                 The number of MCMC samples to generate for each evaluation.
             c0 : float
@@ -309,12 +311,14 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
                 Whether to display progress bar
             prev_vals : dict
                 The previous values of the last run, namely:
+
                     E_0 : numpy array
-                        the final covaraince matrix
+                        the final covariance matrix
                     sigma_2 : float
                         the positive scaling parameter in the algorithm
                     t : int
                         the current iteration number
+
         The default is None.
 
     Returns
@@ -322,8 +326,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
     parm : numpy array
         MCMC samples.
     prev_vals : dict
-        The ending values of the MCMC algorithm. Useful when you want to
-        continue where you left off.
+        The ending values of the MCMC algorithm. Useful when you want to continue where you left off.
 
     """
     k = 20
@@ -437,14 +440,17 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
         an empty dictionary.
     options : dict, optional
         Extra arguments for the MCMC algorithm, namely:
+
             E : numpy array
                 The covariance matrix
             progress : bool
                 Whether to display progress bar
             prev_vals : dict
                 The previous values of the last run, namely:
+
                     E_0 : numpy array
                         the final covaraince matrix
+
         The default is None.
 
     Returns
@@ -1477,8 +1483,8 @@ class mcmcObject(object):
                 plot_trace=True, plot_density=True, plot_acf=True,
                 plot_trace_args=None, plot_density_args=None,
                 plot_acf_args=None, acfType='pacf', acf_args=None,
-                do_raftery=True, iters_to_go=None, max_iters=750000, burnin=0,
-                lpost_args={}):
+                do_raftery=True, max_iters=750000, burnin=0,
+                lpost_args=None):
         """Generate MCMC samples and evaluate samples size (using Raftery)
         and convergence.
         
@@ -1487,14 +1493,14 @@ class mcmcObject(object):
         start : numpy array
             Starting values for the MCMC.
         initSampleSize : int
-            The number of MCMC samples to draw on the first run. It's good to 
-            start relatively small, because the Raftery evaluation will tell
-            you how many more samples need to be drawn.
+            The number of MCMC samples to draw on the first run. It's good to start relatively small, because the
+            Raftery evaluation will tell you how many more samples need to be drawn.
         lpost : function
             Log posterior function.
         algo : function
             The MCMC algorithm to use (could be anything, but needs to have the same arguments as inputs for the
             algorithms already defined, namely:
+
                 start : numpy array
                     Starting values for the MCMC.
                 niter : int
@@ -1502,20 +1508,16 @@ class mcmcObject(object):
                 lpost : function
                     Log posterior function.
                 postArgs : dict
-                    Extra arguments for the log posterior function. The default is
-                    an empty dictionary
+                    Extra arguments for the log posterior function. The default is None
                 options : dict, optional
                     Extra arguments for the specific MCMC algorithm
         algoOpts : dict, optional
-            Extra arguments for the specific MCMC algorithm.
-            The default is None.
+            Extra arguments for the specific MCMC algorithm. The default is None.
         raftOpts : dict, optional
-            A dictionary containing the options for the Raftery evaluation, 
-            namely:
+            A dictionary containing the options for the Raftery evaluation. The default is None. Options include:
+
                 q : float, optional
-                    Quantiles of interest (in terms of percentiles, i.e.
-                                           between 0 and 1).
-                    The default is [0.025, 0.5, 0.975].
+                    Quantiles of interest (in terms of percentiles, i.e. between 0 and 1). The default is [0.025, 0.5, 0.975].
                 r : float, optional
                     Accuracy. The default is 0.005.
                 s : float, optional
@@ -1528,20 +1530,18 @@ class mcmcObject(object):
                     Print results at each evaluation. The default is False.
                 print_final : bool, optional
                     Print the final results. The default is False.
-            The default is None.
         chainName : str, optional
             The name of the chain that will be created. If None,
-            'Chain_' + int (for number of chains in the collection) 
+            '`Chain_`' + int (for number of chains in the collection)
             will be used. The default is None.
         max_tries : int, optional
-            The max number of times to try and jitter before admitting defeat.
-            If the jitter fails, the reason or the covaraince matrix not being
-            positive definite may not be due to randomness, and may require
+            The max number of times to try and jitter before admitting defeat. If the jitter fails, the reason for the
+            covariance matrix not being positive definite may not be due to randomness, and may require
             a re-evaluation of the problem space. The default is 100.
         sd : float, optional
             The standard deviation of the normal distribution used to draw the
             jitter amount from. In other words, the jittered covariance is the 
-            covaraince matrix plus a random draw X, where X~N(0, sd). 
+            covariance matrix plus a random draw X, where X~N(0, sd).
             The default is 0.02.
         plot_trace : bool, optional
             Plot the trace of the MCMC samples. The default is True.
