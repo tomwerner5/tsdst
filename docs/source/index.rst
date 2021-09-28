@@ -6,14 +6,14 @@ This documentation covers all the functions, classes, and methods contained in t
 .. _`Wikipedia article on Bayes Theorem` : https://en.wikipedia.org/wiki/Bayes%27_theorem
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
+   API Pages  <api>
 
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

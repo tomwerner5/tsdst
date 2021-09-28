@@ -1040,6 +1040,7 @@ class EstimatorSelectionHelper(object):
     I added some functionality that will extend to the sklearn-deap package
     as well. see here: https://github.com/rsteca/sklearn-deap
     """
+
     def __init__(self, models, params, searchCV, searchCVparams):
         """
         Constructor for the EstimatorSelectionHelper class.
