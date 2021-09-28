@@ -3,6 +3,7 @@ import pandas as pd
 import warnings
 
 from copy import deepcopy as copy
+from scipy.stats import t
 from sklearn.metrics import (f1_score, confusion_matrix,
                              roc_auc_score, accuracy_score)
 from sklearn.model_selection import (StratifiedKFold, KFold,
@@ -12,6 +13,7 @@ from timeit import default_timer as dt
 from .metrics import (cox_snell_r2, nagelkerke_r2, tjur_r2, mcfadden_r2,
                       conf_mat_metrics, bias, rpmse, r2, adj_r2, top_20p,
                       number_of_nonzero_coef)
+from .nn.activations import sigmoid, sigmoid_der
 from .utils import reshape_to_vector
 
 
@@ -677,8 +679,81 @@ def prettyConfMat(Ytrue, Ypred,
         print(confmat)
     return confmat
 
+  
+def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
+    """
+    Generate the covariance matrix for regression parameters.
 
-def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False):
+    Parameters
+    ----------
+    X : pandas dataframe
+        The feature or design matrix.
+    Y : pandas series or numpy array
+        The response or target variable.
+    fit_mod : sklearn model, or similar
+        The fitted model (Logistic or linear Regression).
+    logit : bool, optional
+        If True, calculate Logistic Regression SE, otherwise, Linear. Default is True
+    low_memory : bool, optional
+        Sometimes this process uses a lot of memory. If True, calculate using less memory.
+        The default is False.
+    lamda : float, optional
+        If performing ridge regression, this is the penalty term, lambda.
+
+    Returns
+    -------
+    cov : numpy array
+        The covariance matrix for regression parameters.
+
+    """
+    Xc = np.hstack([np.ones((X.shape[0], 1)), X])
+    sigma2 = None
+    XtX_inv = None
+    if logit:
+        Yprob = fit_mod.predict_proba(X)
+        # p*(1-p), or pq (also V)
+        Yprob_prod = np.product(Yprob, axis=1)
+        if low_memory:
+            XV = np.zeros(shape=Xc.T.shape)
+            for j in range(X.T.shape[1]):
+                XV[:, j] = Xc.T[:, j] * Yprob_prod[j]
+            XVXt = np.zeros((XV.shape[0], XV.shape[0]))
+            try:
+                XVXt = XV.dot(Xc)
+            except MemoryError:
+                for i in range(XV.shape[0]):
+                    for k in range(XV.shape[1]):
+                        sumprod = np.sum(np.product(XV[i, :], Xc[:, k]))
+                        XVXt[i, k] = sumprod
+        else:
+            # cov of logit
+            XVXt = np.dot(np.dot(Xc.T, np.diagflat(Yprob_prod)), Xc)
+            # Note: The above is only correct if assumptions are true. If assumptions 
+            # are violated (i.e. Y does not follow bernoulli, not monotonic probability,
+            # etc., then another robust formulation we could use is:
+            #     XVXt = np.dot(np.dot(Xc.T, np.diagflat(V)), Xc)
+            #     XVXt_inv = np.linalg.inv(XVXt)
+            #     cov = XVXt_inv.dot(XVXt).dot(XVXt_inv)
+            # where V is not Yprob_prob, but:
+            #     V = np.diagflat(Y - Yprob[:, 1])
+        cov = np.linalg.inv(XVXt)
+    else:
+        # could use model.predict instead of Xc.dot(betas), but it's a good reminder of the math
+        betas = np.concatenate((fit_mod.intercept_, fit_mod.coef_)).reshape(-1, 1)
+        sigma2 = np.sum((Y - Xc.dot(betas))**2)/(Xc.shape[0] - betas.shape[0])
+        if lamda != 0:
+            # ridge regression case
+            Xt_X = np.dot(Xc.T, Xc)
+            xt_inv = np.linalg.inv(Xt_X + lamda*np.eye(Xt_X.shape[0]))
+            # example of a "sandwich" estimator
+            XtX_inv = xt_inv.dot(Xt_X).dot(xt_inv)
+        else:
+            XtX_inv = np.linalg.inv(np.dot(Xc.T, Xc))
+        cov = sigma2*XtX
+    return cov, XtX_inv, sigma2
+  
+
+def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
     """
     Since sklearn doesn't generate the standard errors by default...
 
@@ -695,6 +770,8 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False):
     low_memory : bool, optional
         Sometimes this process uses a lot of memory. If True, calculate using less memory.
         The default is False.
+    lamda : float, optional
+        If performing ridge regression, this is the penalty term, lambda.
 
     Returns
     -------
@@ -702,36 +779,102 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False):
         The standard error of the coefficients.
 
     """
-    se = np.nan
-    Xt = np.hstack([np.ones((X.shape[0], 1)), X])
-    if logit:
-        #Ypred = fit_mod.predict(X)
-        Yprob = fit_mod.predict_proba(X)
-        Yprob_prod = np.product(Yprob, axis=1)
-        if low_memory:
-            XV = np.zeros(shape=Xt.T.shape)
-            for j in range(X.T.shape[1]):
-                XV[:, j] = Xt.T[:, j] * Yprob_prod[j]
-            XVXt = np.zeros((XV.shape[0], XV.shape[0]))
-            try:
-                XVXt = XV.dot(Xt)
-            except MemoryError:
-                for i in range(XV.shape[0]):
-                    for k in range(XV.shape[1]):
-                        sumprod = np.sum(np.product(XV[i, :], Xt[:, k]))
-                        XVXt[i, k] = sumprod
-        else:
-            # p*(1-p), or pq
-            Yprob_prod = np.diagflat(np.product(Yprob, axis=1))
-            # cov of logit
-            XVXt = np.dot(np.dot(Xt.T, Yprob_prod), Xt)
-        cov = np.linalg.inv(XVXt)
-    else:
-        betas = np.concatenate((fit_mod.intercept_, fit_mod.coef_)).reshape(-1, 1)
-        sigma2 = np.sum((Y - Xt.dot(betas))**2)/(Xt.shape[0] - Xt.shape[1])
-        cov = sigma2*np.linalg.inv(np.dot(Xt.T, Xt))
-    se = np.sqrt(np.diag(cov))  
+    cov, _, _ = GenerateRegCov(X=X, Y=Y, fit_mod=fit_mod,
+                            logit=logit, low_memory=low_memory,
+                            l2_param=l2_param)
+    se = np.sqrt(np.diag(cov))
     return se
+  
+
+def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_param=0,
+            confidence_level=0.95, logit_transform=False, logit_se_method='wald'):
+    """
+    Mimics predict function in R. 
+
+    Parameters
+    ----------
+    X_test : pandas dataframe
+        The new values to predict.
+    X_train : pandas dataframe
+        The feature or design matrix (what the model was trained on).
+    Y_train : pandas series or numpy array
+        The response or target variable.
+    fit_mod : sklearn model, or similar
+        The fitted model (Logistic or linear Regression).
+    logit : bool, optional
+        If True, calculate Logistic Regression SE, otherwise, Linear. Default is True
+    low_memory : bool, optional
+        Sometimes this process uses a lot of memory. If True, calculate using less memory.
+        The default is False.
+    lamda : float, optional
+        If performing ridge regression, this is the penalty term, lambda.
+    level : float
+        The confidence level for the prediction interval.
+    interval : str
+        The type of prediction, either "confidence" for prediction on the mean value, or
+        "prediction" for interval around newly sampled values.
+    logit_transform : bool, optional
+        If True, perform logit transform on output. Does nothing if logit=False or
+        method='delta'. Default is False.
+    logit_se_method : str, optional
+        Which SE calculation method to use for logistic regression. Does nothing if
+        logit=False. Options are wald or delta. Default is wald.
+
+    Returns
+    -------
+    prediction : pandas dataframe
+        The predictions and assosiated intervals.
+
+    """
+    cov, XtX_inv, sigma2 = GenerateRegCov(X=X_train, Y=Y_train, fit_mod=fit_mod,
+                            logit=logit, low_memory=low_memory,
+                            l2_param=l2_param)
+    
+    #Xc_train = np.hstack([np.ones((X_train.shape[0], 1)), X_train])
+    Xc_test = np.hstack([np.ones((X_test.shape[0], 1)), X_test])
+    betas = np.concatenate((fit_mod.intercept_, fit_mod.coef_)).reshape(-1, 1)
+    tstat = t.ppf(1-(1-level)/2, df=Xc_train.shape[0] - betas.shape[0])
+    yhat = Xc_test.dot(betas)
+    
+    if logit:
+        if interval == 'prediction':
+            warnings.warn("There's generally not a meaningful definition for "
+                          "a prediction interval in this case. Instead, using "
+                          "the confidence interval for the mean value.")
+        
+        if logit_se_method == 'wald':
+            # Using Wald Endpoint transformations
+            var = Xc.dot(cov).dot(Xc.T)
+            se = np.sqrt(np.diag(var))
+            upper_int = yhat + tstat*se
+            lower_int = yhat - tstat*se
+            
+            if logit_transform:
+                yhat = sigmoid(yhat)
+                upper_int = sigmoid(upper_int)
+                lower_int = sigmoid(lower_int)
+        else:
+            # TODO: fill in delta method
+            # Using delta method
+            raise NotImplementedError("Delta method has not been included in this"
+                                      "version")
+            #sigmoid_der(yhat).T.dot(Xc_test.T).dot(
+    else: 
+        xtXt_Xx = Xc_test.T.dot(XtX_inv).dot(Xc_test)
+    
+        if interval == 'prediction':
+            xtXt_Xx += 1
+        
+        upper_int = yhat + tstat*np.sqrt(sigma2)*np.sqrt(xtXt_Xx)
+        lower_int = yhat - tstat*np.sqrt(sigma2)*np.sqrt(xtXt_Xx)
+    
+    prediction = pd.DataFrame(np.array([yhat.reshape(-1, )
+                                        lower_int.reshape(-1, )
+                                        upper_int.reshape(-1, )]).T
+                              columns=['yhat', 'lower_int', 'upper_int']
+                             )
+    
+    return prediction
 
 
 def corrmat_validity_check(corr_mat, corr_tol=1e-8):
