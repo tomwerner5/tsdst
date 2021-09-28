@@ -1,6 +1,3 @@
-"""
-Statistical Distribution Functions
-"""
 import numpy as np
 
 from scipy.stats import norm as normal, lognorm, gamma

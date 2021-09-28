@@ -30,19 +30,18 @@ from .utils import print_time
 
 
 class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
-    """
-    A Logistic Regression Classifier that uses MCMC to evaluate the parameters.
+    """A Logistic Regression Classifier that uses MCMC to evaluate the parameters.
     This objects inherits from sklearn\'s BaseEstimator and
     LinearClassifierMixin.
     """
+
     def __init__(self, C=None, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
                  has_constant=False, verbose=True,
                  over_dispersion=False, scorer=None):
-        # TODO: Implement random_state for reporduceability
-        """
-        The constructor for the BayesLogRegClassifier
+        # TODO: Implement random_state for reproduceability
+        """The constructor for the BayesLogRegClassifier
 
         Parameters
         ----------
@@ -140,8 +139,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
             self.extra_params = 0
             
     def _create_coefs(self, mcmc_params, param_summary, extra_params):
-        """
-        Creates Coefficients for MCMC model by aggregating the MCMC samples,
+        """Creates Coefficients for MCMC model by aggregating the MCMC samples,
         using mean, median, mode, or last sampled value.
 
         Parameters
@@ -189,8 +187,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return coefs, intercept, extra_parm
         
     def adjust_params_(self, new_param_summary):
-        """
-        This method is intended to update the aggregated paramters with a new 
+        """This method is intended to update the aggregated paramters with a new
         summary as defined in new_param_summary. For example, if someone wanted
         to switch from coef_ representing the mean to coef_ representing 
         the median, they could use this function to do so.
@@ -212,8 +209,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return self
     
     def fit(self, X, y):
-        """
-        Fit the model
+        """Fit the model
 
         Parameters
         ----------
@@ -302,8 +298,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return self.classes_[indices]
     
     def predict_proba(self, X):
-        """
-        Generate predicted probability.
+        """Generate predicted probability.
 
         Parameters
         ----------
@@ -324,8 +319,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return softmax(decision_2d, copy=False)
     
     def predict_log_proba(self, X):
-        """
-        Generate predicted log probability.
+        """Generate predicted log probability.
 
         Parameters
         ----------
@@ -341,8 +335,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return np.log(self.predict_proba(X))
     
     def score(self, X, y, sample_weight=None):
-        """
-        Scores the model using the scoring method passed, or, the default
+        """Scores the model using the scoring method passed, or, the default
         scorer. In this case, the default scorer is accuracy.
 
         Parameters
@@ -373,6 +366,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
     This objects inherits from sklearn\'s BaseEstimator and
     LinearClassifierMixin.
     """
+
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
@@ -557,7 +551,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         """
         This method is intended to update the aggregated paramters with a new 
         summary as defined in new_param_summary. For example, if someone wanted
-        to switch from coef_ representing the mean to coef_ representing 
+        to switch from coef\_ representing the mean to coef\_ representing
         the median, they could use this function to do so.
 
         Parameters
@@ -569,7 +563,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         Returns
         -------
         self
-            Updates the coef_, intercept_, and extra_params_sum_ attributes.
+            Updates the coef\_, intercept\_, and extra_params_sum\_ attributes.
 
         """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
@@ -695,6 +689,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
     This objects inherits from sklearn\'s BaseEstimator and
     LinearClassifierMixin.
     """
+
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
@@ -998,6 +993,7 @@ class LogReg(BaseEstimator, LinearClassifierMixin):
     better understanding of both the internals of sklearn and
     Logistic Regression
     """
+
     def __init__(self, x0=None, lamb=1, l_norm=1, method=None, jac=None,
                  hess=None, hessp=None, bounds=None, constraints=(), tol=None,
                  callback=None, options=None, has_constant=False):

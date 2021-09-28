@@ -119,8 +119,8 @@ def cov2cor(V):
         raise ValueError('V is not a square matrix')
     Is = np.sqrt(1/np.diag(V))
     if np.any(~np.isfinite(Is)):
-        warnings.warn("""Diagonal had 0, NA, or infinite entries. Non-finite
-                      result is doubtful""")
+        warnings.warn("Diagonal had 0, NA, or infinite entries. Non-finite "
+                      "result is doubtful")
     r = Is.reshape(-1, 1) * V * np.repeat(Is, p).reshape(p, p).T
     return r
     
@@ -553,8 +553,8 @@ def scaling(x, a=0, b=1, percentile=(0, 100),
             elif center == "median":
                 centVal = x - np.nanmedian(x)
             else:
-                raise TypeError("""center must be a string, either 'mean' or
-                                'median', else a number (central tendency)""")
+                raise TypeError("center must be a string, either 'mean' or "
+                                "'median', else a number (central tendency)")
     else:
         (lower, upper) = np.nanpercentile(x, percentile)
         centVal = x - lower

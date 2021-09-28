@@ -1,13 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="updated .gitignore" />
+    <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="updated docs to be more compliant with sphinx">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/source/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/source/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/index.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/source/modules.rst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/source/tsdst.nn.rst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/source/tsdst.rst" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/estimators.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/estimators.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/mcmc.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/mcmc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/modeling.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/modeling.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GithubDefaultAccount">
@@ -23,6 +38,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
   <component name="RunManager">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
@@ -57,7 +73,12 @@
       <option name="presentableId" value="Default" />
       <updated>1627574068444</updated>
       <workItem from="1627574069946" duration="17033000" />
-      <workItem from="1627686931275" duration="166000" />
+      <workItem from="1627686931275" duration="944000" />
+      <workItem from="1627922061876" duration="107000" />
+      <workItem from="1628227714512" duration="6394000" />
+      <workItem from="1628262089508" duration="20000" />
+      <workItem from="1632434017575" duration="12501000" />
+      <workItem from="1632769821225" duration="7784000" />
     </task>
     <task id="LOCAL-00001" summary="Updated readme. Completed pycharm integration with git">
       <created>1627574652582</created>
@@ -87,11 +108,43 @@
       <option name="project" value="LOCAL" />
       <updated>1627686566289</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="updated .gitignore">
+      <created>1627687261612</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1627687261612</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Added sphinx docs">
+      <created>1628228353935</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1628228353935</updated>
+    </task>
+    <task id="LOCAL-00007" summary="updated docs to be more compliant with sphinx">
+      <created>1628231050610</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1628231050618</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+        <option value="Space.CommitStatus" />
+      </list>
+    </option>
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -111,6 +164,19 @@
     <MESSAGE value="Updated readme." />
     <MESSAGE value="Added sample function, improved some code formatting" />
     <MESSAGE value="updated .gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated .gitignore" />
+    <MESSAGE value="Added sphinx docs" />
+    <MESSAGE value="updated docs to be more compliant with sphinx" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated docs to be more compliant with sphinx" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/docs/source/conf.py</url>
+          <line>90</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

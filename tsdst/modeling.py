@@ -930,11 +930,11 @@ def vif(data, root=False, corr_tol=1e-8, sing_tol=1e-15):
     corr = np.corrcoef(data, rowvar=False)
     perfect_corr, det = corrmat_validity_check(corr, corr_tol=corr_tol)
     if perfect_corr.sum() > 0:
-        warnings.warn("""There are perfectly correlated variables. VIF
-                         may not be reliable.""")
+        warnings.warn("There are perfectly correlated variables. VIF "
+                      "may not be reliable.")
     if det < sing_tol:
-        warnings.warn("""The corr_mat determinant is essentially zero. VIF
-                         may not be reliable.""")
+        warnings.warn("The corr_mat determinant is essentially zero. VIF "
+                      "may not be reliable.")
     
     vifs = np.diag(np.linalg.inv(corr))
     
@@ -943,8 +943,8 @@ def vif(data, root=False, corr_tol=1e-8, sing_tol=1e-15):
                             index=data.columns,
                             columns=['Variance Inflation Factors'])
     if np.any(vifs < 1):
-        warnings.warn("""Some vifs are less than one. Model is not correctly
-                      specified or is not a suitable linear model""")
+        warnings.warn("Some vifs are less than one. Model is not correctly "
+                      "specified or is not a suitable linear model")
                       
     if root:
         return np.sqrt(vifs)
@@ -1040,6 +1040,7 @@ class EstimatorSelectionHelper(object):
     I added some functionality that will extend to the sklearn-deap package
     as well. see here: https://github.com/rsteca/sklearn-deap
     """
+
     def __init__(self, models, params, searchCV, searchCVparams):
         """
         Constructor for the EstimatorSelectionHelper class.
