@@ -14,10 +14,9 @@ from .tmath import norm
 # This is a faster approximation of the normal quantile function.
 # Accurate to 2 or 3 digits. For exact solutions, use dwrap or scipy
 def qnorm_aprox(p, mu=0, sigma=1, lt=True):
-    """
-    This is a faster approximation of the normal quantile function (At least
+    """This is a faster approximation of the normal quantile function (At least
     this was true at the time I last benchmarked it). Accurate to 2 or 3
-    digits. For exact solutions, use dwrap or scipy.
+    digits. For exact solutions, use :func:`dwrap` or :any:`scipy.stats`.
 
     Parameters
     ----------
@@ -35,6 +34,13 @@ def qnorm_aprox(p, mu=0, sigma=1, lt=True):
     quant : float or numpy array
         Return quantile of interest.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import qnorm_aprox
+    >>> data = np.array([0.5,0.975])
+    >>> qnorm_aprox(p=data, mu=0, sigma=1, lt=True)
+    array([0.        , 1.95904894])
     """
     p = np.array(p)
     if not lt:
@@ -49,9 +55,8 @@ def qnorm_aprox(p, mu=0, sigma=1, lt=True):
 
 
 def pnorm_approx(q, mu=0, sigma=1, lt=True, log=False):
-    """
-    This is a fast approximation of the normal cdf, accurate to 1.5e-7.
-    For exact solutions, use dwrap or SciPy.
+    """This is a fast approximation of the normal cdf, accurate to 1.5e-7.
+    For exact solutions, use :func:`dwrap` or :any:`scipy.stats`.
 
     Parameters
     ----------
@@ -71,6 +76,14 @@ def pnorm_approx(q, mu=0, sigma=1, lt=True, log=False):
     prob : float
         The probability at the given quantile.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import pnorm_approx
+    >>> data = np.array([0, 1.96])
+    >>> params = np.array([0, 1])
+    >>> pnorm_approx(q=data, mu=0, sigma=1, lt=True, log=False)
+    array([0.5       , 0.97500217])
     """
     q = np.array(q)
     p = 0.3275911
@@ -98,8 +111,7 @@ def pnorm_approx(q, mu=0, sigma=1, lt=True, log=False):
 
 
 def dpoibin_PA(k, p):
-    """
-    Poisson approximation of the Poisson-Binomial probability mass function.
+    """Poisson approximation of the Poisson-Binomial probability mass function.
     Fast, but possibly inaccurate.
 
     Parameters
@@ -114,6 +126,18 @@ def dpoibin_PA(k, p):
     prob : float
         The mass of the poisson-binomial distribution.
 
+    See Also
+    --------
+    dpoibin_exact, dpoibin_FT, ppoibin_RNA
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import dpoibin_PA
+    >>> p = np.array([0.5, 0.975, 0.3])
+    >>> k = np.array([2, 3])
+    >>> dpoibin_PA(k, p)
+    array([0.2669894 , 0.15796873])
     """
     lmbda = np.sum(p)
     prob = np.exp(k * np.log(lmbda) - lmbda - loggamma(k + 1.0))
@@ -121,8 +145,7 @@ def dpoibin_PA(k, p):
 
 
 def ppoibin_RNA(k, p, p_weight=None):
-    """
-    Refined normal approximation of Poisson-Binomial Cumulative Distribution.
+    """Refined normal approximation of Poisson-Binomial Cumulative Distribution.
     This code is adapted from the R package 'poibin'.
     Very fast for p > 10000.
 
@@ -140,6 +163,18 @@ def ppoibin_RNA(k, p, p_weight=None):
     vkk_r : numpy array or float
         cumulative probabilities.
 
+    See Also
+    --------
+    dpoibin_exact, dpoibin_FT,
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import ppoibin_RNA
+    >>> p = np.array([0.5, 0.975, 0.3])
+    >>> k = np.array([2, 3])
+    >>> ppoibin_RNA(k, p, p_weight=None)
+    array([0.85063305, 0.99054359])
     """
     p = np.array(p).reshape(-1, )
     k = np.array(k).reshape(-1, )
@@ -162,10 +197,9 @@ def ppoibin_RNA(k, p, p_weight=None):
 
 
 def dpoibin_FT(k, p):
-    """
-    The probability mass function for the poisson-binomial distribution.
-    This function is written by the author of this package, and uses the
-    discrete fourier transform.
+    """The probability mass function for the poisson-binomial distribution using
+    Fourier transforms. This function is written by the author of this package,
+    and uses the discrete Fourier transform.
 
     Parameters
     ----------
@@ -179,6 +213,18 @@ def dpoibin_FT(k, p):
     karray : float or numpy array
         The mass of the poisson-binomial distribution.
 
+    See Also
+    --------
+    dpoibin_exact, dpoibin_PA, ppoibin_RNA
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import dpoibin_FT
+    >>> p = np.array([0.5,0.975, 0.3])
+    >>> k = np.array([2, 3])
+    >>> dpoibin_FT(k, p)
+    array([0.49125, 0.14625])
     """
     n = len(p)
     nk = len(k)
@@ -201,19 +247,15 @@ def dpoibin_FT(k, p):
     return karray
 
 
-# This function is adapted from Mark Lodato of StackExchange, Nov 7'16
-# It's fast, but runs slower than 1 second once p > 25000
-# Link: https://stats.stackexchange.com/questions/242233/efficiently-computing-poisson-binomial-sum
-# Computes both the pdf and the cdf
 def dpoibin_exact(k, p, cdf=False):
-    """
-    The probability mass function for the poisson-binomial distribution.
+    """The exact probability mass function for the poisson-binomial distribution.
     
-    This function is adapted from Mark Lodato of StackExchange, Nov 7'16
-    It's fast, but runs slower than 1 second once len(p) > 25000
+    This function is adapted from Mark Lodato of StackExchange, Nov 7'16.
+    It's fast, but runs slower than 1 second once len(p) > 25000.
+
+    Adapted to compute both the pdf and the cdf.
+
     Link: https://stats.stackexchange.com/questions/242233/efficiently-computing-poisson-binomial-sum
-    
-    Adapted to compute both the pdf and the cdf
 
     Parameters
     ----------
@@ -229,6 +271,20 @@ def dpoibin_exact(k, p, cdf=False):
     karray : float or numpy array
         The mass of the poisson-binomial distribution.
 
+    See Also
+    --------
+    dpoibin_PA, dpoibin_FT, ppoibin_RNA
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import dpoibin_exact
+    >>> p = np.array([0.5,0.975, 0.3])
+    >>> k = np.array([2, 3])
+    >>> dpoibin_exact(k, p, cdf=False)
+    [0.49125 0.14625]
+    >>> dpoibin_exact(k, p, cdf=True)
+    [0.85375 1.     ]
     """
     k = np.array(k).reshape(-1,)
     p = np.array(p).reshape(-1,)
@@ -258,8 +314,7 @@ def dpoibin_exact(k, p, cdf=False):
 
 
 def dwrap(data, params, disttype, funct, log=False):
-    """
-    This function is meant to be similar to the R distribution functions,
+    """This function is meant to be similar to the R distribution functions,
     such as dnorm, pnorm, qnorm, etc. It calculates variations of the 
     cdf or pdf depending on the funct selected.
     
@@ -268,9 +323,9 @@ def dwrap(data, params, disttype, funct, log=False):
     this function originally existed. I wrote my own versions of the
     distributions, except where the distributions were complicated and it
     wasn't worth it at the time (and then this function uses scipy). However,
-    as time goes on, that will probably change. Also, the scipy.stats
+    as time goes on, that will probably change. Also, the :any:`scipy.stats`
     implementations and documentations are quite complete, so unless you're
-    feeling adventurous, it's probably a good idea to just use scipy.
+    feeling adventurous, it's probably a good idea to just use :any:`scipy`.
 
     Parameters
     ----------
@@ -279,12 +334,24 @@ def dwrap(data, params, disttype, funct, log=False):
         variable, probability, or quantile.
     params : numpy array or pandas dataframe/series
         the parameters of the function of interest (shape, scale, etc.)
+
         - weibull: (shape, scale)
-        - 
+        - exponential: (rate,)
+        - lnorm: (mu, sigma)
+        - normal: (mu, sigma)
+        - gamma: (shape, scale)
+
     disttype : str
-        the distribution type, which currently includes pdf, cdf, inv-cdf, sf,
-        left-truncated-cdf, left-truncated-inv-cdf. (Note: not all of these
-        options may be available for all funct options)
+        the distribution type, which currently includes
+
+        - pdf (probability density function)
+        - cdf (cumulative distribution function)
+        - inv-cdf (inverse cumulative distribution function)
+        - sf (survival function, 1 - cdf)
+        - left-truncated-cdf
+        - left-truncated-inv-cdf.
+
+        (Note: not all of these options may be available for all funct values)
     funct : str
         the distribution function, which currently includes weibull, 
         exponential, log-normal (as lnorm), normal, and gamma
@@ -302,6 +369,14 @@ def dwrap(data, params, disttype, funct, log=False):
     numpy array 
         an array containing the evaluation of the distribution.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import dwrap
+    >>> data = np.array([0.5,0.975])
+    >>> params = np.array([0, 1])
+    >>> dwrap(data, params, disttype="inv-cdf", funct="normal", log=False)
+    array([0.        , 1.95996398])
     """
     try:
         num_parms = params.shape[1]
@@ -451,8 +526,7 @@ def dwrap(data, params, disttype, funct, log=False):
 
 
 def likelihood_bernoulli(y_true, y_score, neg=True, log=True):
-    """
-    The likelihood for a binary output or bernoulli model 
+    """The likelihood for a binary output or bernoulli model.
     
     Parameters
     ----------
@@ -486,9 +560,8 @@ def likelihood_bernoulli(y_true, y_score, neg=True, log=True):
 
 
 def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
-    """
-    The likelihood for a logistic regression or bernoulli model with a penalty
-    term (can accept any norm, default is 1 for L1)
+    """The likelihood for a logistic regression or bernoulli model with a penalty
+    term (can accept any norm, default is 1 for L1).
     
     Parameters
     ----------
@@ -536,8 +609,7 @@ def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
 
 
 def likelihood_poisson(y_true, y_score, neg=True, log=True):
-    """
-    The likelihood for a count output or poisson model 
+    """The likelihood for a count output or poisson model.
     
     Parameters
     ----------
@@ -568,9 +640,8 @@ def likelihood_poisson(y_true, y_score, neg=True, log=True):
 
 
 def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
-    """
-    The likelihood for a poisson regression model with a penalty
-    term (can accept any norm, default is 1 for L1)
+    """The likelihood for a poisson regression model with a penalty
+    term (can accept any norm, default is 1 for L1).
     
     Parameters
     ----------
@@ -616,8 +687,7 @@ def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
 
 
 def likelihood_gaussian(y_true, y_score, neg=True, log=True, sigma=None):
-    """
-    The likelihood for a normal(ish) output or gaussian model 
+    """The likelihood for a normal(ish) output or gaussian model.
     
     Parameters
     ----------
@@ -653,9 +723,8 @@ def likelihood_gaussian(y_true, y_score, neg=True, log=True, sigma=None):
 
 def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
                             log=True):
-    """
-    The likelihood for a gaussian regression model with a penalty
-    term (can accept any norm, default is 1 for L1)
+    """The likelihood for a gaussian regression model with a penalty
+    term (can accept any norm, default is 1 for L1).
     
     Parameters
     ----------
@@ -704,9 +773,8 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
     
 
 def ExactMLE_exp(data, censored):
-    """
-    Maximum Likelihood Estimate of an exponential distribution (with an option
-    for right-censoring).
+    """Maximum Likelihood Estimate of an exponential distribution (with an
+    option for right-censoring).
 
     Parameters
     ----------
@@ -739,8 +807,7 @@ def ExactMLE_exp(data, censored):
 
 
 def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
-    """
-    The posterior density for a logistic regression model with an L1 penalty
+    """The posterior density for a logistic regression model with an L1 penalty
     term.
     
     Parameters
@@ -807,11 +874,10 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
 
 
 def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
-    """
-    The posterior density for a logistic regression model with an L1 penalty
+    """The posterior density for a logistic regression model with an L1 penalty
     term. However, unlike the posterior_logreg_lasso function, this is made to
-    addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
-    in the parms variable, at the end of the array
+    adaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
+    in the parms variable, at the end of the array.
     
     Parameters
     ----------
@@ -886,11 +952,10 @@ def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
 
 
 def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
-    """
-    The posterior density for a poisson regression model with an L1 penalty
+    """The posterior density for a poisson regression model with an L1 penalty
     term. However, unlike the poisson_regression function, this is made to
-    addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
-    in the parms variable, at the end of the array
+    adaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
+    in the parms variable, at the end of the array.
     
     Parameters
     ----------
@@ -971,9 +1036,9 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
     """
     The posterior density for a poisson regression model with an L1 penalty
     term. However, unlike the poisson_regression function, this is made to
-    addaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
+    adaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
     in the parms variable, at the end of the array. This function also attempts
-    to adaptively account for overdispersion.
+    to adaptively account for over-dispersion.
     
     Parameters
     ----------
@@ -1056,8 +1121,7 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
 
 
 def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
-    """
-    The posterior density for a poisson regression model with an L1 penalty
+    """The posterior density for a poisson regression model with an L1 penalty
     term.
     
     Parameters
@@ -1128,9 +1192,8 @@ def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
 
 
 def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
-    """
-    The posterior density for a poisson regression model with an L1 penalty
-    term. This function also attempts to adaptively account for overdispersion.
+    """The posterior density for a poisson regression model with an L1 penalty
+    term. This function also attempts to adaptively account for over-dispersion.
     
     Uses a generalized poisson model for the dispersion calculation. See
     https://journals.sagepub.com/doi/pdf/10.1177/1536867X1201200412
@@ -1227,8 +1290,7 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
 
 def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
                             log=True):
-    """
-    The posterior density for a weibull regression model with an L1 penalty
+    """The posterior density for a weibull regression model with an L1 penalty
     term. 
     
     Parameters
@@ -1330,8 +1392,7 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
 
 
 def pois_uniform(param, count, neg=False, log=True):
-    """
-    Posterior density for the Poisson distribution (assuming uniform prior)
+    """Posterior density for the Poisson distribution (assuming uniform prior).
 
     Parameters
     ----------
@@ -1366,8 +1427,7 @@ def pois_uniform(param, count, neg=False, log=True):
 
 
 def pois_gamma(param, count, gshape=0.01, gscale=100, neg=False, log=True):
-    """
-    Posterior density for the Poisson distribution (assuming gamma prior)
+    """Posterior density for the Poisson distribution (assuming gamma prior).
 
     Parameters
     ----------
@@ -1408,9 +1468,8 @@ def pois_gamma(param, count, gshape=0.01, gscale=100, neg=False, log=True):
 
 
 def pois_gamma_ada(param, count, neg=False, log=True):
-    """
-    Posterior density for the Poisson distribution (assuming gamma prior),
-    learns the gamma shape/scale as part of mcmc
+    """Posterior density for the Poisson distribution (assuming gamma prior),
+    learns the gamma shape/scale as part of mcmc.
 
     Parameters
     ----------
@@ -1451,8 +1510,7 @@ def pois_gamma_ada(param, count, neg=False, log=True):
 
 def exp_gamma(param, data, status, gshape=0.01, gscale=100, neg=False,
               log=True):
-    """
-    Posterior distribution for an exponential likelihood with a gamma prior.
+    """Posterior distribution for an exponential likelihood with a gamma prior.
     Allows for censoring.
 
     Parameters
@@ -1503,8 +1561,7 @@ def exp_gamma(param, data, status, gshape=0.01, gscale=100, neg=False,
 
 def weibull_gamma(param, data, status=None, gshape=0.01, gscale=100,
                   neg=False, log=True):
-    """
-    The posterior density for a weibull distribution with a gamma prior
+    """The posterior density for a weibull distribution with a gamma prior.
 
     Parameters
     ----------
@@ -1566,8 +1623,7 @@ def weibull_gamma(param, data, status=None, gshape=0.01, gscale=100,
 
 def NHPP_posterior(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False,
                    log=True):
-    """
-    The posterior density of the non-homogenous Poisson distribution with
+    """The posterior density of the non-homogenous Poisson distribution with
     a power-law process. 
 
     Parameters
@@ -1649,5 +1705,3 @@ def NHPP_posterior(lparm, tints, tbar, obs, a, b, mu, sigma, neg=False,
         return -post
     else:
         return post
-
-    

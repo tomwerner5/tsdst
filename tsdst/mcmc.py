@@ -164,8 +164,10 @@ def cholupdate(L, x, update=True):
 
 
 def adaptive_mcmc(start, niter, lpost, postArgs=None, options=None):
-    """A random walk metropolis algorithm that adaptively tunes the covaraince
-    matrix. Based on methods by Rosenthal (who improved on Haario\'s method).
+    """A random walk metropolis algorithm that adaptively tunes the covariance
+    matrix.
+
+    Based on methods by Rosenthal (who improved on Haario\'s method).
     The method by Rosenthal is sometimes referred to as Adaptive Mixture
     Metropolis, while the algorithm by Haario is called Adaptive Metropolis and
     is generally considered to be the historically first adaptive Metropolis
@@ -206,6 +208,54 @@ def adaptive_mcmc(start, niter, lpost, postArgs=None, options=None):
     prev_vals : dict
         The ending values of the MCMC algorithm. Useful when you want to
         continue where you left off.
+
+    Notes
+    -----
+
+    A random walk metropolis algorithm that adaptively tunes the covariance matrix. Based on methods by Rosenthal
+    (who improved on Haario's method). The method by Rosenthal is sometimes refered to as Adaptive Mixture Metropolis,
+    while the algorithm by Haario is called Adaptive Metropolis and is generally considered to be the historically first
+    adaptive Metropolis algorithm.
+
+    This method is identical to a Random Walk Metropolis algorithm, except that it adapts the covariance matrix after
+    each iteration based on the sample covariance of the entire chain up to the current iteration. The candidate values
+    in the MCMC chain are then sampled from a mixed density distribution defined as follows:
+
+    .. math:: Q_{n}(x, \\cdot) = (1 - \\beta)N(x, (2.38)^{2} \\Sigma_{n}/d) + \\beta N(x, (0.1)^{2} I_{d} / d)
+
+    * :math:`Q_{n}`: The proposal distribution
+    * :math:`N`: Normal Distribution
+    * :math:`\\beta`: some small constant, usually 0.05
+    * :math:`\\Sigma_{n}`: sample covariance up to the :math:`n^{th}` iteration
+    * :math:`d`: the number of parameters
+    * :math:`I_{d}`: the :math:`d \\times d` identity matrix
+
+    To sample from any density distribution, you must first calculate the inverse cdf of the function, otherwise
+    known as the quantile function. Assuming that there is a simple method to generate a uniform random number with
+    range :math:`[0, 1]` (most programming languages do), then calculating a random number from any distribution is
+    simple. First, generate the random uniform number, and use it as the input to the quantile function. However,
+    in many practical situations (such as with the normal distribution), calculating the quantile function is
+    non-trivial. The same is true for the above mixed density distribution. Therefore, to simplify sampling from
+    the mixed density distribution, use a uniform random number generator to sample a number :math:`U` between
+    :math:`[0, 1]`. Then, if :math:`U < \\beta`, then sample the candidate value from :math:`N(x, (2.38)^{2} \\Sigma_{n}/d)`.
+    Otherwise, sample from :math:`N(x, (0.1)^{2} I_{d} / d)`.
+
+    To calculate :math:`\\Sigma_{n}` efficiently, the algorithm uses the :func:`cholupdate` function. Let :math:`X` be
+    an :math:`m \\times n` matrix of MCMC samples. Then, the equation for population covariance can be defined as follows:
+
+    .. math:: \\Sigma_n = E(XX^T) - E(X)E(X^T) = \\frac{XX^{T}}{n} - \\mu \\mu^{T}
+
+    The algorithm calculates the cholesky distribution of :math:`XX^{T}` for the first four samples. From that point
+    on, :math:`XX^{T}` is updated using :func:`cholupdate` where `update=True`. If :math:`U < \\beta`, then
+    :math:`\\big( \\frac{XX^{T}}{n} - \\mu \\mu^{T} \\big)` is calculated using :func:`cholupdate(XXT/n, uuT, update=False)<cholupdate>`.
+    This algorithm uses the sample covariance, which can be calculated using the following trick:
+
+    .. math:: \\Big( \\frac{XX^{T}}{n} - \\mu \\mu^{T} \\Big) \\Big(\\frac{n}{n-1} \\Big)
+
+    The algorithm multiplies :math:`\\Sigma_{n}` by :math:`\\frac{2.38^2}{d}`, which makes the final covariance used
+    to create the candidate samples:
+
+    .. math:: \\Sigma_{n} = \\Big( \\frac{2.38^2}{d} \\Big) \\Big( \\frac{XX^{T}}{n} - \\mu \\mu^{T} \\Big) \\Big(\\frac{n}{n-1} \\Big)
 
     """
     

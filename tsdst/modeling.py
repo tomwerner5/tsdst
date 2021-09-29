@@ -1030,11 +1030,13 @@ def getPriors(data, Ycol):
     
 
 class EstimatorSelectionHelper(object):
-    """
-    This is adapted from David Batista, so credit goes to him. 
-    
-    see here: davidsbatista.net/blog/2018/02/23/model_optimization
-    
+    """A wrapper for easily grid-searching multiple models in the
+    same run.
+
+    This is adapted from David Batista, so credit goes to him.
+
+    see here: https://davidsbatista.net/blog/2018/02/23/model_optimization
+
     I added some functionality that will extend to the sklearn-deap package
     as well. see here: https://github.com/rsteca/sklearn-deap
     """

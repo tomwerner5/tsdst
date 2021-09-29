@@ -8,3 +8,13 @@ blockquote {
 tr {
     text-align: left
 }
+
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > tbody > tr > td,
+.table > tfoot > tr > td {
+    padding: 2px;
+    border-top: 2px solid #ddd;
+}

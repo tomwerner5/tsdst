@@ -10,6 +10,8 @@ API reference
 Distributions
 -------------
 
+This section contains statistical functions for various distributions for a wide range of purposes.
+
 General Functions
 ~~~~~~~~~~~~~~~~~
 
@@ -43,6 +45,9 @@ Likelihood Functions
 Posterior Functions
 ~~~~~~~~~~~~~~~~~~~
 
+These functions are mainly for Bayesian Inference, and for use with the
+MCMC module.
+
 .. autosummary::
     :toctree: generated/
     :nosignatures:
@@ -59,19 +64,6 @@ Posterior Functions
     distributions.ap_poisson_lasso_od
     distributions.weibull_gamma
     distributions.weibull_regression_post
-
-
-.. _modeling_api:
-
-Modeling
---------
-
-.. autosummary::
-    :toctree: generated/
-    :nosignatures:
-
-    modeling.crossVal
-    modeling.EstimatorSelectionHelper
 
 .. _estimators_api:
 
@@ -143,3 +135,15 @@ MCMC Algorithms
     mcmc.adaptive_mcmc
     mcmc.rwm
     mcmc.rwm_with_lap
+
+.. _modeling_api:
+
+Modeling
+--------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    modeling.crossVal
+    modeling.EstimatorSelectionHelper
