@@ -678,9 +678,8 @@ def prettyConfMat(Ytrue, Ypred,
     return confmat
 
   
-def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
-    """
-    Generate the covariance matrix for regression parameters.
+def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, lamda=0):
+    """Generate the covariance matrix for regression parameters.
 
     Parameters
     ----------
@@ -702,7 +701,6 @@ def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
     -------
     cov : numpy array
         The covariance matrix for regression parameters.
-
     """
     Xc = np.hstack([np.ones((X.shape[0], 1)), X])
     sigma2 = None
@@ -736,9 +734,19 @@ def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
             #     V = np.diagflat(Y - Yprob[:, 1])
         cov = np.linalg.inv(XVXt)
     else:
-        # could use model.predict instead of Xc.dot(betas), but it's a good reminder of the math
-        betas = np.concatenate((fit_mod.intercept_, fit_mod.coef_)).reshape(-1, 1)
-        sigma2 = np.sum((Y - Xc.dot(betas))**2)/(Xc.shape[0] - betas.shape[0])
+        # could use model.predict instead of Xc.dot(betas), but it's a good
+        # reminder of the math
+        betas = np.concatenate((fit_mod.intercept_.reshape(-1,),
+                                fit_mod.coef_.reshape(-1,))).reshape(-1, 1)
+        # This is mean squared error with a specified number of standard
+        # deviations, i.e. the standard deviation of the residuals for n-p
+        # degrees of freedom rather than n-1 (the typical unbiased estimator)
+        # or n (the biased MLE esimator)
+        #
+        # This unbiased estimate for sigma is called the 'squared residual standard error'
+        # In matrix notation (where p includes intercept), sigma2 = (1/(n-p))*((y-XB)^T *dot* (y-XB))
+        # and sigma2_mle = (1/n)*((y-XB)^T *dot* (y-XB))
+        sigma2 = np.sum((Y.reshape(-1, 1) - Xc.dot(betas))**2)/(Xc.shape[0] - betas.shape[0])
         if lamda != 0:
             # ridge regression case
             Xt_X = np.dot(Xc.T, Xc)
@@ -747,13 +755,13 @@ def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
             XtX_inv = xt_inv.dot(Xt_X).dot(xt_inv)
         else:
             XtX_inv = np.linalg.inv(np.dot(Xc.T, Xc))
-        cov = sigma2*XtX
-    return cov, XtX_inv, sigma2
+        # var(beta_hat) = diag(cov)
+        cov = sigma2*XtX_inv
+    return cov, XtX_inv, sigma2, betas
   
 
-def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
-    """
-    Since sklearn doesn't generate the standard errors by default...
+def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, lamda=0):
+    """Since sklearn doesn't generate the standard errors by default...
 
     Parameters
     ----------
@@ -777,17 +785,17 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, l2_param=0):
         The standard error of the coefficients.
 
     """
-    cov, _, _ = GenerateRegCov(X=X, Y=Y, fit_mod=fit_mod,
-                            logit=logit, low_memory=low_memory,
-                            l2_param=l2_param)
+    cov, XtX_inv, sigma2, betas = GenerateRegCov(X=X, Y=Y, fit_mod=fit_mod,
+                                          logit=logit, low_memory=low_memory,
+                                          lamda=lamda)
     se = np.sqrt(np.diag(cov))
-    return se
+    return se, cov, XtX_inv, sigma2, betas
   
 
-def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_param=0,
-            confidence_level=0.95, logit_transform=False, logit_se_method='wald'):
-    """
-    Mimics predict function in R. 
+def predict(X_test, X_train, Y_train, fit_mod, logit=True, interval='prediction',
+            low_memory=False, lamda=0, level=0.95, logit_transform=False,
+            logit_se_method='wald'):
+    """Mimics predict function in R.
 
     Parameters
     ----------
@@ -822,16 +830,15 @@ def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_
     -------
     prediction : pandas dataframe
         The predictions and assosiated intervals.
-
     """
     cov, XtX_inv, sigma2 = GenerateRegCov(X=X_train, Y=Y_train, fit_mod=fit_mod,
                             logit=logit, low_memory=low_memory,
-                            l2_param=l2_param)
+                            lamda=lamda)
     
     #Xc_train = np.hstack([np.ones((X_train.shape[0], 1)), X_train])
     Xc_test = np.hstack([np.ones((X_test.shape[0], 1)), X_test])
     betas = np.concatenate((fit_mod.intercept_, fit_mod.coef_)).reshape(-1, 1)
-    tstat = t.ppf(1-(1-level)/2, df=Xc_train.shape[0] - betas.shape[0])
+    tstat = t.ppf(1-(1-level)/2, df=X_train.shape[0] - betas.shape[0])
     yhat = Xc_test.dot(betas)
     
     if logit:
@@ -842,7 +849,7 @@ def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_
         
         if logit_se_method == 'wald':
             # Using Wald Endpoint transformations
-            var = Xc.dot(cov).dot(Xc.T)
+            var = Xc_test.dot(cov).dot(Xc_test.T)
             se = np.sqrt(np.diag(var))
             upper_int = yhat + tstat*se
             lower_int = yhat - tstat*se
@@ -869,15 +876,13 @@ def predict(X_test, X_train, Y_train, fit_mod, logit=True, low_memory=False, l2_
     prediction = pd.DataFrame(np.array([yhat.reshape(-1, ),
                                         lower_int.reshape(-1, ),
                                         upper_int.reshape(-1, )]).T,
-                              columns=['yhat', 'lower_int', 'upper_int']
-                             )
+                              columns=['yhat', 'lower_int', 'upper_int'])
     
     return prediction
 
 
 def corrmat_validity_check(corr_mat, corr_tol=1e-8):
-    """
-    Check for perfect correlation and/or a singular covariance matrix. Either
+    """Check for perfect correlation and/or a singular covariance matrix. Either
     of these conditions could indicate a matrix unsuitable for Linear
     Regression.
 
@@ -892,7 +897,6 @@ def corrmat_validity_check(corr_mat, corr_tol=1e-8):
     -------
     has_perfect_corr : numpy array
         An array of boolean values indicating perfect correlation.
-
     """
     det = np.linalg.det(corr_mat)
     ncols = corr_mat.shape[0]

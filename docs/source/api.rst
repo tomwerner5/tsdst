@@ -15,6 +15,9 @@ This section contains statistical functions for various distributions for a wide
 General Functions
 ~~~~~~~~~~~~~~~~~
 
+This section includes approximations about the normal distribution, as well as
+calculations for the poison-binomial distribution.
+
 .. autosummary::
     :toctree: generated/
     :nosignatures:
@@ -25,10 +28,14 @@ General Functions
     distributions.dwrap
     distributions.pnorm_approx
     distributions.ppoibin_RNA
-    distributions.qnorm_aprox
+    distributions.qnorm_approx
 
 Likelihood Functions
 ~~~~~~~~~~~~~~~~~~~~
+
+These common likelihood functions are presented in two formats, one that is the
+simple likelihood definition (useable for any data), and one that assumes your
+data is part of a GLM or similar model.
 
 .. autosummary::
     :toctree: generated/

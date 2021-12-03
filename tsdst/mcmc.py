@@ -17,7 +17,7 @@ from timeit import default_timer as dt
 
 from .tmath import cov2cor
 from .utils import pretty_print_time
-from .distributions import qnorm_aprox
+from .distributions import qnorm_approx
 
 
 def _updateProgBarMCMC(curIter, totalIter, t0, ar, barLength=20):
@@ -582,7 +582,7 @@ def samp_size_calc_raftery(q=0.025, r=0.005, s=0.95):
         Minimum number of samples needed.
 
     """
-    phi = qnorm_aprox(0.5 * (1.0 + s))
+    phi = qnorm_approx(0.5 * (1.0 + s))
     nmin = np.ceil((q * (1.0 - q) * phi**2)/r**2).astype(int)
     return phi, nmin
 
@@ -1076,7 +1076,7 @@ def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001,
         resmatrix = np.empty(shape=(nvar, len(columns)))
         resmatrix[:] = np.nan
         # nmin based on sample size calculation for proportions
-        phi = qnorm_aprox(0.5 * (1 + s))
+        phi = qnorm_approx(0.5 * (1 + s))
         nmin = np.ceil((q * (1 - q) * phi**2)/r**2).astype(int)
         if (nmin > niter):
             raise ValueError("Error: You either need to adjust q, r, or " +
@@ -1940,7 +1940,7 @@ class mcmcObject(object):
             if i == nparam - 1:
                 ax[i, 0].set_xlabel("Lag")
             if bounds:
-                bnd = qnorm_aprox((1+ci)/2)/np.sqrt(samples)
+                bnd = qnorm_approx((1+ci)/2)/np.sqrt(samples)
                 ax[i, 0].axhline(y=bnd, color="red",
                                  linestyle="dashed", linewidth=0.5)
                 ax[i, 0].axhline(y=-bnd, color="red",

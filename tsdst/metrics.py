@@ -274,6 +274,8 @@ def conf_mat_metrics(y_true, y_pred, conf_metric='all'):
     if tnfn != 0:
         metrics['npv'] = tn/tnfn
     if tpfp*tpfn*tnfp*tnfn != 0:
+        # Note matthews correlation is actually equivalent to a pearson
+        # correlation between y_true and y_pred
         metrics['matthews_coef'] = ((tp*tn) - (fp*fn))/np.sqrt(tpfp*tpfn*tnfp*tnfn)
     metrics['Conf_Mat'] = confMat
     

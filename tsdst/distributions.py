@@ -13,7 +13,7 @@ from .tmath import norm
 
 # This is a faster approximation of the normal quantile function.
 # Accurate to 2 or 3 digits. For exact solutions, use dwrap or scipy
-def qnorm_aprox(p, mu=0, sigma=1, lt=True):
+def qnorm_approx(p, mu=0, sigma=1, lt=True):
     """This is a faster approximation of the normal quantile function (At least
     this was true at the time I last benchmarked it). Accurate to 2 or 3
     digits. For exact solutions, use :func:`dwrap` or :any:`scipy.stats`.
@@ -37,9 +37,9 @@ def qnorm_aprox(p, mu=0, sigma=1, lt=True):
     Examples
     --------
     >>> import numpy as np
-    >>> from tsdst.distributions import qnorm_aprox
+    >>> from tsdst.distributions import qnorm_approx
     >>> data = np.array([0.5,0.975])
-    >>> qnorm_aprox(p=data, mu=0, sigma=1, lt=True)
+    >>> qnorm_approx(p=data, mu=0, sigma=1, lt=True)
     array([0.        , 1.95904894])
     """
     p = np.array(p)
@@ -525,15 +525,15 @@ def dwrap(data, params, disttype, funct, log=False):
 # #########################################
 
 
-def likelihood_bernoulli(y_true, y_score, neg=True, log=True):
+def likelihood_bernoulli(obs, prob, neg=True, log=True):
     """The likelihood for a binary output or bernoulli model.
     
     Parameters
     ----------
-    y_true : numpy array (numeric)
-        The true values (the binary observations).
-    y_score : numpy array or pandas dataframe
-        The predicted probabilities.
+    obs : numpy array (numeric)
+        The true/observed bernoulli trials (the binary observations).
+    prob : numpy array or pandas dataframe
+        The probabilities (either one per obs, or a single value).
     neg : bool, optional
         Return negative likelihood. The default is True.
     log : bool, optional
@@ -543,12 +543,11 @@ def likelihood_bernoulli(y_true, y_score, neg=True, log=True):
     -------
     float
         The likelihood.
-
     """
     
     ### Alternate formulation (placing here for my notes)
-    # loglike = y_true*y_score - np.log(1 + np.exp(y_score))
-    loglike = np.sum(xlogy(y_true, y_score) + xlogy(1.0 - y_true, 1.0 - y_score))
+    # loglike = obs*prob - np.log(1 + np.exp(prob))
+    loglike = np.sum(xlogy(obs, prob) + xlogy(1.0 - obs, 1.0 - prob))
 
     if not log:
         loglike = np.exp(loglike)
@@ -577,7 +576,7 @@ def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
         The size of the penalty (lambda). Note this is the inverse of the
         common sklearn parameter C (i.e. C=1/lambda. The default is 1.
     l_p : int, optional
-        The mathmatical norm to be applied to the coefficients.
+        The mathematical norm to be applied to the coefficients.
         The default is 1, representing an L1 penalty.
     neg : bool, optional
         Return negative likelihood. The default is True.
@@ -589,6 +588,19 @@ def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
     float
         The likelihood.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import glm_likelihood_bernoulli
+    >>> intercept = np.array([3])
+    >>> betas = np.array([2,4,5])
+    >>> params = np.concatenate((intercept, betas))
+    >>> np.random.seed(123)
+    >>> X = np.random.normal(size=(100, 3))
+    >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
+    >>> Y = np.round(np.random.uniform(low=0, high=1, size=100))
+    >>> glm_likelihood_bernoulli(params, X, Y, lamb=1, l_p=1)
+    386.6152600787893
     """
     #intercept = parms[0]
     betas = parms[1:]
@@ -626,7 +638,6 @@ def likelihood_poisson(y_true, y_score, neg=True, log=True):
     -------
     float
         The likelihood.
-
     """
     loglike = np.sum(y_true*np.log(y_score) - y_score - loggamma(y_true + 1))
 
@@ -657,7 +668,7 @@ def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
         The size of the penalty (lambda). Note this is the inverse of the
         common sklearn parameter C (i.e. C=1/lambda. The default is 1.
     l_p : int, optional
-        The mathmatical norm to be applied to the coefficients.
+        The mathematical norm to be applied to the coefficients.
         The default is 1, representing an L1 penalty.
     neg : bool, optional
         Return negative likelihood. The default is True.
@@ -669,6 +680,19 @@ def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
     float
         The likelihood.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import glm_likelihood_poisson
+    >>> intercept = np.array([3])
+    >>> betas = np.array([2,4,5])
+    >>> params = np.concatenate((intercept, betas))
+    >>> np.random.seed(123)
+    >>> X = np.random.normal(size=(100, 3))
+    >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
+    >>> Y = np.round(np.random.uniform(low=0, high=10, size=100))
+    >>> glm_likelihood_poisson(params, X, Y, lamb=1, l_p=1)
+    3287063650.908373
     """
     #intercept = parms[0]
     betas = parms[1:]
@@ -704,7 +728,6 @@ def likelihood_gaussian(y_true, y_score, neg=True, log=True, sigma=None):
     -------
     float
         The likelihood.
-
     """
     if sigma is None:
         # The MLE estimate of sigma
@@ -740,7 +763,7 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
         The size of the penalty (lambda). Note this is the inverse of the
         common sklearn parameter C (i.e. C=1/lambda. The default is 1.
     l_p : int, optional
-        The mathmatical norm to be applied to the coefficients.
+        The mathematical norm to be applied to the coefficients.
         The default is 1, representing an L1 penalty.
     neg : bool, optional
         Return negative likelihood. The default is True.
@@ -752,15 +775,29 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
     float
         The likelihood.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import glm_likelihood_gaussian
+    >>> intercept = np.array([3])
+    >>> betas = np.array([2,4,5])
+    >>> params = np.concatenate((intercept, betas))
+    >>> np.random.seed(123)
+    >>> X = np.random.normal(size=(100, 3))
+    >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
+    >>> Y = np.random.normal(size=100)
+    >>> glm_likelihood_gaussian(params, X, Y, lamb=1, l_p=1)
+    360.17670995853115
     """
     #intercept = parms[0]
     betas = parms[1:]
     
     mu = X.dot(parms)
     if sigma is None:
-        # The MLE estimate of sigma
-        sigma = np.sqrt(np.sum((Y - mu)**2)/(Y.shape[0] - len(betas) - 1))
-    
+        # The MLE estimate of sigma (df is nobs - num_params (including intercept))
+        sigma = np.sqrt(np.sum((Y - mu)**2)/(Y.shape[0] - len(parms)))
+
+    # intercept does not get penalized
     loglike = np.sum((-0.5*np.log(2*np.pi) - np.log(sigma) - 0.5*((Y - mu) / sigma)**2)) - lamb*norm(betas, l_p)
     
     if not log:
@@ -790,7 +827,6 @@ def ExactMLE_exp(data, censored):
     list
         A list containing (in order) the MLE, the standard error, and the 
         95% confidence interval for the estimate.
-
     """
     f = data[censored == 1]
     c = data[censored == 0]
@@ -847,6 +883,23 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
     float
         The posterior density (height of the posterior density)
 
+    See Also
+    --------
+    ap_logreg_lasso
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import posterior_logreg_lasso
+    >>> intercept = np.array([3])
+    >>> betas = np.array([2,4,5])
+    >>> params = np.concatenate((intercept, betas))
+    >>> np.random.seed(123)
+    >>> X = np.random.normal(size=(100, 3))
+    >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
+    >>> Y = np.round(np.random.uniform(low=0, high=1, size=100))
+    >>> posterior_logreg_lasso(params, X, Y)
+    -400.881783704988
     """
     n_mu = 0
     n_sigma = 10
@@ -918,6 +971,25 @@ def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
+
+    See Also
+    --------
+    posterior_logreg_lasso
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.distributions import ap_logreg_lasso
+    >>> intercept = np.array([3])
+    >>> betas = np.array([2,4,5])
+    >>> scale_param = np.array([1])
+    >>> params = np.concatenate((intercept, betas, scale_param))
+    >>> np.random.seed(123)
+    >>> X = np.random.normal(size=(100, 3))
+    >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
+    >>> Y = np.round(np.random.uniform(low=0, high=1, size=100))
+    >>> ap_logreg_lasso(params, X, Y)
+    -395.3461032130849
     """
     n_mu = 0
     n_sigma = 1

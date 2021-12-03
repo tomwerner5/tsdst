@@ -19,7 +19,7 @@ def downSample(data, target_var, majority=0, minority=1, bal=0.5,
     data : pandas dataframe
         The design or feature matrix (with response).
     target_var : str
-        The target or reponse variable.
+        The target or response variable.
     majority : int, optional
         Value of the majority class. The default is 0.
     minority : int, optional
@@ -172,7 +172,7 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
     
     rows = sortedData.shape[0]
     cols = sortedData.shape[1]
-    LHC = np.zeros(shape=(sampleSize, cols), dtype=data.dtypes)
+    LHC = np.zeros(shape=(sampleSize, cols), dtype=sortedData.dtypes)
     splits = sampleSize
     
     if verbose:
@@ -182,7 +182,6 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
         high = int(np.ceil(rows/sampleSize))
         low = int(np.floor(rows/sampleSize))
         rem = rows % sampleSize
-        f_array = np.zeros(sampleSize)
         if rem != 0:
             rem2 = sampleSize - rem
             if bin_placement == "random":
@@ -191,12 +190,16 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
             elif bin_placement == "spaced":
                 if rem > rem2:
                     r1 = np.repeat(high, rem)
-                    a1 = np.arange(0, rem, np.floor(rem / rem2),
+                    start = 1
+                    end = rem + 1
+                    a1 = np.arange(start, end, np.floor(rem / rem2),
                                    dtype=np.int)[:rem2]
                     f_array = np.insert(r1, a1, low)
                 else:
                     r1 = np.repeat(low, rem2)
-                    a1 = np.arange(0, rem2, np.floor(rem2 / rem),
+                    start = 1
+                    end = rem2 + 1
+                    a1 = np.arange(start, end, np.floor(rem2 / rem),
                                    dtype=np.int)[:rem]
                     f_array = np.insert(r1, a1, high)
             else:
@@ -207,7 +210,6 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
             f_array = np.repeat(high, sampleSize)
         splits = np.cumsum(f_array)[:-1]
     Splits = np.array_split(sortedData, splits)
-    nSplits = len(Splits)
     
     if verbose:
         print_time("\nSampling...", t0, te=dt())
@@ -216,7 +218,7 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
     for i, sample in enumerate(Splits):
         LHC[i, :] = sample[np.random.choice(sample.shape[0], 1)]
         if verbose:
-            updateProgBar(i + 1, nSplits, t1)
+            updateProgBar(i + 1, sampleSize, t1)
     
     if shuffle_after:
         if verbose:
@@ -226,7 +228,7 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
     if df:
         if verbose:
             print_time("\nConverting to DataFrame...", t0, te=dt())
-        LHC = pd.DataFrame(LHC, columns=data.columns).astype(data.dtypes)
+        LHC = pd.DataFrame(LHC, columns=data.columns)
         
     if verbose:
         print_time("\nFinished...", t0, te=dt())
