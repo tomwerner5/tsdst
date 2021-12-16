@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/examples/RSM_hyperparam_tuning.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/source/api.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/api.rst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tsdst/distributions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/distributions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsdst/mcmc.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/mcmc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsdst/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/metrics.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tsdst/modeling.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/modeling.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tsdst/sampling.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/sampling.py" afterDir="false" />
     </list>
@@ -123,7 +120,9 @@
       <workItem from="1633732887044" duration="8734000" />
       <workItem from="1634079582392" duration="10000" />
       <workItem from="1634090912295" duration="17000" />
-      <workItem from="1638466716531" duration="10012000" />
+      <workItem from="1638466716531" duration="10416000" />
+      <workItem from="1638565657457" duration="3407000" />
+      <workItem from="1638804778825" duration="1456000" />
     </task>
     <task id="LOCAL-00001" summary="Updated readme. Completed pycharm integration with git">
       <created>1627574652582</created>
@@ -188,7 +187,14 @@
       <option name="project" value="LOCAL" />
       <updated>1632885790905</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="updated sphinx documentation. Fixed minor bugs in modeling and sampling">
+      <created>1638506136441</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1638506136441</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -226,7 +232,8 @@
     <MESSAGE value="Added sphinx docs" />
     <MESSAGE value="updated docs to be more compliant with sphinx" />
     <MESSAGE value="updated sphinx documentation" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated sphinx documentation" />
+    <MESSAGE value="updated sphinx documentation. Fixed minor bugs in modeling and sampling" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated sphinx documentation. Fixed minor bugs in modeling and sampling" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -243,17 +250,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/tsdst/sampling.py</url>
-          <line>210</line>
+          <line>211</line>
           <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/tsdst/sampling.py</url>
-          <line>197</line>
+          <line>198</line>
           <option name="timeStamp" value="32" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/tsdst/sampling.py</url>
-          <line>204</line>
+          <line>205</line>
           <option name="timeStamp" value="33" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">

@@ -17,21 +17,25 @@ from .nn.activations import sigmoid, sigmoid_der
 from .utils import reshape_to_vector
 
 
-DEFAULT_METRICS = ['Accuracy',
-                   'F1',
-                   'Sens/Recall',
-                   'Specificity',
-                   'ppv',
-                   'npv',
-                   'AUC'
-                   ]
+DEFAULT_CLASSIFICATION_METRICS = ['Accuracy',
+                                  'F1',
+                                  'Sens/Recall',
+                                  'Specificity',
+                                  'PPV',
+                                  'NPV',
+                                  'AUC'
+                                ]
+
+DEFAULT_REGRESSION_METRICS = ['Bias',
+                              'RPMSE',
+                              'R2',
+                              'Adj. R2']
 
 
 def scoreModel(X, Y, model, metrics=None,
                thres=None, mtype='classification',
                print_=True, avg="weighted"):
-    """
-    Score a model using the given metrics.
+    """Score a model using the given metrics.
 
     Parameters
     ----------
@@ -68,7 +72,13 @@ def scoreModel(X, Y, model, metrics=None,
 
     """
     if metrics is None:
-        metrics = DEFAULT_METRICS
+        if mtype == 'classification':
+            metrics = DEFAULT_CLASSIFICATION_METRICS
+        elif mtype == 'regression':
+            metrics = DEFAULT_REGRESSION_METRICS
+        else:
+            raise ValueError('Metrics must be of mtype `classification` or '
+                             '`regression`')
 
     res = {}
     args = {'average': avg,
@@ -101,15 +111,15 @@ def scoreModel(X, Y, model, metrics=None,
                             'Function': conf_mat_metrics,
                             'arguments': ['y_true', 'y_pred', 'conf_metric']
                            },
-            'ppv': {
+            'PPV': {
                     'Function': conf_mat_metrics,
                     'arguments': ['y_true', 'y_pred', 'conf_metric']
                    },
-            'npv': {
+            'NPV': {
                     'Function': conf_mat_metrics,
                     'arguments': ['y_true', 'y_pred', 'conf_metric']
                    },
-            'Conf_Mat': {
+            'Confusion Matrix': {
                          'Function': conf_mat_metrics,
                          'arguments': ['y_true', 'y_pred', 'conf_metric']
                         },
@@ -364,11 +374,11 @@ def runScorers(X, Y, splits, model, mtype, metrics=None,
         want to use, but doesn't quite fit what you need. The default is None.
     mox_args : dict, optional
         Any optional arguments that get passed to the constructor of the
-        method_on_X. The default is {}.
+        method_on_X. The default is None.
     Y_for_test_only : pandas series or numpy array, optional
         An alternate target variable to test on, mainly for the use case of
         training on one response (perhaps one that is more informative or
-        restrictive), but then predicting on a seperate test set.
+        restrictive), but then predicting on a separate test set.
         The default is None.
     sample_limit : int, optional
         The minimum acceptable samples in a split for the response

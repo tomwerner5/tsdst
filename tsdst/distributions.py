@@ -626,7 +626,7 @@ def likelihood_poisson(y_true, y_score, neg=True, log=True):
     Parameters
     ----------
     y_true : numpy array (numeric)
-        The true values (the poisson observations).
+        The true count values (the poisson observations).
     y_score : numpy array or pandas dataframe
         The estimated value/values (lambda).
     neg : bool, optional
@@ -662,8 +662,7 @@ def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+        The response value (should be an integer >= 0).
     lamb : int, optional
         The size of the penalty (lambda). Note this is the inverse of the
         common sklearn parameter C (i.e. C=1/lambda. The default is 1.
@@ -809,7 +808,7 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
         return loglike
     
 
-def ExactMLE_exp(data, censored):
+def exponential_mle(data, censored):
     """Maximum Likelihood Estimate of an exponential distribution (with an
     option for right-censoring).
 
@@ -1038,8 +1037,7 @@ def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+        The response value (should be an integer >= 0).
     l_scale : float, optional
         ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
         EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
@@ -1121,8 +1119,7 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+        The response value (should be an integer >= 0).
     l_scale : float, optional
         ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
         EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
@@ -1205,8 +1202,7 @@ def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+        The response value (should be an integer >= 0).
     l_scale : float, optional
         The value of the scale parameter in the Laplace distribution.
         A common choice for the laplace prior is scale = 2/lambda, 
@@ -1279,8 +1275,7 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+        The response value (should be an integer >= 0).
     l_scale : float, optional
         The value of the scale parameter in the Laplace distribution.
         A common choice for the laplace prior is scale = 2/lambda, 

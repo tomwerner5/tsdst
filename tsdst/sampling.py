@@ -7,7 +7,7 @@ from .utils import print_time, updateProgBar
 
 
 def downSample(data, target_var, majority=0, minority=1, bal=0.5,
-               random_state=123):
+               random_state=None):
     """
     In a low base-rate classification problem, it is sometimes advantageous to downsample
     the majority class until the classes are balanced (or close enough). This 
@@ -39,8 +39,10 @@ def downSample(data, target_var, majority=0, minority=1, bal=0.5,
     data_maj = data[data[target_var] == majority]
 
     samp_size_train = int(len(data_min)/bal - len(data_min))
-    
-    np.random.seed(random_state)
+
+    if random_state is not None:
+        np.random.seed(random_state)
+
     idx = np.random.choice(np.arange(0, len(data_maj)), samp_size_train,
                            replace=False)
 
@@ -119,7 +121,7 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
     Raises
     ------
     ValueError
-        Raised if invalid bin_plcement is passed.
+        Raised if invalid bin_placement is passed.
 
     Returns
     -------

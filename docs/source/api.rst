@@ -34,7 +34,7 @@ Likelihood Functions
 ~~~~~~~~~~~~~~~~~~~~
 
 These common likelihood functions are presented in two formats, one that is the
-simple likelihood definition (useable for any data), and one that assumes your
+simple likelihood definition (usable for any data), and one that assumes your
 data is part of a GLM or similar model.
 
 .. autosummary::
@@ -152,5 +152,7 @@ Modeling
     :toctree: generated/
     :nosignatures:
 
+    modeling.beta_trans
     modeling.crossVal
     modeling.EstimatorSelectionHelper
+    modeling.scoreModel
