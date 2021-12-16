@@ -211,8 +211,9 @@ class NeuralNetwork(object):
                             'beta2': 0.999,
                             'eps': 1e-8}.
         m_scale : float, optional
-            An optional scaling paramter to scale up or down the cost and
-            gradient values. The default is 1.
+            An optional scaling parameter to scale up or down the cost and
+            gradient values. For example, m_scale=2 will multiply the cost
+            function by 0.5. The default is 1.
         bn_tol : float, optional
             The tolerance used in the batch norm equations.
             The default is 1e-9.
