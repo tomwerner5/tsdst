@@ -136,7 +136,7 @@ def lecun_normal(incoming, outgoing):
     return W
     
 
-def random(incoming, outgoing, scale=0.01):
+def random_normal(incoming, outgoing, scale=0.01):
     """
     Random initialization. Uses a normal distribution for Neural Network weight initialization.
 

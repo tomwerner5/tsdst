@@ -61,7 +61,7 @@ def _updateProgBarMCMC(curIter, totalIter, t0, ar, barLength=20):
         sys.stdout.flush()
         
 
-def applyMCMC(st, ni, lp, algo, algoOpts=None, postArgs={},
+def applyMCMC(st, ni, lp, algo, algoOpts=None, postArgs=None,
               sd=0.02, max_tries=100):
     """This function iteratively applies the MCMC initialization. Since the MCMC
     algorithms used here involve a cholesky decomposition, the methods
@@ -105,6 +105,9 @@ def applyMCMC(st, ni, lp, algo, algoOpts=None, postArgs={},
         Returns tuple containing the MCMC results.
 
     """
+    if postArgs is None:
+        postArgs = {}
+
     try_num = 1
     not_successful = True
     res = None
@@ -331,7 +334,7 @@ def adaptive_mcmc(start, niter, lpost, postArgs=None, options=None):
     return {'parameters': parm, 'prev_vals': prev_vals}
 
 
-def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
+def rwm_with_lap(start, niter, lpost, postArgs=None, options=None):
     """A random walk metropolis algorithm that adaptively tunes the covariance
     matrix with a log-adaptive posterior.
     
@@ -347,7 +350,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
         Log posterior function.
     postArgs : dict
         Extra arguments for the log posterior function. The default is
-        an empty dictionary.
+        None.
     options : dict, optional
         Extra arguments for the MCMC algorithm, namely:
 
@@ -379,6 +382,9 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
         The ending values of the MCMC algorithm. Useful when you want to continue where you left off.
 
     """
+    if postArgs is None:
+        postArgs = {}
+
     k = 20
     c_0 = 1.0
     c_1 = 0.8
@@ -474,7 +480,7 @@ def rwm_with_lap(start, niter, lpost, postArgs={}, options=None):
     return {'parameters': parm, 'prev_vals': prev_vals}
 
 
-def rwm(start, niter, lpost, postArgs={}, options=None):
+def rwm(start, niter, lpost, postArgs=None, options=None):
     """A random walk metropolis algorithm.
 
     Parameters
@@ -487,7 +493,7 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
         Log posterior function.
     postArgs : dict
         Extra arguments for the log posterior function. The default is
-        an empty dictionary.
+        None.
     options : dict, optional
         Extra arguments for the MCMC algorithm, namely:
 
@@ -512,6 +518,9 @@ def rwm(start, niter, lpost, postArgs={}, options=None):
         continue where you left off.
 
     """
+    if postArgs is None:
+        postArgs = {}
+
     numParams = start.size
     
     prev_vals = {'E_0': ((2.38**2)/numParams)*np.diag(np.repeat(1, numParams))}
@@ -969,7 +978,7 @@ def minESS(p, alpha=0.05, eps=0.05, ess=None):
         return np.exp(logEPS)
 
 
-def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
+def multiESS(chain, covmat=None, g=None, mcse_multi_args=None):
     """This function computes the Effective Sample Size of an MCMC chain. Due to
     correlation between MCMC samples, it is sometimes unclear how much
     information about the parameters has been obtained. If all of the MCMC
@@ -1007,7 +1016,7 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
     mcse_multi_args : dict
         Arguments for mcse_multi function. Don't use this if a suitable matrix
         estimate from mcse_multi or mcse_initseq is already obtained. The
-        default is an empty dictionary
+        default is None
 
     Returns
     -------
@@ -1015,6 +1024,9 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args={}):
         The estimated effective sample size.
 
     """
+    if mcse_multi_args is None:
+        mcse_multi_args = {}
+
     if g is not None:
         chain = np.array([g(chain[i, :]) for i in range(chain.shape[0])])
     
@@ -1626,7 +1638,7 @@ class mcmcObject(object):
             None, it will do nothing. The default is 0.
         lpost_args : dict, optional
             Any extra arguments to pass to the log posterior function.
-            The default is an empty dictionary.
+            The default is None.
 
         Returns
         -------

@@ -391,6 +391,7 @@ for j in [7, 8]:
 
 from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import GradientBoostingClassifier as gbm
+from tsdst.nn.model import NeuralNetwork
 
 X, y =  make_classification(1000, n_features=20, n_informative=12,
                             class_sep=0.75, flip_y=0.2, random_state=42)

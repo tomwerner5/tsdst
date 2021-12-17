@@ -5,8 +5,7 @@ from ..distributions import pnorm_approx
 
 
 def relu(x, alpha=0):
-    """
-    Rectified Linear Unit.
+    """Rectified Linear Unit.
     
     If alpha is between 0 and 1, the function performs leaky relu.
     alpha values are commonly between 0.1 and 0.3 for leaky relu.
@@ -24,7 +23,6 @@ def relu(x, alpha=0):
     -------
     z : numpy array
         The activated values.
-
     """
     z = x.copy()
     z[x < 0] = z[x < 0]*alpha
@@ -32,8 +30,7 @@ def relu(x, alpha=0):
 
 
 def relu_der(x, alpha=0):
-    """
-    Rectified Linear Unit Derivative.
+    """Rectified Linear Unit Derivative.
     
     If alpha is between 0 and 1, the function performs leaky relu.
     alpha values are commonly between 0.1 and 0.3 for leaky relu.
@@ -57,7 +54,6 @@ def relu_der(x, alpha=0):
     -------
     dz : numpy array
         The derivative of the activated values.
-
     """
     dZ = x.copy()
     dZ[x <= 0] = alpha
@@ -66,8 +62,7 @@ def relu_der(x, alpha=0):
 
 
 def elu(x, alpha=0.1):
-    """
-    Exponential Linear Unit.
+    """Exponential Linear Unit.
     
     Main pro is it avoids dead relu. main con is computation time.
     
@@ -84,7 +79,6 @@ def elu(x, alpha=0.1):
     -------
     z : numpy array
         The activated values.
-
     """
     z = x.copy()
     
@@ -93,8 +87,7 @@ def elu(x, alpha=0.1):
 
 
 def elu_der(x, alpha=0.1):
-    """
-    Exponential Linear Unit derivative.
+    """Exponential Linear Unit derivative.
     
     Main pro is it avoids dead relu. Main con is computation time.
     
@@ -111,7 +104,6 @@ def elu_der(x, alpha=0.1):
     -------
     dz : numpy array
         The derivative of the activated values.
-
     """
     dZ = x.copy()
     dZ[x <= 0] = alpha*(np.exp(dZ[x <= 0]) - 1) + alpha
@@ -227,8 +219,7 @@ def gelu_speedy_der(x):
 
 
 def cross_entropy_binary(y_true, y_pred, delta=1e-9):
-    """
-    Binary Cross Entropy.
+    """Binary Cross Entropy.
     
     While the definition varies a little bit across ML or information theory
     domains, Cross-entropy in general is a method of measuring the difference
@@ -262,7 +253,6 @@ def cross_entropy_binary(y_true, y_pred, delta=1e-9):
     -------
     cost : float
         The binary cross-entropy.
-
     """
 
     # Compute the cross-entropy cost
@@ -279,8 +269,7 @@ def cross_entropy_binary(y_true, y_pred, delta=1e-9):
 
 
 def cross_entropy(y_true, y_pred, delta=1e-9):
-    """
-    Binary Cross Entropy.
+    """Binary Cross Entropy.
     
     While the definition varies a little bit across ML or information theory
     domains, Cross-entropy in general is a method of measuring the difference
@@ -314,7 +303,6 @@ def cross_entropy(y_true, y_pred, delta=1e-9):
     -------
     cost : float
         The binary cross-entropy.
-
     """
 
     # Compute the cross-entropy cost
@@ -332,8 +320,7 @@ def cross_entropy(y_true, y_pred, delta=1e-9):
 
 
 def cross_entropy_binary_der(y_true, y_pred, delta=1e-9):
-    """
-    The derivative of binary cross-entropy.
+    """The derivative of binary cross-entropy.
     
     The derivative of the cross-entropy function (i.e. derivative of the
     error output) with respect to the predicted value (y_pred).
@@ -356,7 +343,6 @@ def cross_entropy_binary_der(y_true, y_pred, delta=1e-9):
     -------
     float
         The derivative of binary cross-entropy.
-
     """
     # Compute the cross-entropy cost
     # To avoid log(0) errors (not necessary in most cases)
@@ -369,8 +355,7 @@ def cross_entropy_binary_der(y_true, y_pred, delta=1e-9):
 
 
 def cross_entropy_der(y_true, y_pred, delta=1e-9):
-    """
-    The derivative of binary cross-entropy.
+    """The derivative of binary cross-entropy.
     
     The derivative of the cross-entropy function (i.e. derivative of the
     error output) with respect to the predicted value (y_pred).
@@ -393,7 +378,6 @@ def cross_entropy_der(y_true, y_pred, delta=1e-9):
     -------
     float
         The derivative of binary cross-entropy.
-
     """
     # Compute the cross-entropy cost
     # To avoid log(0) errors (not necessary in most cases)

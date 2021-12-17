@@ -21,10 +21,10 @@ __all__ = ['distributions',
            'mcmc',
            'metrics',
            'modeling',
-	   'optimization',
+	       'optimization',
            'parallel',
            'quick_analysis',
            'sampling',
            'tmath',
            'utils',
-	   'nn']
+	       'nn']

@@ -32,15 +32,16 @@ release = '1.0.11'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    #'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     #'sphinxcontrib.bibtex',
     'sphinx.ext.intersphinx',
-    #'sphinx.ext.viewcode',
-    #'sphinx.ext.napoleon',
-    'numpydoc'
+    'sphinx.ext.viewcode',
+    'numpydoc',
+    'sphinx_copybutton'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -98,6 +99,8 @@ intersphinx_mapping = {
     "seaborn": ("https://seaborn.pydata.org/", None),
     "scikit-learn": ("https://scikit-learn.org/stable", None)
 }
+# copybutton options
+copybutton_prompt_text = ">>> "
 
 # mathjax options
 mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"

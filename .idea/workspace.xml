@@ -2,7 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/source/api.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/api.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/source/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/source/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/index.rst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/RSM_hyperparam_tuning.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/RSM_hyperparam_tuning.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/distributions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/distributions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/mcmc.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/mcmc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/modeling.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/modeling.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/nn/activations.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/nn/activations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/nn/initializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/nn/initializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tsdst/nn/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/nn/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/nn/optimizers.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/nn/optimizers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,15 +58,12 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/examples/RSM_hyperparam_tuning.py" />
-    <property name="settings.editor.selected.configurable" value="preferences.sourceCode" />
+    <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
   <component name="RunManager">
     <configuration name="RSM.py" type="PythonConfigurationType" factoryName="Python" singleton="false">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="C:\Users\tomwe\Anaconda3\envs\tsdst-dev\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples" />
       <option name="IS_MODULE_SDK" value="false" />
@@ -119,7 +128,8 @@
       <workItem from="1638466716531" duration="10416000" />
       <workItem from="1638565657457" duration="3407000" />
       <workItem from="1638804778825" duration="1456000" />
-      <workItem from="1639695653803" duration="682000" />
+      <workItem from="1639695653803" duration="2360000" />
+      <workItem from="1639757133005" duration="13960000" />
     </task>
     <task id="LOCAL-00001" summary="Updated readme. Completed pycharm integration with git">
       <created>1627574652582</created>
@@ -198,7 +208,14 @@
       <option name="project" value="LOCAL" />
       <updated>1639696005048</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="updated sphinx documentation. updated NN model m_scale description">
+      <created>1639696365718</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1639696365718</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -237,14 +254,15 @@
     <MESSAGE value="updated docs to be more compliant with sphinx" />
     <MESSAGE value="updated sphinx documentation" />
     <MESSAGE value="updated sphinx documentation. Fixed minor bugs in modeling and sampling" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated sphinx documentation. Fixed minor bugs in modeling and sampling" />
+    <MESSAGE value="updated sphinx documentation. updated NN model m_scale description" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated sphinx documentation. updated NN model m_scale description" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/docs/source/conf.py</url>
-          <line>109</line>
+          <line>112</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">

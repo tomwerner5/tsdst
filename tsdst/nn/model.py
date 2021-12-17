@@ -37,8 +37,7 @@ class NeuralNetwork(object):
                  shuffle=False,
                  print_cost=True,
                  random_state=42):
-        """
-        The constructor for the NeuralNetwork class.
+        """The constructor for the NeuralNetwork class.
 
         Parameters
         ----------
@@ -46,6 +45,10 @@ class NeuralNetwork(object):
             A dictionary containing the model components, layers, and other
             specifications. The dictionary should have the following general
             structure:
+            
+            .. highlight:: python
+            .. code-block:: python
+            
                 {
                  'hidden0': {'depth': 10,
                              'activation': 'relu',
@@ -82,6 +85,7 @@ class NeuralNetwork(object):
                             'use_batch_norm': False
                             }
                  }
+            
             Each layer should have the components defined above, however, not
             every component needs to be used (for example, setting
             dropout_keep_prob = 1 disables dropout). There can be as many
@@ -93,31 +97,31 @@ class NeuralNetwork(object):
             
             A description of each layer key is defined below:
 
-                activation (str or function): The activation function to be
+                - activation (str or function): The activation function to be
                                               used. If custom function, it
                                               will pass the affine
                                               transformation of the current 
                                               layer as the first input to the
                                               function.
-                activation_args (dict) : An optional dictionary for passing
+                - activation_args (dict) : An optional dictionary for passing
                                          additional arguments to the activation
                                          or derivative function. If there are
                                          none to pass, use an empty dictionary.
                                          For hidden layers, the derivative and
                                          activation arguments should be the
                                          same, so they share this dictionary.
-                cost (str or function): The cost function to be
+                - cost (str or function): The cost function to be
                                         used. If custom function, it
                                         will pass the true Y values and
                                         the predicted Y values as the first
                                         two inputs to the function.
-                cost_args (dict) : An optional dictionary for passing
+                - cost_args (dict) : An optional dictionary for passing
                                    additional arguments to the 
                                    cost function. If there are
                                    none to pass, use an empty dictionary.
                                    Only applies ot the output layer.
-                depth (int): The number of hidden nodes in the layer
-                derivative (str or function): The derivative of the combined
+                - depth (int): The number of hidden nodes in the layer
+                - derivative (str or function): The derivative of the combined
                                               cost and output layer activation
                                               function to be
                                               used. If custom function, it
@@ -126,16 +130,16 @@ class NeuralNetwork(object):
                                               non-activated output layer values
                                               as the first inputs to the 
                                               function.
-                derivative_args (dict) : An optional dictionary for passing
+                - derivative_args (dict) : An optional dictionary for passing
                                          additional arguments to the derivative
                                          function. If there are none to pass,
                                          use an empty dictionary. This only
                                          applies to the output layer.
-                dropout_keep_prob (float) : The proportion of nodes to keep at
+                - dropout_keep_prob (float) : The proportion of nodes to keep at
                                             the respective layer. Between 0
                                             and 1. If dropping 10% of the
                                             nodes, the keep prob is 0.9
-                evaluation_metric (str or function) : An additional evaluation
+                - evaluation_metric (str or function) : An additional evaluation
                                                       metric to be used in 
                                                       training. This is only
                                                       used for printing an
@@ -144,7 +148,7 @@ class NeuralNetwork(object):
                                                       or specified iteration to
                                                       track the training
                                                       progress
-                initializer (str or function) : The function to be used in 
+                - initializer (str or function) : The function to be used in 
                                                 initializing the layer weights
                                                 and biases. If custom, it must
                                                 accept two arguments,  
@@ -154,36 +158,39 @@ class NeuralNetwork(object):
                                                 layer, and how many outputs
                                                 will be calculated at the 
                                                 current layer.
-                lambda (dict) : A dictionary containing the regularization 
+                - lambda (dict) : A dictionary containing the regularization 
                                 penalties for each type of regularization.
+                                
                                 The options are:
-                                    Weight (float) : The kernel or weight
+                                
+                                    - Weight (float) : The kernel or weight
                                                      regularizer
                                                      (recommended for use)
-                                    activity (float) : A regularizer placed on
+                                    - activity (float) : A regularizer placed on
                                                        the activation function
                                                        output (experimental in
                                                        this code, not
                                                        recommended for use)
-                                    bias (float) : A regularizer for the bias
+                                    - bias (float) : A regularizer for the bias
                                                    (not recommended for use for
                                                    theoretical reasons, but
                                                    should be correct to use)
                                 
                                 A value of zero for any of the lambdas will
                                 that regularization type for that layers.
-                lp_norm (dict) : A dictionary containing the regularization 
+                - lp_norm (dict) : A dictionary containing the regularization 
                                  norm funcitons for each type of
                                  regularization.
                                  
                                  The options are:
-                                    Weight (int) : The lp-norm for the weight
+                                 
+                                    - Weight (int) : The lp-norm for the weight
                                                    or kernel regularizer
-                                    activity (int) : The lp-norm for the
+                                    - activity (int) : The lp-norm for the
                                                      activity regularizer
-                                    bias (int) : The lp-norm for the bias
+                                    - bias (int) : The lp-norm for the bias
                                                  regularizer
-                use_batch_norm (bool) : If true, perform batch normalization
+                - use_batch_norm (bool) : If true, perform batch normalization
                                         on the current layer. For this
                                         implementation, the batch norm layer
                                         is placed before the activation
@@ -237,7 +244,6 @@ class NeuralNetwork(object):
         Returns
         -------
         None.
-
         """
         self.model = model
         self.num_layers = len(model.keys())

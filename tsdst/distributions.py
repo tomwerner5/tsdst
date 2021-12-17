@@ -38,7 +38,9 @@ def qnorm_approx(p, mu=0, sigma=1, lt=True):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import qnorm_approx
+    >>> 
     >>> data = np.array([0.5,0.975])
+    >>> 
     >>> qnorm_approx(p=data, mu=0, sigma=1, lt=True)
     array([0.        , 1.95904894])
     """
@@ -80,8 +82,10 @@ def pnorm_approx(q, mu=0, sigma=1, lt=True, log=False):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import pnorm_approx
+    >>> 
     >>> data = np.array([0, 1.96])
     >>> params = np.array([0, 1])
+    >>> 
     >>> pnorm_approx(q=data, mu=0, sigma=1, lt=True, log=False)
     array([0.5       , 0.97500217])
     """
@@ -134,8 +138,10 @@ def dpoibin_PA(k, p):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import dpoibin_PA
+    >>> 
     >>> p = np.array([0.5, 0.975, 0.3])
     >>> k = np.array([2, 3])
+    >>> 
     >>> dpoibin_PA(k, p)
     array([0.2669894 , 0.15796873])
     """
@@ -171,8 +177,10 @@ def ppoibin_RNA(k, p, p_weight=None):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import ppoibin_RNA
+    >>> 
     >>> p = np.array([0.5, 0.975, 0.3])
     >>> k = np.array([2, 3])
+    >>> 
     >>> ppoibin_RNA(k, p, p_weight=None)
     array([0.85063305, 0.99054359])
     """
@@ -221,8 +229,10 @@ def dpoibin_FT(k, p):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import dpoibin_FT
-    >>> p = np.array([0.5,0.975, 0.3])
+    >>> 
+    >>> p = np.array([0.5, 0.975, 0.3])
     >>> k = np.array([2, 3])
+    >>> 
     >>> dpoibin_FT(k, p)
     array([0.49125, 0.14625])
     """
@@ -279,8 +289,10 @@ def dpoibin_exact(k, p, cdf=False):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import dpoibin_exact
+    >>> 
     >>> p = np.array([0.5,0.975, 0.3])
     >>> k = np.array([2, 3])
+    >>> 
     >>> dpoibin_exact(k, p, cdf=False)
     [0.49125 0.14625]
     >>> dpoibin_exact(k, p, cdf=True)
@@ -373,8 +385,10 @@ def dwrap(data, params, disttype, funct, log=False):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import dwrap
+    >>> 
     >>> data = np.array([0.5,0.975])
     >>> params = np.array([0, 1])
+    >>> 
     >>> dwrap(data, params, disttype="inv-cdf", funct="normal", log=False)
     array([0.        , 1.95996398])
     """
@@ -592,13 +606,16 @@ def glm_likelihood_bernoulli(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import glm_likelihood_bernoulli
+    >>> 
     >>> intercept = np.array([3])
     >>> betas = np.array([2,4,5])
     >>> params = np.concatenate((intercept, betas))
+    >>> 
     >>> np.random.seed(123)
     >>> X = np.random.normal(size=(100, 3))
     >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
     >>> Y = np.round(np.random.uniform(low=0, high=1, size=100))
+    >>> 
     >>> glm_likelihood_bernoulli(params, X, Y, lamb=1, l_p=1)
     386.6152600787893
     """
@@ -683,13 +700,16 @@ def glm_likelihood_poisson(parms, X, Y, lamb=1, l_p=1, neg=True, log=True):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import glm_likelihood_poisson
+    >>> 
     >>> intercept = np.array([3])
     >>> betas = np.array([2,4,5])
     >>> params = np.concatenate((intercept, betas))
+    >>> 
     >>> np.random.seed(123)
     >>> X = np.random.normal(size=(100, 3))
     >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
     >>> Y = np.round(np.random.uniform(low=0, high=10, size=100))
+    >>> 
     >>> glm_likelihood_poisson(params, X, Y, lamb=1, l_p=1)
     3287063650.908373
     """
@@ -778,13 +798,16 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import glm_likelihood_gaussian
+    >>> 
     >>> intercept = np.array([3])
     >>> betas = np.array([2,4,5])
     >>> params = np.concatenate((intercept, betas))
+    >>> 
     >>> np.random.seed(123)
     >>> X = np.random.normal(size=(100, 3))
     >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
     >>> Y = np.random.normal(size=100)
+    >>> 
     >>> glm_likelihood_gaussian(params, X, Y, lamb=1, l_p=1)
     360.17670995853115
     """
@@ -890,13 +913,16 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import posterior_logreg_lasso
+    >>> 
     >>> intercept = np.array([3])
     >>> betas = np.array([2,4,5])
     >>> params = np.concatenate((intercept, betas))
+    >>> 
     >>> np.random.seed(123)
     >>> X = np.random.normal(size=(100, 3))
     >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
     >>> Y = np.round(np.random.uniform(low=0, high=1, size=100))
+    >>> 
     >>> posterior_logreg_lasso(params, X, Y)
     -400.881783704988
     """
@@ -979,14 +1005,17 @@ def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import ap_logreg_lasso
+    >>> 
     >>> intercept = np.array([3])
     >>> betas = np.array([2,4,5])
     >>> scale_param = np.array([1])
     >>> params = np.concatenate((intercept, betas, scale_param))
+    >>> 
     >>> np.random.seed(123)
     >>> X = np.random.normal(size=(100, 3))
     >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
     >>> Y = np.round(np.random.uniform(low=0, high=1, size=100))
+    >>> 
     >>> ap_logreg_lasso(params, X, Y)
     -395.3461032130849
     """

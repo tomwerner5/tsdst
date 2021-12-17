@@ -6,7 +6,7 @@ This documentation covers all the functions, classes, and methods contained in t
 .. _`Wikipedia article on Bayes Theorem` : https://en.wikipedia.org/wiki/Bayes%27_theorem
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
    API Pages  <api>

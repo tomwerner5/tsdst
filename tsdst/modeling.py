@@ -36,11 +36,11 @@ def scoreModel(X, Y, model, metrics=None,
                thres=None, mtype='classification',
                print_=True, avg="weighted"):
     """Score a model using the given metrics.
-
+    
     Parameters
     ----------
     X : pandas dataframe
-        Feature or design marix.
+        Feature or design matrix.
     Y : pandas series
         Response or Target variable.
     model : sklearn, or similar
@@ -48,28 +48,26 @@ def scoreModel(X, Y, model, metrics=None,
         methods, depending on the metrics.
     metrics : list, optional
         The metrics to include in the analysis.
-        The default is ['Accuracy', 'F1', 'Sens/Recall',
-                        'Specificity', 'ppv', 'npv', 'AUC'].
+        The default is ['Accuracy', 'F1', 'Sens/Recall', 'Specificity', 'ppv', 'npv', 'AUC'].
     thres : float, optional
         The threshold to use for classification metrics where it might apply.
-        If threshold is None, the default predict mehtod is used (which
+        If threshold is None, the default predict method is used (which
         for most models uses a boundary at or equivalent to 0.5 probability).
         The default is None.
     mtype : str, optional
-        The type of model, currently either classification or regressor.
+        The type of model, currently either classification or regression.
         The default is 'classification'.
     print_ : bool, optional
         Print progress as applicable. The default is True.
     avg : str, optional
         for metrics where it applies, such as AUC, how to calculate the
-        metric (see sklearn docs for more details, particularily with AUC).
-        The default is "weighted".
+        metric (see sklearn docs for more details, particularly with AUC).
+        The default is 'weighted'.
 
     Returns
     -------
     res : dict
         A dictionary containing the results for each metric.
-
     """
     if metrics is None:
         if mtype == 'classification':
@@ -332,8 +330,7 @@ def runScorers(X, Y, splits, model, mtype, metrics=None,
                avg='weighted', calculate=None,
                method_on_X=None, mox_args=None, Y_for_test_only=None,
                sample_limit=20):
-    """
-    Performs the cross-validation.
+    """Performs the cross-validation.
 
     Parameters
     ----------
@@ -579,6 +576,36 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
     scores : dict
         Dictionary of performance metrics.
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import seaborn as sns
+    >>> from matplotlib import pyplot as plt
+    >>> from sklearn.datasets import make_classification
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> from sklearn.model_selection import train_test_split
+    >>> from timeit import default_timer as dt
+    >>> 
+    >>> from tsdst.modeling import crossVal
+    >>> 
+    >>> X, y = make_classification(n_samples=10000, n_features=50, flip_y=0.2, random_state=42)
+    >>> X = pd.DataFrame(X, columns=['V' + str(i) for i in range(X.shape[1])])
+    >>> y = pd.DataFrame(y.reshape(-1, 1), columns=['y'])
+    >>> 
+    >>> X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    >>> 
+    >>> sk_mod = LogisticRegression()
+    >>> 
+    >>> results = crossVal(X_train, y_train, 5, sk_mod)
+    Out of Sample:
+        Accuracy   : μ: 0.8155, σ: 0.0052, 2σ Interval (0.8051, 0.8259)
+        F1         : μ: 0.8151, σ: 0.0048, 2σ Interval (0.8056, 0.8246)
+        Sens/Recall: μ: 0.8184, σ: 0.0105, 2σ Interval (0.7973, 0.8394)
+        Specificity: μ: 0.8129, σ: 0.0063, 2σ Interval (0.8002, 0.8256)
+        ppv        : μ: 0.8121, σ: 0.0095, 2σ Interval (0.7930, 0.8312)
+        npv        : μ: 0.8189, σ: 0.0138, 2σ Interval (0.7914, 0.8464)
+        AUC        : μ: 0.8637, σ: 0.0066, 2σ Interval (0.8505, 0.8769)
     """
     if mox_args is None:
         mox_args = {}
@@ -997,17 +1024,16 @@ def beta_trans(coef, type_="percent"):
     
 
 def getPriors(data, Ycol):
-    """
-    Calculate the class distributions across each column of the dataset.
+    """Calculate the class distributions across each column of the dataset.
     
     For classification problems, but could easily be used with regression
-    problems if an idicator variable was made that indicated some split in the
+    problems if an indicator variable was made that indicated some split in the
     data.
 
     Parameters
     ----------
     data : pandas dataframe
-        The feature or design matrix, along with the reponse variable.
+        The feature or design matrix, along with the response variable.
     Ycol : str
         The column representing the target or response variable.
 
@@ -1015,7 +1041,6 @@ def getPriors(data, Ycol):
     -------
     alltab : pandas dataframe
         A dataframe containing all of the results.
-
     """
     tab = None
     alltab = None
@@ -1122,8 +1147,7 @@ class EstimatorSelectionHelper(object):
         return self
     
     def _score_summary_ea(self, sort_by):
-        """
-        Create a summary of the evolutionary algorithm results.
+        """Create a summary of the evolutionary algorithm results.
 
         Parameters
         ----------
@@ -1134,7 +1158,6 @@ class EstimatorSelectionHelper(object):
         -------
         pandas dataframe
             A dataframe containing the results.
-
         """
         rows = []
         for k in self.grid_searches:
@@ -1164,8 +1187,7 @@ class EstimatorSelectionHelper(object):
         return df[columns]
     
     def _score_summary_skgs(self, sort_by):
-        """
-        Create a summary of the Grid Search results.
+        """Create a summary of the Grid Search results.
 
         Parameters
         ----------
@@ -1176,7 +1198,6 @@ class EstimatorSelectionHelper(object):
         -------
         pandas dataframe
             A dataframe containing the results.
-
         """
         def row(key, scores, params, score_type):
             d = {
@@ -1211,8 +1232,7 @@ class EstimatorSelectionHelper(object):
         return df[columns]
     
     def score_summary(self, sort_by='mean_score'):
-        """
-        Create a summary of the scores and results.
+        """Create a summary of the scores and results.
 
         Parameters
         ----------
@@ -1223,7 +1243,6 @@ class EstimatorSelectionHelper(object):
         -------
         scores : pandas dataframe
             A dataframe containing the results.
-
         """
         scores = None
         if self.gs_name == 'EvolutionaryAlgorithmSearchCV':
@@ -1234,8 +1253,7 @@ class EstimatorSelectionHelper(object):
 
 
 def BPCA_initmodel(y, q):
-    """
-    Initialize the bPCA model.
+    """Initialize the bPCA model.
 
     Parameters
     ----------
@@ -1248,7 +1266,6 @@ def BPCA_initmodel(y, q):
     -------
     M : dict
         A dictionary of the initialized values.
-
     """
     M = {}
     M['N'] = y.shape[0]
@@ -1298,8 +1315,7 @@ def BPCA_initmodel(y, q):
 
 
 def BPCA_dostep(M, y):
-    """
-    The workhorse of the bPCA algorithm, the Expectation-Maximization
+    """The workhorse of the bPCA algorithm, the Expectation-Maximization
     step.
 
     Parameters
@@ -1313,7 +1329,6 @@ def BPCA_dostep(M, y):
     -------
     M : dict
         The updated results.
-
     """
     N = M['N']
     d = M['d']
@@ -1365,8 +1380,7 @@ def BPCA_dostep(M, y):
 
 # assumes no rows of all NaNs
 def bPCA(data, k=None, maxepoch=200, stepsize=10, dtau_tol=1e-8):
-    """
-    An algorithm to compute missing values using Bayesian PCA. Translated from
+    """An algorithm to compute missing values using Bayesian PCA. Translated from
     MATLAB code by Shigeyuki OBA, 2002 May. 5th.
 
     Parameters
@@ -1388,12 +1402,29 @@ def bPCA(data, k=None, maxepoch=200, stepsize=10, dtau_tol=1e-8):
     Returns
     -------
     M : dict
-        A dictionary of the results, containing:
-            mu: The estimated mean row vector
-            W: The estimated principal axis matrix
-            tau: The estimated precision (inverse variance) of the residual 
+        A dictionary of the results, containing\:
+
+            - yest \: The original data matrix with missing values imputed
+            - mu \: The estimated mean row vector
+            - W \: The estimated principal axis matrix
+            - tau \: The estimated precision (inverse variance) of the residual \
                  error
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from tsdst.modeling import bPCA
+    >>> X = np.array([[1,2,3],
+    >>>               [4,5,6],
+    >>>               [7,np.nan,9],
+    >>>               [10,11,12]])
+    >>>
+    >>> M = bPCA(X, dtau_tol=1e-6, maxepoch=1000, stepsize=10)
+    >>> print(M['yest'])
+    [[ 1.          2.          3.          ]
+     [ 4.          5.          6.          ]
+     [ 7.          7.46614942  9.          ]
+     [ 10.         11.         12.         ]]
     """
     N, d = data.shape
     if k is None:
