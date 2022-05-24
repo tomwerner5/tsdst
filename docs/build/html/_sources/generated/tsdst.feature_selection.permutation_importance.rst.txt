@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.feature\_selection.permutation\_importance
+================================================
+
+.. currentmodule:: tsdst.feature_selection
+
+.. autofunction:: permutation_importance

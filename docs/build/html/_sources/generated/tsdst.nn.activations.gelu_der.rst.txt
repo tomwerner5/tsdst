@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.nn.activations.gelu\_der
+==============================
+
+.. currentmodule:: tsdst.nn.activations
+
+.. autofunction:: gelu_der

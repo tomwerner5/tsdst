@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tsdst.nn.model.NeuralNetwork.__init__ &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.nn.model.NeuralNetwork.__init__</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.nn.model.NeuralNetwork.__init__.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  </div>
+<div class=col-md-9 content><section id="tsdst-nn-model-neuralnetwork-init">
+<h1>tsdst.nn.model.NeuralNetwork.__init__<a class="headerlink" href="#tsdst-nn-model-neuralnetwork-init" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="tsdst.nn.model.NeuralNetwork.__init__">
+<span class="sig-prename descclassname"><span class="pre">NeuralNetwork.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'adam'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'beta1':</span> <span class="pre">0.9,</span> <span class="pre">'beta2':</span> <span class="pre">0.999,</span> <span class="pre">'eps':</span> <span class="pre">1e-08,</span> <span class="pre">'learning_rate':</span> <span class="pre">0.001}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bn_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bn_momentum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scorer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'accuracy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_cost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/nn/model.html#NeuralNetwork.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.nn.model.NeuralNetwork.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The constructor for the NeuralNetwork class.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>model</strong><span class="classifier">dict</span></dt><dd><p>A dictionary containing the model components, layers, and other
+specifications. The dictionary should have the following general
+structure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+ <span class="s1">&#39;hidden0&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+             <span class="s1">&#39;activation&#39;</span><span class="p">:</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;derivative&#39;</span><span class="p">:</span> <span class="s1">&#39;relu_der&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;activation_args&#39;</span><span class="p">:</span> <span class="p">{},</span>
+             <span class="s1">&#39;initializer&#39;</span><span class="p">:</span> <span class="s1">&#39;he_uniform&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="s1">&#39;lambda&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="s1">&#39;bias&#39;</span><span class="p">:</span> <span class="mi">0</span>
+                      <span class="p">},</span>
+            <span class="s1">&#39;lp_norm&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                       <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                       <span class="s1">&#39;bias&#39;</span><span class="p">:</span> <span class="mi">2</span>
+                      <span class="p">},</span>
+            <span class="s1">&#39;use_batch_norm&#39;</span><span class="p">:</span> <span class="kc">False</span>
+             <span class="p">},</span>
+ <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;activation&#39;</span><span class="p">:</span> <span class="s1">&#39;softmax&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;activation_args&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;cost&#39;</span><span class="p">:</span> <span class="s1">&#39;cross_entropy&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cost_args&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;derivative&#39;</span><span class="p">:</span> <span class="s1">&#39;softmax_cross_entropy_der&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;derivative_args&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;initializer&#39;</span><span class="p">:</span> <span class="s1">&#39;xavier_normal&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;evaluation_metric&#39;</span><span class="p">:</span> <span class="s1">&#39;accuracy&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;lambda&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                       <span class="s1">&#39;bias&#39;</span><span class="p">:</span> <span class="mi">0</span>
+                      <span class="p">},</span>
+            <span class="s1">&#39;lp_norm&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                       <span class="s1">&#39;activity&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                       <span class="s1">&#39;bias&#39;</span><span class="p">:</span> <span class="mi">2</span>
+                      <span class="p">},</span>
+            <span class="s1">&#39;use_batch_norm&#39;</span><span class="p">:</span> <span class="kc">False</span>
+            <span class="p">}</span>
+ <span class="p">}</span>
+</pre></div>
+</div>
+<p>Each layer should have the components defined above, however, not
+every component needs to be used (for example, setting
+dropout_keep_prob = 1 disables dropout). There can be as many
+hidden layers as desired (including none). Simply copy the
+‘hidden1’ sub-dictionary before the output layer to add a new
+hidden layer. However, the network must have an output layer
+defined. The key names for the layers can be anything, but the
+output layer must be positioned last.</p>
+<p>A description of each layer key is defined below:</p>
+<blockquote>
+<div><ul>
+<li><dl class="simple">
+<dt>activation (str or function): The activation function to be</dt><dd><p>used. If custom function, it
+will pass the affine
+transformation of the current 
+layer as the first input to the
+function.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>activation_args (dict)<span class="classifier">An optional dictionary for passing</span></dt><dd><p>additional arguments to the activation
+or derivative function. If there are
+none to pass, use an empty dictionary.
+For hidden layers, the derivative and
+activation arguments should be the
+same, so they share this dictionary.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>cost (str or function): The cost function to be</dt><dd><p>used. If custom function, it
+will pass the true Y values and
+the predicted Y values as the first
+two inputs to the function.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>cost_args (dict)<span class="classifier">An optional dictionary for passing</span></dt><dd><p>additional arguments to the 
+cost function. If there are
+none to pass, use an empty dictionary.
+Only applies ot the output layer.</p>
+</dd>
+</dl>
+</li>
+<li><p>depth (int): The number of hidden nodes in the layer</p></li>
+<li><dl class="simple">
+<dt>derivative (str or function): The derivative of the combined</dt><dd><p>cost and output layer activation
+function to be
+used. If custom function, it
+will pass the true Y values,
+the predicted Y values, and the
+non-activated output layer values
+as the first inputs to the 
+function.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>derivative_args (dict)<span class="classifier">An optional dictionary for passing</span></dt><dd><p>additional arguments to the derivative
+function. If there are none to pass,
+use an empty dictionary. This only
+applies to the output layer.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>dropout_keep_prob (float)<span class="classifier">The proportion of nodes to keep at</span></dt><dd><p>the respective layer. Between 0
+and 1. If dropping 10% of the
+nodes, the keep prob is 0.9</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>evaluation_metric (str or function)<span class="classifier">An additional evaluation</span></dt><dd><p>metric to be used in 
+training. This is only
+used for printing an
+additional output along
+with cost at each epoch
+or specified iteration to
+track the training
+progress</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>initializer (str or function)<span class="classifier">The function to be used in </span></dt><dd><p>initializing the layer weights
+and biases. If custom, it must
+accept two arguments,  
+‘incoming’ and ‘outgoing’,
+which represent how many inputs
+are recieved from the previous
+layer, and how many outputs
+will be calculated at the 
+current layer.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>lambda (dict)<span class="classifier">A dictionary containing the regularization </span></dt><dd><p>penalties for each type of regularization.</p>
+<p>The options are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Weight (float)<span class="classifier">The kernel or weight</span></dt><dd><p>regularizer
+(recommended for use)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>activity (float)<span class="classifier">A regularizer placed on</span></dt><dd><p>the activation function
+output (experimental in
+this code, not
+recommended for use)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>bias (float)<span class="classifier">A regularizer for the bias</span></dt><dd><p>(not recommended for use for
+theoretical reasons, but
+should be correct to use)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>A value of zero for any of the lambdas will                                 that regularization type for that layers.</p>
+</dd>
+</dl>
+</li>
+<li><p>lp_norm (dict) : A dictionary containing the regularization                                  norm funcitons for each type                                  regularization.</p>
+<blockquote>
+<div><p>The options are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>Weight (int)<span class="classifier">The lp-norm for the weight</span></dt><dd><p>or kernel regularizer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>activity (int)<span class="classifier">The lp-norm for the</span></dt><dd><p>activity regularizer</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>bias (int)<span class="classifier">The lp-norm for the bias</span></dt><dd><p>regularizer</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><dl class="simple">
+<dt>use_batch_norm (bool)<span class="classifier">If true, perform batch normalization</span></dt><dd><p>on the current layer. For this
+implementation, the batch norm layer
+is placed before the activation
+function and before dropout (if used
+together)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd>
+<dt><strong>eval_size</strong><span class="classifier">int, optional</span></dt><dd><p>The number of model evaluations to perform before printing
+an output. It is recommended that this number be
+<cite>int(n/batch_size) + sum([n % batch_size != 0])</cite> where n is the
+number of observations</p>
+</dd>
+<dt><strong>batch_size</strong><span class="classifier">int, optional</span></dt><dd><p>The number of observations used to update the model at each step.
+The default is 64.</p>
+</dd>
+<dt><strong>num_iterations</strong><span class="classifier">int, optional</span></dt><dd><p>The total number of full passes through the data to perform
+(i.e. the number of epochs). The default is 500.</p>
+</dd>
+<dt><strong>optimizer</strong><span class="classifier">str, optional</span></dt><dd><p>The type of optimizer to use for gradient descent.
+The default is ‘adam’.</p>
+</dd>
+<dt><strong>optimizer_args</strong><span class="classifier">dict, optional</span></dt><dd><p>Optional arguments to send to the optimizer (learning rate, etc.). 
+The default is {‘learning_rate’: 0.001,</p>
+<blockquote>
+<div><p>‘beta1’: 0.9,
+‘beta2’: 0.999,
+‘eps’: 1e-8}.</p>
+</div></blockquote>
+</dd>
+<dt><strong>m_scale</strong><span class="classifier">float, optional</span></dt><dd><p>An optional scaling parameter to scale up or down the cost and
+gradient values. For example, m_scale=2 will multiply the cost
+function by 0.5. The default is 1.</p>
+</dd>
+<dt><strong>bn_tol</strong><span class="classifier">float, optional</span></dt><dd><p>The tolerance used in the batch norm equations.
+The default is 1e-9.</p>
+</dd>
+<dt><strong>bn_momentum</strong><span class="classifier">float, optional</span></dt><dd><p>The momentum used in the exponential moving average for the mean
+and variance of the batch norm process. The default is 0.</p>
+</dd>
+<dt><strong>scorer</strong><span class="classifier">str or function, optional</span></dt><dd><p>The function used in the score method. If custom, it must accept
+the true Y values and the predicted y values as the first two
+arguments of the function.
+The default is ‘accuracy’.</p>
+</dd>
+<dt><strong>shuffle</strong><span class="classifier">bool, optional</span></dt><dd><p>Shuffle the training set before training. The default is False.</p>
+</dd>
+<dt><strong>print_cost</strong><span class="classifier">bool, optional</span></dt><dd><p>Print the cost (and possibly another metric) at each eval_step.
+The default is True.</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int, optional</span></dt><dd><p>The random state of the process (for reproducibility).
+The default is 42.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>None.</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

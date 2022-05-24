@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.mcmc.minESS
+=================
+
+.. currentmodule:: tsdst.mcmc
+
+.. autofunction:: minESS

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>API reference &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tsdst.distributions.dpoibin_exact" href="generated/tsdst.distributions.dpoibin_exact.html" />
+    <link rel="prev" title="Welcome to tsdst’s documentation!" href="index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">API reference</a><ul>
+<li><a class="reference internal" href="#distributions">Distributions</a><ul>
+<li><a class="reference internal" href="#general-functions">General Functions</a></li>
+<li><a class="reference internal" href="#likelihood-functions">Likelihood Functions</a></li>
+<li><a class="reference internal" href="#posterior-functions">Posterior Functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#estimators">Estimators</a><ul>
+<li><a class="reference internal" href="#bayesian-estimators">Bayesian Estimators</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#feature-selection">Feature Selection</a><ul>
+<li><a class="reference internal" href="#value-drop-procedures">Value Drop Procedures</a></li>
+<li><a class="reference internal" href="#selection-algorithms">Selection Algorithms</a></li>
+<li><a class="reference internal" href="#feature-importance">Feature Importance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mcmc">MCMC</a><ul>
+<li><a class="reference internal" href="#mcmc-object">MCMC Object</a></li>
+<li><a class="reference internal" href="#mcmc-supporting-functions">MCMC Supporting Functions</a></li>
+<li><a class="reference internal" href="#mcmc-diagnostics">MCMC Diagnostics</a></li>
+<li><a class="reference internal" href="#mcmc-algorithms">MCMC Algorithms</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modeling">Modeling</a><ul>
+<li><a class="reference internal" href="#modeling-tools">Modeling Tools</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#neural-networks">Neural Networks</a><ul>
+<li><a class="reference internal" href="#activations">Activations</a></li>
+<li><a class="reference internal" href="#initializers">Initializers</a></li>
+<li><a class="reference internal" href="#model">Model</a></li>
+<li><a class="reference internal" href="#optimizers">Optimizers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="index.html" title="Previous Chapter: Welcome to tsdst’s documentation!"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Welcome to ts...</span>
+    </a>
+  </li>
+  <li>
+    <a href="generated/tsdst.distributions.dpoibin_exact.html" title="Next Chapter: tsdst.distributions.dpoibin_exact"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.distrib... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/api.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <section id="api-reference">
+<span id="api-ref"></span><h1>API reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<section id="distributions">
+<span id="distributions-api"></span><h2>Distributions<a class="headerlink" href="#distributions" title="Permalink to this headline">¶</a></h2>
+<p>This section contains statistical functions for various distributions for a wide range of purposes.</p>
+<section id="general-functions">
+<h3>General Functions<a class="headerlink" href="#general-functions" title="Permalink to this headline">¶</a></h3>
+<p>This section includes approximations about the normal distribution, as well as
+calculations for the poison-binomial distribution.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.dpoibin_exact.html#tsdst.distributions.dpoibin_exact" title="tsdst.distributions.dpoibin_exact"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.dpoibin_exact</span></code></a></p></td>
+<td><p>The exact probability mass function for the poisson-binomial distribution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.dpoibin_FT.html#tsdst.distributions.dpoibin_FT" title="tsdst.distributions.dpoibin_FT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.dpoibin_FT</span></code></a></p></td>
+<td><p>The probability mass function for the poisson-binomial distribution using Fourier transforms.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.dpoibin_PA.html#tsdst.distributions.dpoibin_PA" title="tsdst.distributions.dpoibin_PA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.dpoibin_PA</span></code></a></p></td>
+<td><p>Poisson approximation of the Poisson-Binomial probability mass function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.dwrap.html#tsdst.distributions.dwrap" title="tsdst.distributions.dwrap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.dwrap</span></code></a></p></td>
+<td><p>This function is meant to be similar to the R distribution functions, such as dnorm, pnorm, qnorm, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.pnorm_approx.html#tsdst.distributions.pnorm_approx" title="tsdst.distributions.pnorm_approx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.pnorm_approx</span></code></a></p></td>
+<td><p>This is a fast approximation of the normal cdf, accurate to 1.5e-7.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.ppoibin_RNA.html#tsdst.distributions.ppoibin_RNA" title="tsdst.distributions.ppoibin_RNA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.ppoibin_RNA</span></code></a></p></td>
+<td><p>Refined normal approximation of Poisson-Binomial Cumulative Distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.qnorm_approx.html#tsdst.distributions.qnorm_approx" title="tsdst.distributions.qnorm_approx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.qnorm_approx</span></code></a></p></td>
+<td><p>This is a faster approximation of the normal quantile function (At least this was true at the time I last benchmarked it).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="likelihood-functions">
+<h3>Likelihood Functions<a class="headerlink" href="#likelihood-functions" title="Permalink to this headline">¶</a></h3>
+<p>These common likelihood functions are presented in two formats, one that is the
+simple likelihood definition (usable for any data), and one that assumes your
+data is part of a GLM or similar model.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.exponential_mle.html#tsdst.distributions.exponential_mle" title="tsdst.distributions.exponential_mle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.exponential_mle</span></code></a></p></td>
+<td><p>Maximum Likelihood Estimate of an exponential distribution (with an option for right-censoring).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.likelihood_bernoulli.html#tsdst.distributions.likelihood_bernoulli" title="tsdst.distributions.likelihood_bernoulli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.likelihood_bernoulli</span></code></a></p></td>
+<td><p>The likelihood for a binary output or bernoulli model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.likelihood_gaussian.html#tsdst.distributions.likelihood_gaussian" title="tsdst.distributions.likelihood_gaussian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.likelihood_gaussian</span></code></a></p></td>
+<td><p>The likelihood for a normal(ish) output or gaussian model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.likelihood_poisson.html#tsdst.distributions.likelihood_poisson" title="tsdst.distributions.likelihood_poisson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.likelihood_poisson</span></code></a></p></td>
+<td><p>The likelihood for a count output or poisson model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.glm_likelihood_bernoulli.html#tsdst.distributions.glm_likelihood_bernoulli" title="tsdst.distributions.glm_likelihood_bernoulli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.glm_likelihood_bernoulli</span></code></a></p></td>
+<td><p>The likelihood for a logistic regression or bernoulli model with a penalty term (can accept any norm, default is 1 for L1).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.glm_likelihood_gaussian.html#tsdst.distributions.glm_likelihood_gaussian" title="tsdst.distributions.glm_likelihood_gaussian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.glm_likelihood_gaussian</span></code></a></p></td>
+<td><p>The likelihood for a gaussian regression model with a penalty term (can accept any norm, default is 1 for L1).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.glm_likelihood_poisson.html#tsdst.distributions.glm_likelihood_poisson" title="tsdst.distributions.glm_likelihood_poisson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.glm_likelihood_poisson</span></code></a></p></td>
+<td><p>The likelihood for a poisson regression model with a penalty term (can accept any norm, default is 1 for L1).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="posterior-functions">
+<h3>Posterior Functions<a class="headerlink" href="#posterior-functions" title="Permalink to this headline">¶</a></h3>
+<p>These functions are mainly for Bayesian Inference, and for use with the
+MCMC module.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.exp_gamma.html#tsdst.distributions.exp_gamma" title="tsdst.distributions.exp_gamma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.exp_gamma</span></code></a></p></td>
+<td><p>Posterior distribution for an exponential likelihood with a gamma prior.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.NHPP_posterior.html#tsdst.distributions.NHPP_posterior" title="tsdst.distributions.NHPP_posterior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.NHPP_posterior</span></code></a></p></td>
+<td><p>The posterior density of the non-homogenous Poisson distribution with a power-law process.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.pois_gamma.html#tsdst.distributions.pois_gamma" title="tsdst.distributions.pois_gamma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.pois_gamma</span></code></a></p></td>
+<td><p>Posterior density for the Poisson distribution (assuming gamma prior).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.pois_gamma_ada.html#tsdst.distributions.pois_gamma_ada" title="tsdst.distributions.pois_gamma_ada"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.pois_gamma_ada</span></code></a></p></td>
+<td><p>Posterior density for the Poisson distribution (assuming gamma prior), learns the gamma shape/scale as part of mcmc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.pois_uniform.html#tsdst.distributions.pois_uniform" title="tsdst.distributions.pois_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.pois_uniform</span></code></a></p></td>
+<td><p>Posterior density for the Poisson distribution (assuming uniform prior).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.posterior_logreg_lasso.html#tsdst.distributions.posterior_logreg_lasso" title="tsdst.distributions.posterior_logreg_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.posterior_logreg_lasso</span></code></a></p></td>
+<td><p>The posterior density for a logistic regression model with an L1 penalty term.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.ap_logreg_lasso.html#tsdst.distributions.ap_logreg_lasso" title="tsdst.distributions.ap_logreg_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.ap_logreg_lasso</span></code></a></p></td>
+<td><p>The posterior density for a logistic regression model with an L1 penalty term.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.posterior_poisson_lasso.html#tsdst.distributions.posterior_poisson_lasso" title="tsdst.distributions.posterior_poisson_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.posterior_poisson_lasso</span></code></a></p></td>
+<td><p>The posterior density for a poisson regression model with an L1 penalty term.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.posterior_poisson_lasso_od.html#tsdst.distributions.posterior_poisson_lasso_od" title="tsdst.distributions.posterior_poisson_lasso_od"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.posterior_poisson_lasso_od</span></code></a></p></td>
+<td><p>The posterior density for a poisson regression model with an L1 penalty term.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.ap_poisson_lasso_od.html#tsdst.distributions.ap_poisson_lasso_od" title="tsdst.distributions.ap_poisson_lasso_od"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.ap_poisson_lasso_od</span></code></a></p></td>
+<td><p>The posterior density for a poisson regression model with an L1 penalty term.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.weibull_gamma.html#tsdst.distributions.weibull_gamma" title="tsdst.distributions.weibull_gamma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.weibull_gamma</span></code></a></p></td>
+<td><p>The posterior density for a weibull distribution with a gamma prior.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.weibull_regression_post.html#tsdst.distributions.weibull_regression_post" title="tsdst.distributions.weibull_regression_post"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.weibull_regression_post</span></code></a></p></td>
+<td><p>The posterior density for a weibull regression model with an L1 penalty term.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="estimators">
+<span id="estimators-api"></span><h2>Estimators<a class="headerlink" href="#estimators" title="Permalink to this headline">¶</a></h2>
+<section id="bayesian-estimators">
+<h3>Bayesian Estimators<a class="headerlink" href="#bayesian-estimators" title="Permalink to this headline">¶</a></h3>
+<p>Bayesian Estimators using MCMC to calculate model parameters and associated errors.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.estimators.BayesLogRegClassifier.html#tsdst.estimators.BayesLogRegClassifier" title="tsdst.estimators.BayesLogRegClassifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimators.BayesLogRegClassifier</span></code></a></p></td>
+<td><p>A Logistic Regression Classifier that uses MCMC to evaluate the parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.estimators.BayesPoissonRegressor.html#tsdst.estimators.BayesPoissonRegressor" title="tsdst.estimators.BayesPoissonRegressor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimators.BayesPoissonRegressor</span></code></a></p></td>
+<td><p>A Poisson Regressor that uses MCMC to evaluate the parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.estimators.BayesWeibullRegressor.html#tsdst.estimators.BayesWeibullRegressor" title="tsdst.estimators.BayesWeibullRegressor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimators.BayesWeibullRegressor</span></code></a></p></td>
+<td><p>A Weibull Regressor that uses MCMC to evaluate the parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="feature-selection">
+<span id="feature-selection-api"></span><h2>Feature Selection<a class="headerlink" href="#feature-selection" title="Permalink to this headline">¶</a></h2>
+<section id="value-drop-procedures">
+<h3>Value Drop Procedures<a class="headerlink" href="#value-drop-procedures" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.getHighCorrs.html#tsdst.feature_selection.getHighCorrs" title="tsdst.feature_selection.getHighCorrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.getHighCorrs</span></code></a></p></td>
+<td><p>Given a correlation matrix, return the correlations that are above the threshold.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.dropCorrProcedure.html#tsdst.feature_selection.dropCorrProcedure" title="tsdst.feature_selection.dropCorrProcedure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.dropCorrProcedure</span></code></a></p></td>
+<td><p>Calculates the inter-correlation of the columns in a matrix/dataframe, and then drops columns that are above a given threshold.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.dropHighCorrs.html#tsdst.feature_selection.dropHighCorrs" title="tsdst.feature_selection.dropHighCorrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.dropHighCorrs</span></code></a></p></td>
+<td><p>Remove high inter-correlations from the dataset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.naiveScoreDrop.html#tsdst.feature_selection.naiveScoreDrop" title="tsdst.feature_selection.naiveScoreDrop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.naiveScoreDrop</span></code></a></p></td>
+<td><p>Drop columns based on which columns have scores below the threshold.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.naiveVarDrop.html#tsdst.feature_selection.naiveVarDrop" title="tsdst.feature_selection.naiveVarDrop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.naiveVarDrop</span></code></a></p></td>
+<td><p>Drop columns based on which columns have variance below the threshold.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.vifDrop.html#tsdst.feature_selection.vifDrop" title="tsdst.feature_selection.vifDrop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.vifDrop</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="selection-algorithms">
+<h3>Selection Algorithms<a class="headerlink" href="#selection-algorithms" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.forwardSelection.html#tsdst.feature_selection.forwardSelection" title="tsdst.feature_selection.forwardSelection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.forwardSelection</span></code></a></p></td>
+<td><p>A forward selection algorithm for classification only right now.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="feature-importance">
+<h3>Feature Importance<a class="headerlink" href="#feature-importance" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.permutation_importance.html#tsdst.feature_selection.permutation_importance" title="tsdst.feature_selection.permutation_importance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.permutation_importance</span></code></a></p></td>
+<td><p>Performs permutation importance on a fitted model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.permutation_importance_CV.html#tsdst.feature_selection.permutation_importance_CV" title="tsdst.feature_selection.permutation_importance_CV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.permutation_importance_CV</span></code></a></p></td>
+<td><p>Performs a cross-validated permutation importance on a non-fitted model.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="mcmc">
+<span id="mcmc-api"></span><h2>MCMC<a class="headerlink" href="#mcmc" title="Permalink to this headline">¶</a></h2>
+<section id="mcmc-object">
+<h3>MCMC Object<a class="headerlink" href="#mcmc-object" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.mcmcObject.html#tsdst.mcmc.mcmcObject" title="tsdst.mcmc.mcmcObject"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.mcmcObject</span></code></a></p></td>
+<td><p>An object to hold MCMC chains, and to store/compute useful metrics on them.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="mcmc-supporting-functions">
+<h3>MCMC Supporting Functions<a class="headerlink" href="#mcmc-supporting-functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.applyMCMC.html#tsdst.mcmc.applyMCMC" title="tsdst.mcmc.applyMCMC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.applyMCMC</span></code></a></p></td>
+<td><p>This function iteratively applies the MCMC initialization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.cholupdate.html#tsdst.mcmc.cholupdate" title="tsdst.mcmc.cholupdate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.cholupdate</span></code></a></p></td>
+<td><p>Upper triangle, rank one update for cholesky decomposed matrix.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="mcmc-diagnostics">
+<h3>MCMC Diagnostics<a class="headerlink" href="#mcmc-diagnostics" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.minESS.html#tsdst.mcmc.minESS" title="tsdst.mcmc.minESS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.minESS</span></code></a></p></td>
+<td><p>Translated from the R mcmcse package.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.multiESS.html#tsdst.mcmc.multiESS" title="tsdst.mcmc.multiESS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.multiESS</span></code></a></p></td>
+<td><p>This function computes the Effective Sample Size of an MCMC chain.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.raftery.html#tsdst.mcmc.raftery" title="tsdst.mcmc.raftery"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.raftery</span></code></a></p></td>
+<td><p>Calculate the Raftery diagnostic to determine how many more samples are needed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.samp_size_calc_raftery.html#tsdst.mcmc.samp_size_calc_raftery" title="tsdst.mcmc.samp_size_calc_raftery"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.samp_size_calc_raftery</span></code></a></p></td>
+<td><p>Calculate needed sample size for Raftery evaluation.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="mcmc-algorithms">
+<h3>MCMC Algorithms<a class="headerlink" href="#mcmc-algorithms" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.adaptive_mcmc.html#tsdst.mcmc.adaptive_mcmc" title="tsdst.mcmc.adaptive_mcmc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.adaptive_mcmc</span></code></a></p></td>
+<td><p>A random walk metropolis algorithm that adaptively tunes the covariance matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.rwm.html#tsdst.mcmc.rwm" title="tsdst.mcmc.rwm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.rwm</span></code></a></p></td>
+<td><p>A random walk metropolis algorithm.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.rwm_with_lap.html#tsdst.mcmc.rwm_with_lap" title="tsdst.mcmc.rwm_with_lap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.rwm_with_lap</span></code></a></p></td>
+<td><p>A random walk metropolis algorithm that adaptively tunes the covariance matrix with a log-adaptive posterior.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="modeling">
+<span id="modeling-api"></span><h2>Modeling<a class="headerlink" href="#modeling" title="Permalink to this headline">¶</a></h2>
+<section id="modeling-tools">
+<h3>Modeling Tools<a class="headerlink" href="#modeling-tools" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.beta_trans.html#tsdst.modeling.beta_trans" title="tsdst.modeling.beta_trans"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.beta_trans</span></code></a></p></td>
+<td><p>Transform the model coefficients in a logistic regression model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.bPCA.html#tsdst.modeling.bPCA" title="tsdst.modeling.bPCA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.bPCA</span></code></a></p></td>
+<td><p>An algorithm to compute missing values using Bayesian PCA.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.crossVal.html#tsdst.modeling.crossVal" title="tsdst.modeling.crossVal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.crossVal</span></code></a></p></td>
+<td><p>A custom cross-validation strategy.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.EstimatorSelectionHelper.html#tsdst.modeling.EstimatorSelectionHelper" title="tsdst.modeling.EstimatorSelectionHelper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.EstimatorSelectionHelper</span></code></a></p></td>
+<td><p>A wrapper for easily grid-searching multiple models in the same run.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.getPriors.html#tsdst.modeling.getPriors" title="tsdst.modeling.getPriors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.getPriors</span></code></a></p></td>
+<td><p>Calculate the class distributions across each column of the dataset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.prettyConfMat.html#tsdst.modeling.prettyConfMat" title="tsdst.modeling.prettyConfMat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.prettyConfMat</span></code></a></p></td>
+<td><p>Print a pretty confusion matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.printScores.html#tsdst.modeling.printScores" title="tsdst.modeling.printScores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.printScores</span></code></a></p></td>
+<td><p>A helper function to print the outputs of the crossVal function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.RegressionSE.html#tsdst.modeling.RegressionSE" title="tsdst.modeling.RegressionSE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.RegressionSE</span></code></a></p></td>
+<td><p>Since sklearn doesn’t generate the standard errors by default…</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.runScorers.html#tsdst.modeling.runScorers" title="tsdst.modeling.runScorers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.runScorers</span></code></a></p></td>
+<td><p>Performs the cross-validation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.scoreModel.html#tsdst.modeling.scoreModel" title="tsdst.modeling.scoreModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.scoreModel</span></code></a></p></td>
+<td><p>Score a model using the given metrics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.vif.html#tsdst.modeling.vif" title="tsdst.modeling.vif"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.vif</span></code></a></p></td>
+<td><p>Calculate Variance Inflation Factors.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="neural-networks">
+<span id="nn-api"></span><h2>Neural Networks<a class="headerlink" href="#neural-networks" title="Permalink to this headline">¶</a></h2>
+<section id="activations">
+<h3>Activations<a class="headerlink" href="#activations" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.create_jac_mask.html#tsdst.nn.activations.create_jac_mask" title="tsdst.nn.activations.create_jac_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.create_jac_mask</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.cross_entropy.html#tsdst.nn.activations.cross_entropy" title="tsdst.nn.activations.cross_entropy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.cross_entropy</span></code></a></p></td>
+<td><p>Binary Cross Entropy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.cross_entropy_binary.html#tsdst.nn.activations.cross_entropy_binary" title="tsdst.nn.activations.cross_entropy_binary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.cross_entropy_binary</span></code></a></p></td>
+<td><p>Binary Cross Entropy.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.cross_entropy_binary_der.html#tsdst.nn.activations.cross_entropy_binary_der" title="tsdst.nn.activations.cross_entropy_binary_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.cross_entropy_binary_der</span></code></a></p></td>
+<td><p>The derivative of binary cross-entropy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.cross_entropy_der.html#tsdst.nn.activations.cross_entropy_der" title="tsdst.nn.activations.cross_entropy_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.cross_entropy_der</span></code></a></p></td>
+<td><p>The derivative of binary cross-entropy.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.elu.html#tsdst.nn.activations.elu" title="tsdst.nn.activations.elu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.elu</span></code></a></p></td>
+<td><p>Exponential Linear Unit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.elu_der.html#tsdst.nn.activations.elu_der" title="tsdst.nn.activations.elu_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.elu_der</span></code></a></p></td>
+<td><p>Exponential Linear Unit derivative.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.gelu.html#tsdst.nn.activations.gelu" title="tsdst.nn.activations.gelu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.gelu</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.gelu_approx.html#tsdst.nn.activations.gelu_approx" title="tsdst.nn.activations.gelu_approx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.gelu_approx</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.gelu_der.html#tsdst.nn.activations.gelu_der" title="tsdst.nn.activations.gelu_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.gelu_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.gelu_speedy.html#tsdst.nn.activations.gelu_speedy" title="tsdst.nn.activations.gelu_speedy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.gelu_speedy</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.gelu_speedy_der.html#tsdst.nn.activations.gelu_speedy_der" title="tsdst.nn.activations.gelu_speedy_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.gelu_speedy_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.linear.html#tsdst.nn.activations.linear" title="tsdst.nn.activations.linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.linear</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.linear_der.html#tsdst.nn.activations.linear_der" title="tsdst.nn.activations.linear_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.linear_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.mse.html#tsdst.nn.activations.mse" title="tsdst.nn.activations.mse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.mse</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.mse_der.html#tsdst.nn.activations.mse_der" title="tsdst.nn.activations.mse_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.mse_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.mse_linear_der.html#tsdst.nn.activations.mse_linear_der" title="tsdst.nn.activations.mse_linear_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.mse_linear_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.relu.html#tsdst.nn.activations.relu" title="tsdst.nn.activations.relu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.relu</span></code></a></p></td>
+<td><p>Rectified Linear Unit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.relu_der.html#tsdst.nn.activations.relu_der" title="tsdst.nn.activations.relu_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.relu_der</span></code></a></p></td>
+<td><p>Rectified Linear Unit Derivative.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.selu.html#tsdst.nn.activations.selu" title="tsdst.nn.activations.selu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.selu</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.selu_der.html#tsdst.nn.activations.selu_der" title="tsdst.nn.activations.selu_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.selu_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.sigmoid.html#tsdst.nn.activations.sigmoid" title="tsdst.nn.activations.sigmoid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.sigmoid</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.sigmoid_cross_entropy_binary_der.html#tsdst.nn.activations.sigmoid_cross_entropy_binary_der" title="tsdst.nn.activations.sigmoid_cross_entropy_binary_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.sigmoid_cross_entropy_binary_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.sigmoid_der.html#tsdst.nn.activations.sigmoid_der" title="tsdst.nn.activations.sigmoid_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.sigmoid_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.sigmoid_scale.html#tsdst.nn.activations.sigmoid_scale" title="tsdst.nn.activations.sigmoid_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.sigmoid_scale</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.sigmoid_scale_der.html#tsdst.nn.activations.sigmoid_scale_der" title="tsdst.nn.activations.sigmoid_scale_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.sigmoid_scale_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.softmax.html#tsdst.nn.activations.softmax" title="tsdst.nn.activations.softmax"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.softmax</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.softmax_cross_entropy_der.html#tsdst.nn.activations.softmax_cross_entropy_der" title="tsdst.nn.activations.softmax_cross_entropy_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.softmax_cross_entropy_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.softmax_cross_entropy_der_fullmath.html#tsdst.nn.activations.softmax_cross_entropy_der_fullmath" title="tsdst.nn.activations.softmax_cross_entropy_der_fullmath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.softmax_cross_entropy_der_fullmath</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.softmax_der.html#tsdst.nn.activations.softmax_der" title="tsdst.nn.activations.softmax_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.softmax_der</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.softmax_oneout.html#tsdst.nn.activations.softmax_oneout" title="tsdst.nn.activations.softmax_oneout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.softmax_oneout</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="initializers">
+<h3>Initializers<a class="headerlink" href="#initializers" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.he_normal.html#tsdst.nn.initializers.he_normal" title="tsdst.nn.initializers.he_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.he_normal</span></code></a></p></td>
+<td><p>He normal initialization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.he_uniform.html#tsdst.nn.initializers.he_uniform" title="tsdst.nn.initializers.he_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.he_uniform</span></code></a></p></td>
+<td><p>He uniform initialization.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.lecun_uniform.html#tsdst.nn.initializers.lecun_uniform" title="tsdst.nn.initializers.lecun_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.lecun_uniform</span></code></a></p></td>
+<td><p>Lecun uniform initialization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.lecun_normal.html#tsdst.nn.initializers.lecun_normal" title="tsdst.nn.initializers.lecun_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.lecun_normal</span></code></a></p></td>
+<td><p>Lecun normal initialization.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.random_normal.html#tsdst.nn.initializers.random_normal" title="tsdst.nn.initializers.random_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.random_normal</span></code></a></p></td>
+<td><p>Random initialization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.xavier_normal.html#tsdst.nn.initializers.xavier_normal" title="tsdst.nn.initializers.xavier_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.xavier_normal</span></code></a></p></td>
+<td><p>Xavier normal initialization.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.xavier_uniform.html#tsdst.nn.initializers.xavier_uniform" title="tsdst.nn.initializers.xavier_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.xavier_uniform</span></code></a></p></td>
+<td><p>Xavier uniform initialization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.lecun_uniform.html#tsdst.nn.initializers.lecun_uniform" title="tsdst.nn.initializers.lecun_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.lecun_uniform</span></code></a></p></td>
+<td><p>Lecun uniform initialization.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.lecun_normal.html#tsdst.nn.initializers.lecun_normal" title="tsdst.nn.initializers.lecun_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.lecun_normal</span></code></a></p></td>
+<td><p>Lecun normal initialization.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="model">
+<h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.model.NeuralNetwork.html#tsdst.nn.model.NeuralNetwork" title="tsdst.nn.model.NeuralNetwork"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.model.NeuralNetwork</span></code></a></p></td>
+<td><p>The base class for custom neural networks in numpy</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="optimizers">
+<h3>Optimizers<a class="headerlink" href="#optimizers" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.optimizers.adam.html#tsdst.nn.optimizers.adam" title="tsdst.nn.optimizers.adam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.optimizers.adam</span></code></a></p></td>
+<td><p>The Adam optimizer.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.optimizers.gradient_descent.html#tsdst.nn.optimizers.gradient_descent" title="tsdst.nn.optimizers.gradient_descent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.optimizers.gradient_descent</span></code></a></p></td>
+<td><p>The simple gradient descent update.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

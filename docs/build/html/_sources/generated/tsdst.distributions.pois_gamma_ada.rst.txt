@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.distributions.pois\_gamma\_ada
+====================================
+
+.. currentmodule:: tsdst.distributions
+
+.. autofunction:: pois_gamma_ada

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tsdst.modeling.crossVal &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.modeling.EstimatorSelectionHelper" href="tsdst.modeling.EstimatorSelectionHelper.html" />
+    <link rel="prev" title="tsdst.modeling.bPCA" href="tsdst.modeling.bPCA.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.modeling.crossVal</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.modeling.bPCA.html" title="Previous Chapter: tsdst.modeling.bPCA"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.modeling.bPCA</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.modeling.EstimatorSelectionHelper.html" title="Next Chapter: tsdst.modeling.EstimatorSelectionHelper"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.modelin... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.modeling.crossVal.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  </div>
+<div class=col-md-9 content><section id="tsdst-modeling-crossval">
+<h1>tsdst.modeling.crossVal<a class="headerlink" href="#tsdst-modeling-crossval" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="tsdst.modeling.crossVal">
+<span class="sig-prename descclassname"><span class="pre">tsdst.modeling.</span></span><span class="sig-name descname"><span class="pre">crossVal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv_iterations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'k-fold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'classification'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stratified</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method_on_X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mox_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weighted'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y_for_test_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/modeling.html#crossVal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.modeling.crossVal" title="Permalink to this definition">¶</a></dt>
+<dd><p>A custom cross-validation strategy. While sklearn has a lot of beefed up
+functionality regarding cross-validation strategies, I like this one
+because it puts most of the strategies I like to use in one place. Also,
+it allows for you to output and calculate several cross-validation metrics
+at once.</p>
+<p>One thing that still needs to be added here is parallelization, since each
+of the folds can be calculated simultaneously.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>X</strong><span class="classifier">pandas dataframe</span></dt><dd><p>Feature or design marix.</p>
+</dd>
+<dt><strong>Y</strong><span class="classifier">pandas series</span></dt><dd><p>Response or Target variable.</p>
+</dd>
+<dt><strong>cv_iterations</strong><span class="classifier">int</span></dt><dd><p>The number of cross validation iterations. For k-fold, it is the
+number of folds, and for shuffle, it is the number of iterations.</p>
+</dd>
+<dt><strong>model</strong><span class="classifier">sklearn, or similar</span></dt><dd><p>model to fit to the data. Must have fit, predict, and/or predict_proba
+methods, depending on the metrics.</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str, optional</span></dt><dd><p>The method of cross-validation, either k-fold or shuffle.
+The default is ‘k-fold’.</p>
+</dd>
+<dt><strong>mtype</strong><span class="classifier">str, optional</span></dt><dd><p>The type of model, currently either classification or regressor.
+The default is ‘classification’.</p>
+</dd>
+<dt><strong>stratified</strong><span class="classifier">bool, optional</span></dt><dd><p>Use a stratified sample instead of a random sample.
+The default is True.</p>
+</dd>
+<dt><strong>print_</strong><span class="classifier">bool, optional</span></dt><dd><p>Print the results along the way. The default is True.</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int, optional</span></dt><dd><p>Set the random seed for reproducibility. The default is None.</p>
+</dd>
+<dt><strong>method_on_X</strong><span class="classifier">function, optional</span></dt><dd><p>An optional function to pass that performs an operation on X.
+For example, you could pass a function to perform PCA before
+performing the fits. This would enable the function to be applied to
+each level of split. The method used to transform/modify X can be
+of any class, the only requirement is that it has both fit and
+transform methods, and that the arguments for fit method accept both
+an X and Y argument, even if the Y argument does nothing. You may need
+to create a simple wrapper for this, if you have a known method you 
+want to use, but doesn’t quite fit what you need. The default is None.</p>
+</dd>
+<dt><strong>mox_args</strong><span class="classifier">dict, optional</span></dt><dd><p>Any optional arguments that get passed to the constructor of the
+method_on_X. The default is {}.</p>
+</dd>
+<dt><strong>avg</strong><span class="classifier">str, optional</span></dt><dd><p>for metrics where it applies, such as AUC, how to calculate the
+metric (see sklearn docs for more details, particularily with AUC).
+The default is “weighted”.</p>
+</dd>
+<dt><strong>shuffle</strong><span class="classifier">bool, optional</span></dt><dd><p>Shuffle the dataset in the k-fold operations. The default is True.</p>
+</dd>
+<dt><strong>test_size</strong><span class="classifier">float, optional</span></dt><dd><p>A percent representing the size of the test set. The default is 0.1.</p>
+</dd>
+<dt><strong>calculate</strong><span class="classifier">list or str, optional</span></dt><dd><p>What to calculate the metrics on, either in-sample or out-of-sample,
+or both. In-sample measures the metrics on the train set while
+out-of-sample measures on the test set.
+The default is [‘Out of Sample’].</p>
+</dd>
+<dt><strong>metrics</strong><span class="classifier">list, optional</span></dt><dd><p>The metrics to include in the analysis.
+The default is [‘Accuracy’, ‘F1’, ‘Sens/Recall’, ‘Specificity’, ‘ppv’, ‘npv’, ‘AUC’].</p>
+</dd>
+<dt><strong>Y_for_test_only</strong><span class="classifier">pandas series or numpy array, optional</span></dt><dd><p>An alternate target variable to test on, mainly for the use case of
+training on one response (perhaps one that is more informative or
+restrictive), but then predicting on a separate test set.
+The default is None.</p>
+</dd>
+<dt><strong>sample_limit</strong><span class="classifier">int, optional</span></dt><dd><p>The minimum acceptable samples in a split for the response
+variable. Only applies to Y_for_test_only currently.
+The default is 20.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>scores</strong><span class="classifier">dict</span></dt><dd><p>Dictionary of performance metrics.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_classification</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">dt</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tsdst.modeling</span> <span class="kn">import</span> <span class="n">crossVal</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_classification</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">flip_y</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;V&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sk_mod</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">crossVal</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">sk_mod</span><span class="p">)</span>
+<span class="go">Out of Sample:</span>
+<span class="go">    Accuracy   : μ: 0.8155, σ: 0.0052, 2σ Interval (0.8051, 0.8259)</span>
+<span class="go">    F1         : μ: 0.8151, σ: 0.0048, 2σ Interval (0.8056, 0.8246)</span>
+<span class="go">    Sens/Recall: μ: 0.8184, σ: 0.0105, 2σ Interval (0.7973, 0.8394)</span>
+<span class="go">    Specificity: μ: 0.8129, σ: 0.0063, 2σ Interval (0.8002, 0.8256)</span>
+<span class="go">    ppv        : μ: 0.8121, σ: 0.0095, 2σ Interval (0.7930, 0.8312)</span>
+<span class="go">    npv        : μ: 0.8189, σ: 0.0138, 2σ Interval (0.7914, 0.8464)</span>
+<span class="go">    AUC        : μ: 0.8637, σ: 0.0066, 2σ Interval (0.8505, 0.8769)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

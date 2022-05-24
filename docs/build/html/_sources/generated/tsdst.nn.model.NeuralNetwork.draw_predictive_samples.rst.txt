@@ -1,0 +1,11 @@
+.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.nn.model.NeuralNetwork.draw\_predictive\_samples
+======================================================
+
+.. currentmodule:: tsdst.nn.model
+
+.. automethod:: NeuralNetwork.draw_predictive_samples

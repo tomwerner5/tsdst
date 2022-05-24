@@ -1,0 +1,11 @@
+.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.nn.model.NeuralNetwork.initialize\_wb
+===========================================
+
+.. currentmodule:: tsdst.nn.model
+
+.. automethod:: NeuralNetwork.initialize_wb

@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.nn.activations.mse\_linear\_der
+=====================================
+
+.. currentmodule:: tsdst.nn.activations
+
+.. autofunction:: mse_linear_der

@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.distributions.qnorm\_approx
+=================================
+
+.. currentmodule:: tsdst.distributions
+
+.. autofunction:: qnorm_approx

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tsdst.mcmc.multiESS &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.mcmc.raftery" href="tsdst.mcmc.raftery.html" />
+    <link rel="prev" title="tsdst.mcmc.minESS" href="tsdst.mcmc.minESS.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.mcmc.multiESS</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.mcmc.minESS.html" title="Previous Chapter: tsdst.mcmc.minESS"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.mcmc.minESS</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.mcmc.raftery.html" title="Next Chapter: tsdst.mcmc.raftery"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.mcmc.raftery &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.mcmc.multiESS.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  </div>
+<div class=col-md-9 content><section id="tsdst-mcmc-multiess">
+<h1>tsdst.mcmc.multiESS<a class="headerlink" href="#tsdst-mcmc-multiess" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="tsdst.mcmc.multiESS">
+<span class="sig-prename descclassname"><span class="pre">tsdst.mcmc.</span></span><span class="sig-name descname"><span class="pre">multiESS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covmat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mcse_multi_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/mcmc.html#multiESS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.mcmc.multiESS" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function computes the Effective Sample Size of an MCMC chain. Due to
+correlation between MCMC samples, it is sometimes unclear how much
+information about the parameters has been obtained. If all of the MCMC
+samples were independent, we would need less samples to get accurate
+information about the posterior than when the samples are correlated.
+ESS measures the amount of independent samples that have actually been
+obtained in the MCMC chain, and mESS is a special case for multivariate
+posteriors. In other words, this method is a way to test if your chain
+has gone far enough.</p>
+<p>This information can used in conjunction with minESS, such that the chain
+has sampled enough when multiESS &gt;= minESS.</p>
+<p>For more information regarding these functions, see the R documentation.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>chain</strong><span class="classifier">numpy array</span></dt><dd><p>The MCMC chain, where the rows are samples.</p>
+</dd>
+<dt><strong>covmat</strong><span class="classifier">numpy array, optional</span></dt><dd><p>The covaraince matrix for the parameters, if available. If None,
+matrix is obtained from mcse_multi. The default is None.</p>
+</dd>
+<dt><strong>g</strong><span class="classifier">function, optional</span></dt><dd><p>A function that represents features of
+interest. <cite>g</cite> is applied to each row of x, and should thus take a
+vector input only. If g is none, g is set to be identity, which is
+estimation of the mean of the target density. The default is None.</p>
+<p>An example of g would be the sum of the second moments of
+each parameter, i.e.:</p>
+<dl class="simple">
+<dt>def g(x):</dt><dd><p>return np.sum(x**2)</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>mcse_multi_args</strong><span class="classifier">dict</span></dt><dd><p>Arguments for mcse_multi function. Don’t use this if a suitable matrix
+estimate from mcse_multi or mcse_initseq is already obtained. The
+default is None</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ess</strong><span class="classifier">int</span></dt><dd><p>The estimated effective sample size.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

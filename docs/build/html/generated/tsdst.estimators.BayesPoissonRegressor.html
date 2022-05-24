@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tsdst.estimators.BayesPoissonRegressor &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.estimators.BayesPoissonRegressor.__init__" href="tsdst.estimators.BayesPoissonRegressor.__init__.html" />
+    <link rel="prev" title="tsdst.estimators.BayesLogRegClassifier.set_params" href="tsdst.estimators.BayesLogRegClassifier.set_params.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.estimators.BayesPoissonRegressor</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.estimators.BayesLogRegClassifier.set_params.html" title="Previous Chapter: tsdst.estimators.BayesLogRegClassifier.set_params"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.estimat...</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.estimators.BayesPoissonRegressor.__init__.html" title="Next Chapter: tsdst.estimators.BayesPoissonRegressor.__init__"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.estimat... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.estimators.BayesPoissonRegressor.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  </div>
+<div class=col-md-9 content><section id="tsdst-estimators-bayespoissonregressor">
+<h1>tsdst.estimators.BayesPoissonRegressor<a class="headerlink" href="#tsdst-estimators-bayespoissonregressor" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="tsdst.estimators.BayesPoissonRegressor">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">tsdst.estimators.</span></span><span class="sig-name descname"><span class="pre">BayesPoissonRegressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rosenthal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_max_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sklearn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">over_dispersion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scorer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'D2'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/estimators.html#BayesPoissonRegressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.estimators.BayesPoissonRegressor" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Poisson Regressor that uses MCMC to evaluate the parameters.
+This objects inherits from sklearn’s BaseEstimator and
+LinearClassifierMixin.</p>
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesPoissonRegressor.__init__.html#tsdst.estimators.BayesPoissonRegressor.__init__" title="tsdst.estimators.BayesPoissonRegressor.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>([C, start, niter, algo, …])</p></td>
+<td><p>The constructor for the BayesPoissonClassifier</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesPoissonRegressor.adjust_params_.html#tsdst.estimators.BayesPoissonRegressor.adjust_params_" title="tsdst.estimators.BayesPoissonRegressor.adjust_params_"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adjust_params_</span></code></a>(new_param_summary)</p></td>
+<td><p>This method is intended to update the aggregated parameters with a new summary as defined in new_param_summary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesPoissonRegressor.decision_function.html#tsdst.estimators.BayesPoissonRegressor.decision_function" title="tsdst.estimators.BayesPoissonRegressor.decision_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decision_function</span></code></a>(X)</p></td>
+<td><p>Predict confidence scores for samples.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesPoissonRegressor.fit.html#tsdst.estimators.BayesPoissonRegressor.fit" title="tsdst.estimators.BayesPoissonRegressor.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(X, y)</p></td>
+<td><p>Fit the model</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesPoissonRegressor.get_params.html#tsdst.estimators.BayesPoissonRegressor.get_params" title="tsdst.estimators.BayesPoissonRegressor.get_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code></a>([deep])</p></td>
+<td><p>Get parameters for this estimator.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesPoissonRegressor.predict.html#tsdst.estimators.BayesPoissonRegressor.predict" title="tsdst.estimators.BayesPoissonRegressor.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(X)</p></td>
+<td><p>Predict class labels for samples in X.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesPoissonRegressor.score.html#tsdst.estimators.BayesPoissonRegressor.score" title="tsdst.estimators.BayesPoissonRegressor.score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score</span></code></a>(X, y[, sample_weight])</p></td>
+<td><p>Return the mean accuracy on the given test data and labels.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesPoissonRegressor.set_params.html#tsdst.estimators.BayesPoissonRegressor.set_params" title="tsdst.estimators.BayesPoissonRegressor.set_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code></a>(**params)</p></td>
+<td><p>Set the parameters of this estimator.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.nn.optimizers.gradient\_descent
+=====================================
+
+.. currentmodule:: tsdst.nn.optimizers
+
+.. autofunction:: gradient_descent

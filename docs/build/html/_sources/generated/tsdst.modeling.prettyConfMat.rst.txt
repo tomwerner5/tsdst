@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.modeling.prettyConfMat
+============================
+
+.. currentmodule:: tsdst.modeling
+
+.. autofunction:: prettyConfMat

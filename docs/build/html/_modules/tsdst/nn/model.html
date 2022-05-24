@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tsdst.nn.model &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for tsdst.nn.model</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..metrics</span> <span class="kn">import</span> <span class="n">rpmse</span><span class="p">,</span> <span class="n">bias</span><span class="p">,</span> <span class="n">accuracy</span>
+<span class="kn">from</span> <span class="nn">..tmath</span> <span class="kn">import</span> <span class="n">norm</span><span class="p">,</span> <span class="n">norm_der</span>
+<span class="kn">from</span> <span class="nn">.activations</span> <span class="kn">import</span> <span class="p">(</span><span class="n">relu</span><span class="p">,</span> <span class="n">elu</span><span class="p">,</span> <span class="n">gelu</span><span class="p">,</span> <span class="n">gelu_der</span><span class="p">,</span> <span class="n">gelu_approx</span><span class="p">,</span>
+                     <span class="n">gelu_speedy</span><span class="p">,</span> <span class="n">gelu_speedy_der</span><span class="p">,</span>
+                     <span class="n">sigmoid</span><span class="p">,</span> <span class="n">sigmoid_der</span><span class="p">,</span>
+                     <span class="n">softmax</span><span class="p">,</span> <span class="n">softmax_der</span><span class="p">,</span> <span class="n">relu_der</span><span class="p">,</span> <span class="n">cross_entropy</span><span class="p">,</span>
+                     <span class="n">cross_entropy_der</span><span class="p">,</span> <span class="n">selu</span><span class="p">,</span> <span class="n">selu_der</span><span class="p">,</span> <span class="n">elu_der</span><span class="p">,</span>
+                     <span class="n">softmax_cross_entropy_der</span><span class="p">,</span>
+                     <span class="n">softmax_cross_entropy_der_fullmath</span><span class="p">,</span>
+                     <span class="n">sigmoid_cross_entropy_binary_der</span><span class="p">,</span>
+                     <span class="n">cross_entropy_binary</span><span class="p">,</span> <span class="n">cross_entropy_binary_der</span><span class="p">,</span>
+                     <span class="n">linear</span><span class="p">,</span> <span class="n">mse</span><span class="p">,</span> <span class="n">mse_linear_der</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.initializers</span> <span class="kn">import</span> <span class="p">(</span><span class="n">he_uniform</span><span class="p">,</span> <span class="n">he_normal</span><span class="p">,</span> <span class="n">xavier_uniform</span><span class="p">,</span>
+                             <span class="n">xavier_normal</span><span class="p">,</span> <span class="n">lecun_uniform</span><span class="p">,</span> <span class="n">lecun_normal</span><span class="p">,</span>
+                             <span class="n">random_normal</span>
+                             <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.optimizers</span> <span class="kn">import</span> <span class="n">gradient_descent</span><span class="p">,</span> <span class="n">adam</span>
+
+
+<div class="viewcode-block" id="NeuralNetwork"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.html#tsdst.nn.model.NeuralNetwork">[docs]</a><span class="k">class</span> <span class="nc">NeuralNetwork</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The base class for custom neural networks in numpy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="NeuralNetwork.__init__"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.__init__.html#tsdst.nn.model.NeuralNetwork.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">model</span><span class="p">,</span>
+                 <span class="n">eval_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                 <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+                 <span class="n">num_iterations</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                 <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;adam&#39;</span><span class="p">,</span>
+                 <span class="n">optimizer_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
+                                 <span class="s1">&#39;beta1&#39;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+                                 <span class="s1">&#39;beta2&#39;</span><span class="p">:</span> <span class="mf">0.999</span><span class="p">,</span>
+                                 <span class="s1">&#39;eps&#39;</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">},</span>
+                 <span class="n">m_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">bn_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span>
+                 <span class="n">bn_momentum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">scorer</span><span class="o">=</span><span class="s1">&#39;accuracy&#39;</span><span class="p">,</span>
+                 <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">print_cost</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The constructor for the NeuralNetwork class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model : dict</span>
+<span class="sd">            A dictionary containing the model components, layers, and other</span>
+<span class="sd">            specifications. The dictionary should have the following general</span>
+<span class="sd">            structure:</span>
+<span class="sd">            </span>
+<span class="sd">            .. highlight:: python</span>
+<span class="sd">            .. code-block:: python</span>
+<span class="sd">            </span>
+<span class="sd">                {</span>
+<span class="sd">                 &#39;hidden0&#39;: {&#39;depth&#39;: 10,</span>
+<span class="sd">                             &#39;activation&#39;: &#39;relu&#39;,</span>
+<span class="sd">                             &#39;derivative&#39;: &#39;relu_der&#39;,</span>
+<span class="sd">                             &#39;activation_args&#39;: {},</span>
+<span class="sd">                             &#39;initializer&#39;: &#39;he_uniform&#39;,</span>
+<span class="sd">                             &#39;dropout_keep_prob&#39;: 1,</span>
+<span class="sd">                             &#39;lambda&#39;: {&#39;Weight&#39;: 0,</span>
+<span class="sd">                                       &#39;activity&#39;: 0,</span>
+<span class="sd">                                       &#39;bias&#39;: 0</span>
+<span class="sd">                                      },</span>
+<span class="sd">                            &#39;lp_norm&#39;: {&#39;Weight&#39;: 2,</span>
+<span class="sd">                                       &#39;activity&#39;: 2,</span>
+<span class="sd">                                       &#39;bias&#39;: 2</span>
+<span class="sd">                                      },</span>
+<span class="sd">                            &#39;use_batch_norm&#39;: False</span>
+<span class="sd">                             },</span>
+<span class="sd">                 &#39;output&#39;: {&#39;activation&#39;: &#39;softmax&#39;,</span>
+<span class="sd">                            &#39;activation_args&#39;: {},</span>
+<span class="sd">                            &#39;cost&#39;: &#39;cross_entropy&#39;,</span>
+<span class="sd">                            &#39;cost_args&#39;: {},</span>
+<span class="sd">                            &#39;derivative&#39;: &#39;softmax_cross_entropy_der&#39;,</span>
+<span class="sd">                            &#39;derivative_args&#39;: {},</span>
+<span class="sd">                            &#39;initializer&#39;: &#39;xavier_normal&#39;,</span>
+<span class="sd">                            &#39;evaluation_metric&#39;: &#39;accuracy&#39;,</span>
+<span class="sd">                            &#39;lambda&#39;: {&#39;Weight&#39;: 0,</span>
+<span class="sd">                                       &#39;activity&#39;: 0,</span>
+<span class="sd">                                       &#39;bias&#39;: 0</span>
+<span class="sd">                                      },</span>
+<span class="sd">                            &#39;lp_norm&#39;: {&#39;Weight&#39;: 2,</span>
+<span class="sd">                                       &#39;activity&#39;: 2,</span>
+<span class="sd">                                       &#39;bias&#39;: 2</span>
+<span class="sd">                                      },</span>
+<span class="sd">                            &#39;use_batch_norm&#39;: False</span>
+<span class="sd">                            }</span>
+<span class="sd">                 }</span>
+<span class="sd">            </span>
+<span class="sd">            Each layer should have the components defined above, however, not</span>
+<span class="sd">            every component needs to be used (for example, setting</span>
+<span class="sd">            dropout_keep_prob = 1 disables dropout). There can be as many</span>
+<span class="sd">            hidden layers as desired (including none). Simply copy the</span>
+<span class="sd">            &#39;hidden1&#39; sub-dictionary before the output layer to add a new</span>
+<span class="sd">            hidden layer. However, the network must have an output layer</span>
+<span class="sd">            defined. The key names for the layers can be anything, but the</span>
+<span class="sd">            output layer must be positioned last.</span>
+<span class="sd">            </span>
+<span class="sd">            A description of each layer key is defined below:</span>
+
+<span class="sd">                - activation (str or function): The activation function to be</span>
+<span class="sd">                                              used. If custom function, it</span>
+<span class="sd">                                              will pass the affine</span>
+<span class="sd">                                              transformation of the current </span>
+<span class="sd">                                              layer as the first input to the</span>
+<span class="sd">                                              function.</span>
+<span class="sd">                - activation_args (dict) : An optional dictionary for passing</span>
+<span class="sd">                                         additional arguments to the activation</span>
+<span class="sd">                                         or derivative function. If there are</span>
+<span class="sd">                                         none to pass, use an empty dictionary.</span>
+<span class="sd">                                         For hidden layers, the derivative and</span>
+<span class="sd">                                         activation arguments should be the</span>
+<span class="sd">                                         same, so they share this dictionary.</span>
+<span class="sd">                - cost (str or function): The cost function to be</span>
+<span class="sd">                                        used. If custom function, it</span>
+<span class="sd">                                        will pass the true Y values and</span>
+<span class="sd">                                        the predicted Y values as the first</span>
+<span class="sd">                                        two inputs to the function.</span>
+<span class="sd">                - cost_args (dict) : An optional dictionary for passing</span>
+<span class="sd">                                   additional arguments to the </span>
+<span class="sd">                                   cost function. If there are</span>
+<span class="sd">                                   none to pass, use an empty dictionary.</span>
+<span class="sd">                                   Only applies ot the output layer.</span>
+<span class="sd">                - depth (int): The number of hidden nodes in the layer</span>
+<span class="sd">                - derivative (str or function): The derivative of the combined</span>
+<span class="sd">                                              cost and output layer activation</span>
+<span class="sd">                                              function to be</span>
+<span class="sd">                                              used. If custom function, it</span>
+<span class="sd">                                              will pass the true Y values,</span>
+<span class="sd">                                              the predicted Y values, and the</span>
+<span class="sd">                                              non-activated output layer values</span>
+<span class="sd">                                              as the first inputs to the </span>
+<span class="sd">                                              function.</span>
+<span class="sd">                - derivative_args (dict) : An optional dictionary for passing</span>
+<span class="sd">                                         additional arguments to the derivative</span>
+<span class="sd">                                         function. If there are none to pass,</span>
+<span class="sd">                                         use an empty dictionary. This only</span>
+<span class="sd">                                         applies to the output layer.</span>
+<span class="sd">                - dropout_keep_prob (float) : The proportion of nodes to keep at</span>
+<span class="sd">                                            the respective layer. Between 0</span>
+<span class="sd">                                            and 1. If dropping 10% of the</span>
+<span class="sd">                                            nodes, the keep prob is 0.9</span>
+<span class="sd">                - evaluation_metric (str or function) : An additional evaluation</span>
+<span class="sd">                                                      metric to be used in </span>
+<span class="sd">                                                      training. This is only</span>
+<span class="sd">                                                      used for printing an</span>
+<span class="sd">                                                      additional output along</span>
+<span class="sd">                                                      with cost at each epoch</span>
+<span class="sd">                                                      or specified iteration to</span>
+<span class="sd">                                                      track the training</span>
+<span class="sd">                                                      progress</span>
+<span class="sd">                - initializer (str or function) : The function to be used in </span>
+<span class="sd">                                                initializing the layer weights</span>
+<span class="sd">                                                and biases. If custom, it must</span>
+<span class="sd">                                                accept two arguments,  </span>
+<span class="sd">                                                &#39;incoming&#39; and &#39;outgoing&#39;,</span>
+<span class="sd">                                                which represent how many inputs</span>
+<span class="sd">                                                are recieved from the previous</span>
+<span class="sd">                                                layer, and how many outputs</span>
+<span class="sd">                                                will be calculated at the </span>
+<span class="sd">                                                current layer.</span>
+<span class="sd">                - lambda (dict) : A dictionary containing the regularization </span>
+<span class="sd">                                penalties for each type of regularization.</span>
+<span class="sd">                                </span>
+<span class="sd">                                The options are:</span>
+<span class="sd">                                </span>
+<span class="sd">                                    - Weight (float) : The kernel or weight</span>
+<span class="sd">                                                     regularizer</span>
+<span class="sd">                                                     (recommended for use)</span>
+<span class="sd">                                    - activity (float) : A regularizer placed on</span>
+<span class="sd">                                                       the activation function</span>
+<span class="sd">                                                       output (experimental in</span>
+<span class="sd">                                                       this code, not</span>
+<span class="sd">                                                       recommended for use)</span>
+<span class="sd">                                    - bias (float) : A regularizer for the bias</span>
+<span class="sd">                                                   (not recommended for use for</span>
+<span class="sd">                                                   theoretical reasons, but</span>
+<span class="sd">                                                   should be correct to use)</span>
+<span class="sd">                                </span>
+<span class="sd">                                A value of zero for any of the lambdas will \</span>
+<span class="sd">                                that regularization type for that layers.</span>
+<span class="sd">                - lp_norm (dict) : A dictionary containing the regularization \</span>
+<span class="sd">                                 norm funcitons for each type \</span>
+<span class="sd">                                 regularization.</span>
+<span class="sd">                                 </span>
+<span class="sd">                                 The options are:</span>
+<span class="sd">                                 </span>
+<span class="sd">                                    - Weight (int) : The lp-norm for the weight</span>
+<span class="sd">                                                   or kernel regularizer</span>
+<span class="sd">                                    - activity (int) : The lp-norm for the</span>
+<span class="sd">                                                     activity regularizer</span>
+<span class="sd">                                    - bias (int) : The lp-norm for the bias</span>
+<span class="sd">                                                 regularizer</span>
+<span class="sd">                - use_batch_norm (bool) : If true, perform batch normalization</span>
+<span class="sd">                                        on the current layer. For this</span>
+<span class="sd">                                        implementation, the batch norm layer</span>
+<span class="sd">                                        is placed before the activation</span>
+<span class="sd">                                        function and before dropout (if used</span>
+<span class="sd">                                        together)</span>
+<span class="sd">                </span>
+<span class="sd">        eval_size : int, optional</span>
+<span class="sd">            The number of model evaluations to perform before printing</span>
+<span class="sd">            an output. It is recommended that this number be</span>
+<span class="sd">            `int(n/batch_size) + sum([n % batch_size != 0])` where n is the</span>
+<span class="sd">            number of observations</span>
+<span class="sd">        batch_size : int, optional</span>
+<span class="sd">            The number of observations used to update the model at each step.</span>
+<span class="sd">            The default is 64.</span>
+<span class="sd">        num_iterations : int, optional</span>
+<span class="sd">            The total number of full passes through the data to perform</span>
+<span class="sd">            (i.e. the number of epochs). The default is 500.</span>
+<span class="sd">        optimizer : str, optional</span>
+<span class="sd">            The type of optimizer to use for gradient descent.</span>
+<span class="sd">            The default is &#39;adam&#39;.</span>
+<span class="sd">        optimizer_args : dict, optional</span>
+<span class="sd">            Optional arguments to send to the optimizer (learning rate, etc.). </span>
+<span class="sd">            The default is {&#39;learning_rate&#39;: 0.001,</span>
+<span class="sd">                            &#39;beta1&#39;: 0.9,</span>
+<span class="sd">                            &#39;beta2&#39;: 0.999,</span>
+<span class="sd">                            &#39;eps&#39;: 1e-8}.</span>
+<span class="sd">        m_scale : float, optional</span>
+<span class="sd">            An optional scaling parameter to scale up or down the cost and</span>
+<span class="sd">            gradient values. For example, m_scale=2 will multiply the cost</span>
+<span class="sd">            function by 0.5. The default is 1.</span>
+<span class="sd">        bn_tol : float, optional</span>
+<span class="sd">            The tolerance used in the batch norm equations.</span>
+<span class="sd">            The default is 1e-9.</span>
+<span class="sd">        bn_momentum : float, optional</span>
+<span class="sd">            The momentum used in the exponential moving average for the mean</span>
+<span class="sd">            and variance of the batch norm process. The default is 0.</span>
+<span class="sd">        scorer : str or function, optional</span>
+<span class="sd">            The function used in the score method. If custom, it must accept</span>
+<span class="sd">            the true Y values and the predicted y values as the first two</span>
+<span class="sd">            arguments of the function.</span>
+<span class="sd">            The default is &#39;accuracy&#39;.</span>
+<span class="sd">        shuffle : bool, optional</span>
+<span class="sd">            Shuffle the training set before training. The default is False.</span>
+<span class="sd">        print_cost : bool, optional</span>
+<span class="sd">            Print the cost (and possibly another metric) at each eval_step.</span>
+<span class="sd">            The default is True.</span>
+<span class="sd">        random_state : int, optional</span>
+<span class="sd">            The random state of the process (for reproducibility).</span>
+<span class="sd">            The default is 42.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_size</span> <span class="o">=</span> <span class="n">eval_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_iterations</span> <span class="o">=</span> <span class="n">num_iterations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_args</span> <span class="o">=</span> <span class="n">optimizer_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m_scale</span> <span class="o">=</span> <span class="n">m_scale</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn_tol</span> <span class="o">=</span> <span class="n">bn_tol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn_momentum</span> <span class="o">=</span> <span class="n">bn_momentum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_cost</span> <span class="o">=</span> <span class="n">print_cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">random_state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scorer</span> <span class="o">=</span> <span class="n">scorer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activations</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;linear&#39;</span><span class="p">:</span> <span class="n">linear</span><span class="p">,</span>
+                            <span class="s1">&#39;mse&#39;</span><span class="p">:</span> <span class="n">mse</span><span class="p">,</span>
+                            <span class="s1">&#39;mse_linear_der&#39;</span><span class="p">:</span> <span class="n">mse_linear_der</span><span class="p">,</span>
+                            <span class="s1">&#39;relu&#39;</span><span class="p">:</span> <span class="n">relu</span><span class="p">,</span>
+                            <span class="s1">&#39;relu_der&#39;</span><span class="p">:</span> <span class="n">relu_der</span><span class="p">,</span>
+                            <span class="s1">&#39;elu&#39;</span><span class="p">:</span> <span class="n">elu</span><span class="p">,</span>
+                            <span class="s1">&#39;elu_der&#39;</span><span class="p">:</span> <span class="n">elu_der</span><span class="p">,</span>
+                            <span class="s1">&#39;selu&#39;</span><span class="p">:</span> <span class="n">selu</span><span class="p">,</span>
+                            <span class="s1">&#39;selu_der&#39;</span><span class="p">:</span> <span class="n">selu_der</span><span class="p">,</span>
+                            <span class="s1">&#39;gelu&#39;</span><span class="p">:</span> <span class="n">selu</span><span class="p">,</span>
+                            <span class="s1">&#39;gelu_approx&#39;</span><span class="p">:</span> <span class="n">gelu_approx</span><span class="p">,</span>
+                            <span class="s1">&#39;gelu_speedy&#39;</span><span class="p">:</span> <span class="n">gelu_speedy</span><span class="p">,</span>
+                            <span class="s1">&#39;gelu_der&#39;</span><span class="p">:</span> <span class="n">gelu_der</span><span class="p">,</span>
+                            <span class="s1">&#39;gelu_speedy_der&#39;</span><span class="p">:</span> <span class="n">gelu_speedy_der</span><span class="p">,</span>
+                            <span class="s1">&#39;sigmoid&#39;</span><span class="p">:</span> <span class="n">sigmoid</span><span class="p">,</span>
+                            <span class="s1">&#39;sigmoid_der&#39;</span><span class="p">:</span> <span class="n">sigmoid_der</span><span class="p">,</span>
+                            <span class="s1">&#39;softmax&#39;</span><span class="p">:</span> <span class="n">softmax</span><span class="p">,</span>
+                            <span class="s1">&#39;softmax_der&#39;</span><span class="p">:</span> <span class="n">softmax_der</span><span class="p">,</span>
+                            <span class="s1">&#39;cross_entropy&#39;</span><span class="p">:</span> <span class="n">cross_entropy</span><span class="p">,</span>
+                            <span class="s1">&#39;cross_entropy_der&#39;</span><span class="p">:</span> <span class="n">cross_entropy_der</span><span class="p">,</span>
+                            <span class="s1">&#39;cross_entropy_binary&#39;</span><span class="p">:</span> <span class="n">cross_entropy_binary</span><span class="p">,</span>
+                            <span class="s1">&#39;cross_entropy_binary_der&#39;</span><span class="p">:</span> <span class="n">cross_entropy_binary_der</span><span class="p">,</span>
+                            <span class="s1">&#39;softmax_cross_entropy_der&#39;</span><span class="p">:</span> <span class="n">softmax_cross_entropy_der</span><span class="p">,</span>
+                            <span class="s1">&#39;softmax_cross_entropy_der_fullmath&#39;</span><span class="p">:</span> <span class="n">softmax_cross_entropy_der_fullmath</span><span class="p">,</span>
+                            <span class="s1">&#39;sigmoid_cross_entropy_binary_der&#39;</span><span class="p">:</span> <span class="n">sigmoid_cross_entropy_binary_der</span>
+                            <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initializers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;he_uniform&#39;</span><span class="p">:</span> <span class="n">he_uniform</span><span class="p">,</span>
+                             <span class="s1">&#39;he_normal&#39;</span><span class="p">:</span> <span class="n">he_normal</span><span class="p">,</span>
+                             <span class="s1">&#39;xavier_uniform&#39;</span><span class="p">:</span> <span class="n">xavier_uniform</span><span class="p">,</span>
+                             <span class="s1">&#39;xavier_normal&#39;</span><span class="p">:</span> <span class="n">xavier_normal</span><span class="p">,</span>
+                             <span class="s1">&#39;lecun_uniform&#39;</span><span class="p">:</span> <span class="n">lecun_uniform</span><span class="p">,</span>
+                             <span class="s1">&#39;lecun_normal&#39;</span><span class="p">:</span> <span class="n">lecun_normal</span><span class="p">,</span>
+                             <span class="s1">&#39;random&#39;</span><span class="p">:</span> <span class="n">random</span>
+                             <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;adam&#39;</span><span class="p">:</span> <span class="n">adam</span><span class="p">,</span>
+                           <span class="s1">&#39;gradient_descent&#39;</span><span class="p">:</span> <span class="n">gradient_descent</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scorer</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;accuracy&#39;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
+                       <span class="s1">&#39;rpmse&#39;</span><span class="p">:</span> <span class="n">rpmse</span><span class="p">,</span>
+                       <span class="s1">&#39;bias&#39;</span><span class="p">:</span> <span class="n">bias</span>
+                       <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="s1">&#39;adam&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span><span class="p">[</span><span class="n">optimizer</span><span class="p">]</span></div>
+    
+
+<div class="viewcode-block" id="NeuralNetwork.initialize_wb"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.initialize_wb.html#tsdst.nn.model.NeuralNetwork.initialize_wb">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_wb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the network.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy array</span>
+<span class="sd">            The input data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        wb_list : dict</span>
+<span class="sd">            A dictionary of the weights/biases for each layer.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">wb_list</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">xrows</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">xrows</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">prev_col</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">cur_row</span> <span class="o">=</span> <span class="n">prev_col</span>
+            <span class="n">cur_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;depth&#39;</span><span class="p">]</span>
+            
+            <span class="n">init_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initializers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;initializer&#39;</span><span class="p">]]</span>
+            
+            <span class="c1"># Weights cannot be initialized to zero, or the model can&#39;t train</span>
+            <span class="n">W</span> <span class="o">=</span> <span class="n">init_func</span><span class="p">(</span><span class="n">cur_row</span><span class="p">,</span> <span class="n">cur_col</span><span class="p">)</span>
+            
+            <span class="c1"># Zero is a common bias initialization. Some argue that a small</span>
+            <span class="c1"># positive value like 0.01 should be used instead. Others argue</span>
+            <span class="c1"># that makes it worse. LSTMs typically initialize bias at 1</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cur_col</span><span class="p">))</span>
+            <span class="n">wb_list</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">W</span>
+            <span class="n">wb_list</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">b</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;use_batch_norm&#39;</span><span class="p">]:</span>
+                <span class="n">wb_list</span><span class="p">[</span><span class="s1">&#39;gamma&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cur_col</span><span class="p">))</span>
+                <span class="n">wb_list</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cur_col</span><span class="p">))</span>
+            <span class="n">prev_col</span> <span class="o">=</span> <span class="n">cur_col</span>
+    
+        <span class="k">return</span> <span class="n">wb_list</span></div>
+
+<div class="viewcode-block" id="NeuralNetwork.forward_prop"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.forward_prop.html#tsdst.nn.model.NeuralNetwork.forward_prop">[docs]</a>    <span class="k">def</span> <span class="nf">forward_prop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">wb</span><span class="p">,</span> <span class="n">batch_norm</span><span class="p">,</span> <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The forward propagation step</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy array</span>
+<span class="sd">            The input data.</span>
+<span class="sd">        wb : dict</span>
+<span class="sd">            A dictionary of the weights/biases for each layer.</span>
+<span class="sd">        batch_norm : dict</span>
+<span class="sd">            A dictionary containing the initial (or previous) batch norm</span>
+<span class="sd">            results.</span>
+<span class="sd">        train : bool, optional</span>
+<span class="sd">            Whether the forward propagation method is being used to train or</span>
+<span class="sd">            calculate the network in it&#39;s current state.</span>
+<span class="sd">            The default is True.</span>
+<span class="sd">        sample : bool, optional</span>
+<span class="sd">            Whether or not the forward propagation is being used to generate</span>
+<span class="sd">            random smaples of the output from the distribution created using</span>
+<span class="sd">            dropout. The default is False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        hz : numpy array</span>
+<span class="sd">            The final predicted output.</span>
+<span class="sd">        zs : dict</span>
+<span class="sd">            A dictionary of the linearly (affine transform) activated values</span>
+<span class="sd">            for each layer.</span>
+<span class="sd">        batch_norm : dict</span>
+<span class="sd">            A dictionary containing the initial (or previous) batch norm</span>
+<span class="sd">            results.</span>
+<span class="sd">        hzs : dict</span>
+<span class="sd">            A dictionary of the fully activated values for each layer</span>
+<span class="sd">        dropout : dict</span>
+<span class="sd">            A dictionary of the dropout status for each layer.</span>
+<span class="sd">        regularizers : dict</span>
+<span class="sd">            A dictionary of the regularization status for each layer.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hz</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="n">zs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">hzs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dropout</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">regularizers</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">indx</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">hz</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wb</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">])</span> <span class="o">+</span> <span class="n">wb</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span>
+            
+            <span class="c1"># It is a highly debated topic whether or not batch norm or dropout</span>
+            <span class="c1"># first, and on top of that, whether batch norm should occur before</span>
+            <span class="c1"># or after activation. It likely depends on specific situations on</span>
+            <span class="c1"># types of networks. Other sources say they shouldn&#39;t be used</span>
+            <span class="c1"># together anyway. Since this is a demonstration, I chose to put</span>
+            <span class="c1"># batch norm first, before acivation. Note: moving them around </span>
+            <span class="c1"># will affect the derivative, so if doing by hand and not using</span>
+            <span class="c1"># autograd etc., watch out for this.</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;use_batch_norm&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;var&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;z_mu&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="o">-</span> <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;std&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;var&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_tol</span><span class="p">)</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;xhat&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;z_mu&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span><span class="o">/</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;std&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> 
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;norm_z&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">wb</span><span class="p">[</span><span class="s1">&#39;gamma&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;xhat&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">+</span> <span class="n">wb</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span>
+                    
+                    <span class="c1"># Exponential running mean for mu/var, if desired. Use</span>
+                    <span class="c1"># momentum = 0 for regular batch norm process</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;mu_r&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_momentum</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;mu_r&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_momentum</span><span class="p">)</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;var_r&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_momentum</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;var_r&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_momentum</span><span class="p">)</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;var&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;xhat&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;mu_r&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">])</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;var_r&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_tol</span><span class="p">)</span>
+                    <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;norm_z&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">wb</span><span class="p">[</span><span class="s1">&#39;gamma&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;xhat&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">+</span> <span class="n">wb</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;norm_z&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+            
+            <span class="n">actf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;activation&#39;</span><span class="p">]]</span>
+            <span class="n">hz</span> <span class="o">=</span> <span class="n">actf</span><span class="p">(</span><span class="n">batch_norm</span><span class="p">[</span><span class="s1">&#39;norm_z&#39;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;activation_args&#39;</span><span class="p">])</span>
+            
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">train</span> <span class="ow">or</span> <span class="n">sample</span><span class="p">:</span>
+                    <span class="n">dropout_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">dropout_keep_prob</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">drop_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="n">hz</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">dropout</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="n">drop_mask</span> <span class="o">&lt;=</span> <span class="n">dropout_keep_prob</span>
+                <span class="n">hz</span> <span class="o">=</span> <span class="p">(</span><span class="n">hz</span><span class="o">*</span><span class="n">dropout</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">])</span><span class="o">/</span><span class="n">dropout_keep_prob</span>
+                
+            <span class="n">lamda_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;lambda&#39;</span><span class="p">][</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span>
+            <span class="n">p_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;lp_norm&#39;</span><span class="p">][</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span>
+            <span class="n">lamda_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;lambda&#39;</span><span class="p">][</span><span class="s1">&#39;activity&#39;</span><span class="p">]</span>
+            <span class="n">p_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;lp_norm&#39;</span><span class="p">][</span><span class="s1">&#39;activity&#39;</span><span class="p">]</span>
+            <span class="n">lamda_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;lambda&#39;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">]</span>
+            <span class="n">p_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;lp_norm&#39;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">]</span>
+            
+            <span class="c1"># kernel/weight regularizer</span>
+            <span class="c1"># Note: information here is only recorded, it does not affect</span>
+            <span class="c1"># the forward propagation calculations at all</span>
+            <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
+                <span class="n">regularizers</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p_w</span><span class="p">)</span><span class="o">*</span><span class="n">lamda_w</span><span class="o">*</span><span class="n">norm</span><span class="p">(</span><span class="n">wb</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">],</span> <span class="n">p_w</span><span class="p">)</span>
+                <span class="n">regularizers</span><span class="p">[</span><span class="s2">&quot;activity&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p_a</span><span class="p">)</span><span class="o">*</span><span class="n">lamda_a</span><span class="o">*</span><span class="n">norm</span><span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">p_a</span><span class="p">)</span>
+                <span class="n">regularizers</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p_b</span><span class="p">)</span><span class="o">*</span><span class="n">lamda_b</span><span class="o">*</span><span class="n">norm</span><span class="p">(</span><span class="n">wb</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span> <span class="o">+</span> <span class="n">indx</span><span class="p">],</span> <span class="n">p_b</span><span class="p">)</span>
+                
+            <span class="n">zs</span><span class="p">[</span><span class="s1">&#39;z&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="n">hzs</span><span class="p">[</span><span class="s1">&#39;hz&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">hz</span>
+        <span class="k">return</span> <span class="n">hz</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span> <span class="n">batch_norm</span><span class="p">,</span> <span class="n">hzs</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">regularizers</span></div>
+        
+<div class="viewcode-block" id="NeuralNetwork.back_prop"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.back_prop.html#tsdst.nn.model.NeuralNetwork.back_prop">[docs]</a>    <span class="k">def</span> <span class="nf">back_prop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">wb</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span> <span class="n">batch_norm</span><span class="p">,</span> <span class="n">hzs</span><span class="p">,</span> <span class="n">dropout</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The backward propagation step.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy array</span>
+<span class="sd">            The input data.</span>
+<span class="sd">        Y : numpy array</span>
+<span class="sd">            The true Y values.</span>
+<span class="sd">        wb : dict</span>
+<span class="sd">            A dictionary of the weights/biases for each layer.</span>
+<span class="sd">        zs : dict</span>
+<span class="sd">            A dictionary of the linearly (affine transform) activated values</span>
+<span class="sd">            for each layer.</span>
+<span class="sd">        batch_norm : dict</span>
+<span class="sd">            A dictionary containing the initial (or previous) batch norm</span>
+<span class="sd">            results.</span>
+<span class="sd">        hzs : dict</span>
+<span class="sd">            A dictionary of the fully activated values for each layer</span>
+<span class="sd">        dropout : dict</span>
+<span class="sd">            A dictionary of the dropout status for each layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dwdb : dict</span>
+<span class="sd">            A dictionary of the gradients with respect to the weights and</span>
+<span class="sd">            biases.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dwdb</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">batch_m</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">lamda_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;lambda&#39;</span><span class="p">][</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span>
+            <span class="n">p_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;lp_norm&#39;</span><span class="p">][</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span>
+            <span class="n">lamda_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;lambda&#39;</span><span class="p">][</span><span class="s1">&#39;activity&#39;</span><span class="p">]</span>
+            <span class="n">p_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;lp_norm&#39;</span><span class="p">][</span><span class="s1">&#39;activity&#39;</span><span class="p">]</span>
+            <span class="n">lamda_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;lambda&#39;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">]</span>
+            <span class="n">p_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;lp_norm&#39;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">]</span>
+            
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">dcostoutf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;derivative&#39;</span><span class="p">]]</span>
+                <span class="n">dZ</span> <span class="o">=</span> <span class="n">dcostoutf</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">hzs</span><span class="p">[</span><span class="s2">&quot;hz&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">zs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span>
+                               <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;derivative_args&#39;</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">batch_m</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">m_scale</span><span class="p">)</span>
+                <span class="n">dZ</span> <span class="o">+=</span> <span class="n">lamda_a</span><span class="o">*</span><span class="n">norm_der</span><span class="p">(</span><span class="n">hzs</span><span class="p">[</span><span class="s2">&quot;hz&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">p_a</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">batch_m</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">m_scale</span><span class="p">)</span>
+                
+                <span class="c1"># Batchnorm step, if applicable</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;use_batch_norm&#39;</span><span class="p">]:</span>
+                    <span class="n">dxhat</span> <span class="o">=</span> <span class="n">dZ</span> <span class="o">*</span> <span class="n">wb</span><span class="p">[</span><span class="s2">&quot;gamma&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
+                    <span class="n">dvar</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dxhat</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;z_mu&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+                    <span class="n">dxdstd</span> <span class="o">=</span> <span class="n">dxhat</span><span class="o">/</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
+                    <span class="n">dmu</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dxdstd</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> 
+                    <span class="n">dmu</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">dvar</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;z_mu&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    
+                    <span class="n">dgamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dZ</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;xhat&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">dbeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dZ</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    
+                    <span class="n">dwdb</span><span class="p">[</span><span class="s2">&quot;gamma&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dgamma</span>
+                    <span class="n">dwdb</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dbeta</span>
+                    
+                    <span class="n">dZ</span> <span class="o">=</span> <span class="n">dxdstd</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">dvar</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;z_mu&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">/</span><span class="n">zs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">dZ</span> <span class="o">+=</span> <span class="n">dmu</span><span class="o">/</span><span class="n">zs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dZ</span> <span class="o">=</span> <span class="n">dZ</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wb</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                
+                <span class="n">dropout_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">]</span>
+                <span class="n">dZ</span> <span class="o">=</span> <span class="n">dZ</span> <span class="o">*</span> <span class="n">dropout</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">/</span><span class="n">dropout_keep_prob</span>
+                
+                <span class="n">dactf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;derivative&#39;</span><span class="p">]]</span>
+
+                <span class="n">dZ</span> <span class="o">=</span> <span class="n">dZ</span> <span class="o">*</span> <span class="n">dactf</span><span class="p">(</span><span class="n">zs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span>
+                                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;activation_args&#39;</span><span class="p">])</span>
+                <span class="n">dZ</span> <span class="o">=</span> <span class="n">dZ</span> <span class="o">+</span> <span class="n">lamda_a</span><span class="o">*</span><span class="n">norm_der</span><span class="p">(</span><span class="n">hzs</span><span class="p">[</span><span class="s2">&quot;hz&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">p_a</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">batch_m</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">m_scale</span><span class="p">)</span>
+                
+                <span class="c1"># Batchnorm step, if applicable</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="s1">&#39;use_batch_norm&#39;</span><span class="p">]:</span>
+                    <span class="n">dxhat</span> <span class="o">=</span> <span class="n">dZ</span> <span class="o">*</span> <span class="n">wb</span><span class="p">[</span><span class="s2">&quot;gamma&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
+                    <span class="n">dvar</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dxhat</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;z_mu&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+                    <span class="n">dxdstd</span> <span class="o">=</span> <span class="n">dxhat</span><span class="o">/</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span>
+                    <span class="n">dmu</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dxdstd</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> 
+                    <span class="n">dmu</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">dvar</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;z_mu&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    
+                    <span class="n">dgamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dZ</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;xhat&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">dbeta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dZ</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    
+                    <span class="n">dwdb</span><span class="p">[</span><span class="s2">&quot;gamma&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dgamma</span>
+                    <span class="n">dwdb</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dbeta</span>
+                    
+                    <span class="n">dZ</span> <span class="o">=</span> <span class="n">dxdstd</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">dvar</span><span class="o">*</span><span class="n">batch_norm</span><span class="p">[</span><span class="s2">&quot;z_mu&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">/</span><span class="n">zs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">dZ</span> <span class="o">+=</span> <span class="n">dmu</span><span class="o">/</span><span class="n">zs</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="n">X</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="n">hzs</span><span class="p">[</span><span class="s2">&quot;hz&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+                
+            <span class="c1"># m doesn&#39;t come from the derivative. We are dividing by m because we</span>
+            <span class="c1"># technically calculated the gradient for each observation. Thus, we</span>
+            <span class="c1"># average them to get the overall impact. We could also just sum and </span>
+            <span class="c1"># not use the mean, but having a lower value is helpful to not run</span>
+            <span class="c1"># into errors with large numbers</span>
+            
+            <span class="n">dW</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">batch_m</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">m_scale</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">dZ</span><span class="p">)</span> <span class="o">+</span> <span class="n">lamda_w</span><span class="o">*</span><span class="n">norm_der</span><span class="p">(</span><span class="n">wb</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">p_w</span><span class="p">)</span><span class="o">/</span><span class="n">p_w</span><span class="p">)</span>
+            <span class="n">dB</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">batch_m</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">m_scale</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dZ</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="n">lamda_b</span><span class="o">*</span><span class="n">norm_der</span><span class="p">(</span><span class="n">wb</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">p_b</span><span class="p">)</span><span class="o">/</span><span class="n">p_b</span><span class="p">)</span>
+            <span class="n">dwdb</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dW</span>
+            <span class="n">dwdb</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dB</span>
+        <span class="k">return</span> <span class="n">dwdb</span></div>
+
+
+<div class="viewcode-block" id="NeuralNetwork.fit"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.fit.html#tsdst.nn.model.NeuralNetwork.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fits the Neural Network.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy array</span>
+<span class="sd">            The input data.</span>
+<span class="sd">        Y : numpy array</span>
+<span class="sd">            The true Y values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self</span>
+<span class="sd">            The fitted model.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># This is only here for debugging or reproducibility</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
+
+        <span class="c1"># Store total training observations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c1"># Reshape Y so that it is a matrix, even in 1D</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;depth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="c1"># Check for an additional metric to evaluate other than cost</span>
+        <span class="n">output_layer_components</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">has_metric</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s1">&#39;evaluation_metric&#39;</span> <span class="ow">in</span> <span class="n">output_layer_components</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;evaluation_metric&#39;</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">met_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scorer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;evaluation_metric&#39;</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">met_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;evaluation_metric&#39;</span><span class="p">]</span>
+            <span class="n">has_metric</span> <span class="o">=</span> <span class="kc">True</span>
+        
+        <span class="c1"># Initialize the graph</span>
+        <span class="n">wb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize_wb</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        
+        <span class="c1"># Total batches needed for minibatch</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">:</span>
+            <span class="n">total_batches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">total_batches</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">])</span>
+        
+        <span class="c1"># Initialize result arrays and weights</span>
+        <span class="n">costs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_iterations</span><span class="o">*</span><span class="n">total_batches</span><span class="p">)</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_iterations</span><span class="o">*</span><span class="n">total_batches</span><span class="p">)</span>
+        
+        <span class="n">batch_norm</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mu_r&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">)}</span>
+        <span class="n">batch_norm</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;var_r&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">):</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">)})</span>
+        
+        <span class="n">batches</span> <span class="o">=</span> <span class="p">[(</span><span class="n">b</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_batches</span><span class="p">)]</span>
+        
+        <span class="c1"># TODO: Figure out if this (and below) is the proper way to do minibatch</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+            <span class="n">rand_indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">rand_indx</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">rand_indx</span><span class="p">,</span> <span class="p">:]</span> 
+
+        <span class="c1"># marker for counting total iterations in minibatch        </span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_iterations</span><span class="p">):</span>
+            <span class="c1"># TODO: figure out if each batch is meant to be random in minibatch</span>
+            <span class="c1">#batch_order = np.random.choice(range(total_batches), total_batches)</span>
+            <span class="n">batch_order</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_batches</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">batch_order</span><span class="p">:</span>
+                
+                <span class="n">X_batch</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">batches</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">batches</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span>
+                <span class="n">Y_batch</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">batches</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">batches</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span>
+                
+                <span class="n">batch_m</span> <span class="o">=</span> <span class="n">X_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                
+                <span class="c1"># Forward propagation. </span>
+                <span class="p">(</span><span class="n">hz</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span> <span class="n">batch_norm</span><span class="p">,</span> <span class="n">hzs</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">regularizers</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_prop</span><span class="p">(</span><span class="n">X_batch</span><span class="p">,</span>
+                                                                                     <span class="n">wb</span><span class="p">,</span>
+                                                                                     <span class="n">batch_norm</span><span class="p">,</span>
+                                                                                     <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                                                     <span class="n">sample</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                
+                <span class="c1"># Calculate cost without regularization</span>
+                <span class="n">costf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;cost&#39;</span><span class="p">]]</span>
+                <span class="n">cost</span> <span class="o">=</span> <span class="n">costf</span><span class="p">(</span><span class="n">Y_batch</span><span class="p">,</span> <span class="n">hz</span><span class="p">,</span>
+                             <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;cost_args&#39;</span><span class="p">])</span>
+                
+                <span class="c1"># Get regularization information for the cost function,</span>
+                <span class="c1"># the activity, weight, and bias regularizers</span>
+                <span class="n">norms_w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">regularizers</span><span class="p">[</span><span class="s2">&quot;Weight&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">)])</span>
+                <span class="n">norms_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">regularizers</span><span class="p">[</span><span class="s2">&quot;activity&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">)])</span> 
+                <span class="n">norms_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">regularizers</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">)])</span> 
+                
+                <span class="c1"># Update Cost with regularization</span>
+                <span class="n">cost</span> <span class="o">=</span> <span class="p">(</span><span class="n">cost</span> <span class="o">+</span> <span class="n">norms_w</span> <span class="o">+</span> <span class="n">norms_a</span> <span class="o">+</span> <span class="n">norms_b</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">batch_m</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">m_scale</span><span class="p">)</span>
+                
+                <span class="c1"># Backpropagation.</span>
+                <span class="n">dwdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">back_prop</span><span class="p">(</span><span class="n">X_batch</span><span class="p">,</span> <span class="n">Y_batch</span><span class="p">,</span> <span class="n">wb</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span> 
+                                      <span class="n">batch_norm</span><span class="p">,</span> <span class="n">hzs</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span>
+                
+                <span class="c1"># Update parameters with optimizing function</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">==</span> <span class="s1">&#39;adam&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_args</span><span class="p">[</span><span class="s1">&#39;mt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_args</span><span class="p">[</span><span class="s1">&#39;vt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">wb</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_args</span><span class="p">[</span><span class="s1">&#39;mt&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">wb</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_args</span><span class="p">[</span><span class="s1">&#39;vt&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">wb</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_args</span><span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+                
+                <span class="c1"># Update weights, biases, and other parameters for batch norm</span>
+                <span class="n">wb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_parameters</span><span class="p">(</span><span class="n">wb</span><span class="p">,</span> <span class="n">dwdb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_args</span><span class="p">)</span>
+                
+                <span class="c1"># Store cost and other metric, if applicable</span>
+                <span class="n">costs</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
+                <span class="k">if</span> <span class="n">has_metric</span><span class="p">:</span>
+                    <span class="n">metric</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">met_func</span><span class="p">(</span><span class="n">Y_batch</span><span class="p">,</span> <span class="n">hz</span><span class="p">)</span>
+    
+                <span class="c1"># Print the cost/metric every eval_size iterations</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_cost</span> <span class="ow">and</span> <span class="p">(</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">has_metric</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Evaluation </span><span class="si">%i</span><span class="s2">: Cost: </span><span class="si">%f</span><span class="s2">, Metric: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_size</span><span class="p">),</span>
+                                                                      <span class="n">costs</span><span class="p">[((</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_size</span><span class="p">):(</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                                                                      <span class="n">metric</span><span class="p">[((</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_size</span><span class="p">):(</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Evaluation </span><span class="si">%i</span><span class="s2">: Cost: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_size</span><span class="p">),</span>
+                                                          <span class="n">costs</span><span class="p">[((</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_size</span><span class="p">):(</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+                
+        <span class="bp">self</span><span class="o">.</span><span class="n">wb</span> <span class="o">=</span> <span class="n">wb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dwdb</span> <span class="o">=</span> <span class="n">dwdb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">costs</span> <span class="o">=</span> <span class="n">costs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span> <span class="o">=</span> <span class="n">batch_norm</span>
+        <span class="k">if</span> <span class="n">has_metric</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="n">metric</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+    
+<div class="viewcode-block" id="NeuralNetwork.predict"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.predict.html#tsdst.nn.model.NeuralNetwork.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict the Y values based on the input X.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy array</span>
+<span class="sd">            The input data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        hz : numpy array</span>
+<span class="sd">            The predicted Y values.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hz</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_prop</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span><span class="p">,</span>
+                                           <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hz</span></div>
+    
+<div class="viewcode-block" id="NeuralNetwork.draw_predictive_samples"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.draw_predictive_samples.html#tsdst.nn.model.NeuralNetwork.draw_predictive_samples">[docs]</a>    <span class="k">def</span> <span class="nf">draw_predictive_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">n_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Draws predictive samples for each observation from the distribution</span>
+<span class="sd">        created by using dropout.</span>
+<span class="sd">        </span>
+<span class="sd">        The rows of the output represent the observations in X, and the columns</span>
+<span class="sd">        of the output represent the number of samples drawn. If Y has multiple</span>
+<span class="sd">        outputs or classes for a single observation, then the shape of the</span>
+<span class="sd">        output will be (X.shape[0], Y.shape[1]*n_samples). For example, if</span>
+<span class="sd">        there are four observations in X, two classes in Y, and you want three</span>
+<span class="sd">        samples, then the output will be:</span>
+<span class="sd">            </span>
+<span class="sd">            [[Y11_c1, Y11_c2] [Y12_c1, Y12_c2], [Y13_c1, Y13_c2]</span>
+<span class="sd">             [Y21_c1, Y21_c2] [Y22_c1, Y22_c2], [Y23_c1, Y23_c2]</span>
+<span class="sd">             [Y31_c1, Y31_c2] [Y32_c1, Y32_c2], [Y33_c1, Y33_c2]</span>
+<span class="sd">             [Y41_c1, Y41_c2] [Y42_c1, Y42_c2], [Y43_c1, Y43_c2]]</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy array</span>
+<span class="sd">            The input data.</span>
+<span class="sd">        n_samples : int, optional</span>
+<span class="sd">            The number of samples to draw. The default is 1000.</span>
+<span class="sd">        n_outputs : int, optional</span>
+<span class="sd">            The number of outputs or classes in Y. The default is 1.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        draws : numpy array</span>
+<span class="sd">            The sampled predicted values.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">draws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_samples</span><span class="o">*</span><span class="n">n_outputs</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">):</span>
+            <span class="n">hz</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_prop</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">wb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_norm</span><span class="p">,</span>
+                                               <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">draws</span><span class="p">[:,</span> <span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">n_outputs</span><span class="p">):((</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">n_outputs</span><span class="p">)]</span> <span class="o">=</span> <span class="n">hz</span>
+        <span class="k">return</span> <span class="n">draws</span></div>
+    
+<div class="viewcode-block" id="NeuralNetwork.score"><a class="viewcode-back" href="../../../generated/tsdst.nn.model.NeuralNetwork.score.html#tsdst.nn.model.NeuralNetwork.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A method to score/test the model based on the inputs X, y. This can</span>
+<span class="sd">        be a custom function or called with a string from something built-in.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : numpy array</span>
+<span class="sd">            The input data.</span>
+<span class="sd">        y : numpy array</span>
+<span class="sd">            The true Y values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or numpy array</span>
+<span class="sd">            The score result for X, y.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scorer</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">score_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scorer_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">scorer</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">score_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scorer</span>
+        <span class="n">y_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">score_func</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_score</span><span class="p">)</span></div></div>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

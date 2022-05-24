@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tsdst.estimators.BayesLogRegClassifier.__init__ &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.estimators.BayesLogRegClassifier.adjust_params_" href="tsdst.estimators.BayesLogRegClassifier.adjust_params_.html" />
+    <link rel="prev" title="tsdst.estimators.BayesLogRegClassifier" href="tsdst.estimators.BayesLogRegClassifier.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.estimators.BayesLogRegClassifier.__init__</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.estimators.BayesLogRegClassifier.html" title="Previous Chapter: tsdst.estimators.BayesLogRegClassifier"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.estimat...</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.estimators.BayesLogRegClassifier.adjust_params_.html" title="Next Chapter: tsdst.estimators.BayesLogRegClassifier.adjust_params_"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.estimat... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.estimators.BayesLogRegClassifier.__init__.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  </div>
+<div class=col-md-9 content><section id="tsdst-estimators-bayeslogregclassifier-init">
+<h1>tsdst.estimators.BayesLogRegClassifier.__init__<a class="headerlink" href="#tsdst-estimators-bayeslogregclassifier-init" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="tsdst.estimators.BayesLogRegClassifier.__init__">
+<span class="sig-prename descclassname"><span class="pre">BayesLogRegClassifier.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rosenthal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_max_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sklearn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">over_dispersion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scorer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/estimators.html#BayesLogRegClassifier.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.estimators.BayesLogRegClassifier.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The constructor for the BayesLogRegClassifier</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>C</strong><span class="classifier">float, optional</span></dt><dd><p>The value for the inverse L1 penalty, or, the inverse
+regularization strength. If None, the MCMC process
+looks for the optimal penalty. The default is None.</p>
+<p>This value gets converted into the scale parameter for a laplace
+distribution (scale = 2*C).</p>
+</dd>
+<dt><strong>start</strong><span class="classifier">numpy array (float), optional</span></dt><dd><p>The starting values for the MCMC. If None, the MLE estimate is used
+(solved with sklearn). The default is None.</p>
+</dd>
+<dt><strong>niter</strong><span class="classifier">int, optional</span></dt><dd><p>The number of MCMC samples to draw. The default is 10000.</p>
+</dd>
+<dt><strong>algo</strong><span class="classifier">str, optional</span></dt><dd><p>The MCMC (Metropolis) algorithm to use. The default is ‘rosenthal’,
+which is a method that tunes the covariance matrix after each
+iteration. Other options include ‘rwm’, which is a simple random
+metropolis walk with a fixed covariance matrix, and ‘lap’ which is
+another adaptive method that tunes the covariance matrix every K
+iterations.</p>
+</dd>
+<dt><strong>algo_options</strong><span class="classifier">dict, optional</span></dt><dd><p>The options to be passed to the MCMC algorithm. Include as a
+dictionary. The default is None.</p>
+</dd>
+<dt><strong>retry_sd</strong><span class="classifier">float, optional</span></dt><dd><p>The MCMC alorithms use a Cholesky decomposition on the covariance
+matrix. In case the decomposition fails, the algorithms will 
+attempt to jitter the covaraince matrix to help it be positive 
+definite. This value determines the strength of the jittering and
+is drawn directly from a normal distribution with zero mean and
+retry_sd standard deviation. The default is 0.02.</p>
+</dd>
+<dt><strong>retry_max_tries</strong><span class="classifier">int, optional</span></dt><dd><p>Number of attempts to correct the cholesky decomposition if it
+fails. The default is 100.</p>
+</dd>
+<dt><strong>initialize_weights</strong><span class="classifier">str, optional</span></dt><dd><p>Determines the method of initializing the starting model parameter
+values (if start is None). Options are ‘sklearn’, ‘ones’, ‘random’,
+or ‘zeros’. The default is ‘sklearn’.</p>
+</dd>
+<dt><strong>param_summary</strong><span class="classifier">str, optional</span></dt><dd><p>The method used in making the final parameter summaries. Options 
+are ‘mean’, ‘median’, ‘mode_kde’, ‘mode_histogram’, or
+‘final_sample’. The default is ‘mean’.</p>
+</dd>
+<dt><strong>has_constant</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether or not the data provided already has a column of ones
+as the first column in the dataset for the intercept of the model.
+If not, one is created. The default is False.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, a progress bar, along with timestamps, is provided.
+The default is True.</p>
+</dd>
+<dt><strong>over_dispersion</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether or not to account for overdispersion in the model.
+The default is False.</p>
+</dd>
+<dt><strong>scorer</strong><span class="classifier">function or str</span></dt><dd><p>The function or string to use for the default scoring method.
+Otherwise, pass None for accuracy. The default is None.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>None.</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

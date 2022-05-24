@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tsdst.mcmc.adaptive_mcmc &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.mcmc.rwm" href="tsdst.mcmc.rwm.html" />
+    <link rel="prev" title="tsdst.mcmc.samp_size_calc_raftery" href="tsdst.mcmc.samp_size_calc_raftery.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.mcmc.adaptive_mcmc</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.mcmc.samp_size_calc_raftery.html" title="Previous Chapter: tsdst.mcmc.samp_size_calc_raftery"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.mcmc.sa...</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.mcmc.rwm.html" title="Next Chapter: tsdst.mcmc.rwm"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.mcmc.rwm &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.mcmc.adaptive_mcmc.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  </div>
+<div class=col-md-9 content><section id="tsdst-mcmc-adaptive-mcmc">
+<h1>tsdst.mcmc.adaptive_mcmc<a class="headerlink" href="#tsdst-mcmc-adaptive-mcmc" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="tsdst.mcmc.adaptive_mcmc">
+<span class="sig-prename descclassname"><span class="pre">tsdst.mcmc.</span></span><span class="sig-name descname"><span class="pre">adaptive_mcmc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">postArgs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/mcmc.html#adaptive_mcmc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.mcmc.adaptive_mcmc" title="Permalink to this definition">¶</a></dt>
+<dd><p>A random walk metropolis algorithm that adaptively tunes the covariance
+matrix.</p>
+<p>Based on methods by Rosenthal (who improved on Haario’s method).
+The method by Rosenthal is sometimes referred to as Adaptive Mixture
+Metropolis, while the algorithm by Haario is called Adaptive Metropolis and
+is generally considered to be the historically first adaptive Metropolis
+algorithm.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>start</strong><span class="classifier">numpy array</span></dt><dd><p>Starting values for the MCMC.</p>
+</dd>
+<dt><strong>niter</strong><span class="classifier">int</span></dt><dd><p>Number of iterations.</p>
+</dd>
+<dt><strong>lpost</strong><span class="classifier">function</span></dt><dd><p>Log posterior function.</p>
+</dd>
+<dt><strong>postArgs</strong><span class="classifier">dict</span></dt><dd><p>Extra arguments for the log posterior function. The default is <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> . Parameter options include</p>
+<blockquote>
+<div><ul>
+<li><p>beta : (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a>) Between 0 and 1. Decides the proportion to sample for each section of the mixture             distribution. A mixture distribution is essentially like adding two distributions together. However, to             avoid some complicated math, one way to sample from a mixture of two distributions is to use a trick,             namely, to first sample from a uniform distribution between 0, 1, and then evaluate whether that value             is above some threshold (beta in this case). If it is, sample from the first distribution, otherwise,             sample from the second.</p></li>
+<li><p>progress : (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) Whether to display progress bar.</p></li>
+<li><p>prev_vals : (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>) The previous values of the last run, namely:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>chol2 : (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) The decomposed covariance matrix of the parameters.</p></li>
+<li><p>sumx : (<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">array</span></code>) The current sum of the parameter value (for each parameter)</p></li>
+<li><p>prev_i : (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a>) The number of samples represented in sumx. Used in averaging                 sumx</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</dd>
+<dt><strong>options</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Extra arguments for the MCMC algorithm, such as</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>parm</strong><span class="classifier">numpy array</span></dt><dd><p>MCMC samples.</p>
+</dd>
+<dt><strong>prev_vals</strong><span class="classifier">dict</span></dt><dd><p>The ending values of the MCMC algorithm. Useful when you want to
+continue where you left off.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>A random walk metropolis algorithm that adaptively tunes the covariance matrix. Based on methods by Rosenthal
+(who improved on Haario’s method). The method by Rosenthal is sometimes refered to as Adaptive Mixture Metropolis,
+while the algorithm by Haario is called Adaptive Metropolis and is generally considered to be the historically first
+adaptive Metropolis algorithm.</p>
+<p>This method is identical to a Random Walk Metropolis algorithm, except that it adapts the covariance matrix after
+each iteration based on the sample covariance of the entire chain up to the current iteration. The candidate values
+in the MCMC chain are then sampled from a mixed density distribution defined as follows:</p>
+<div class="math notranslate nohighlight">
+\[Q_{n}(x, \cdot) = (1 - \beta)N(x, (2.38)^{2} \Sigma_{n}/d) + \beta N(x, (0.1)^{2} I_{d} / d)\]</div>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(Q_{n}\)</span>: The proposal distribution</p></li>
+<li><p><span class="math notranslate nohighlight">\(N\)</span>: Normal Distribution</p></li>
+<li><p><span class="math notranslate nohighlight">\(\beta\)</span>: some small constant, usually 0.05</p></li>
+<li><p><span class="math notranslate nohighlight">\(\Sigma_{n}\)</span>: sample covariance up to the <span class="math notranslate nohighlight">\(n^{th}\)</span> iteration</p></li>
+<li><p><span class="math notranslate nohighlight">\(d\)</span>: the number of parameters</p></li>
+<li><p><span class="math notranslate nohighlight">\(I_{d}\)</span>: the <span class="math notranslate nohighlight">\(d \times d\)</span> identity matrix</p></li>
+</ul>
+<p>To sample from any density distribution, you must first calculate the inverse cdf of the function, otherwise
+known as the quantile function. Assuming that there is a simple method to generate a uniform random number with
+range <span class="math notranslate nohighlight">\([0, 1]\)</span> (most programming languages do), then calculating a random number from any distribution is
+simple. First, generate the random uniform number, and use it as the input to the quantile function. However,
+in many practical situations (such as with the normal distribution), calculating the quantile function is
+non-trivial. The same is true for the above mixed density distribution. Therefore, to simplify sampling from
+the mixed density distribution, use a uniform random number generator to sample a number <span class="math notranslate nohighlight">\(U\)</span> between
+<span class="math notranslate nohighlight">\([0, 1]\)</span>. Then, if <span class="math notranslate nohighlight">\(U &lt; \beta\)</span>, then sample the candidate value from <span class="math notranslate nohighlight">\(N(x, (2.38)^{2} \Sigma_{n}/d)\)</span>.
+Otherwise, sample from <span class="math notranslate nohighlight">\(N(x, (0.1)^{2} I_{d} / d)\)</span>.</p>
+<p>To calculate <span class="math notranslate nohighlight">\(\Sigma_{n}\)</span> efficiently, the algorithm uses the <a class="reference internal" href="tsdst.mcmc.cholupdate.html#tsdst.mcmc.cholupdate" title="tsdst.mcmc.cholupdate"><code class="xref py py-func docutils literal notranslate"><span class="pre">cholupdate()</span></code></a> function. Let <span class="math notranslate nohighlight">\(X\)</span> be
+an <span class="math notranslate nohighlight">\(n \times d\)</span> matrix of <cite>n</cite> MCMC samples and <cite>d</cite> parameters. Then, the equation for population covariance can be defined as follows:</p>
+<div class="math notranslate nohighlight">
+\[\Sigma_n = E(X^{T}X) - E(X^{T})E(X) = \frac{X^{T}X}{n} - \mu^{T} \mu\]</div>
+<p>The algorithm calculates the cholesky distribution of <span class="math notranslate nohighlight">\(X^{T}X\)</span> for the first four samples. From that point
+on, <span class="math notranslate nohighlight">\(X^{T}X\)</span> is updated using <a class="reference internal" href="tsdst.mcmc.cholupdate.html#tsdst.mcmc.cholupdate" title="tsdst.mcmc.cholupdate"><code class="xref py py-func docutils literal notranslate"><span class="pre">cholupdate()</span></code></a> where <cite>update=True</cite>. If <span class="math notranslate nohighlight">\(U &lt; \beta\)</span>, then
+<span class="math notranslate nohighlight">\(\big( \frac{X^{T}X}{n} - \mu^{T} \mu \big)\)</span> is calculated using <a class="reference internal" href="tsdst.mcmc.cholupdate.html#tsdst.mcmc.cholupdate" title="tsdst.mcmc.cholupdate"><code class="xref py py-func docutils literal notranslate"><span class="pre">cholupdate(XTX/n,</span> <span class="pre">uTu,</span> <span class="pre">update=False)</span></code></a>.
+This algorithm uses the sample covariance, which can be calculated using the following trick:</p>
+<div class="math notranslate nohighlight">
+\[\Big( \frac{X^{T}X}{n} - \mu^{T} \mu \Big) \Big(\frac{n}{n-1} \Big)\]</div>
+<p>The algorithm multiplies <span class="math notranslate nohighlight">\(\Sigma_{n}\)</span> by <span class="math notranslate nohighlight">\(\frac{2.38^2}{d}\)</span>, which makes the final covariance used
+to create the candidate samples:</p>
+<div class="math notranslate nohighlight">
+\[\Sigma_{n} = \Big( \frac{2.38^2}{d} \Big) \Big( \frac{X^{T}X}{n} - \mu^{T} \mu \Big) \Big(\frac{n}{n-1} \Big)\]</div>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

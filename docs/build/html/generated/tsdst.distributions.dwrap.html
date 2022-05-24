@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tsdst.distributions.dwrap &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.distributions.pnorm_approx" href="tsdst.distributions.pnorm_approx.html" />
+    <link rel="prev" title="tsdst.distributions.dpoibin_PA" href="tsdst.distributions.dpoibin_PA.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.distributions.dwrap</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.distributions.dpoibin_PA.html" title="Previous Chapter: tsdst.distributions.dpoibin_PA"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.distrib...</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.distributions.pnorm_approx.html" title="Next Chapter: tsdst.distributions.pnorm_approx"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.distrib... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.distributions.dwrap.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  </div>
+<div class=col-md-9 content><section id="tsdst-distributions-dwrap">
+<h1>tsdst.distributions.dwrap<a class="headerlink" href="#tsdst-distributions-dwrap" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="tsdst.distributions.dwrap">
+<span class="sig-prename descclassname"><span class="pre">tsdst.distributions.</span></span><span class="sig-name descname"><span class="pre">dwrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disttype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">funct</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/distributions.html#dwrap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.distributions.dwrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is meant to be similar to the R distribution functions,
+such as dnorm, pnorm, qnorm, etc. It calculates variations of the 
+cdf or pdf depending on the funct selected.</p>
+<p>I have found that writing the distributions in plain math is sometimes 
+faster in python than using the scipy implementations, which is why
+this function originally existed. I wrote my own versions of the
+distributions, except where the distributions were complicated and it
+wasn’t worth it at the time (and then this function uses scipy). However,
+as time goes on, that will probably change. Also, the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/stats.html#module-scipy.stats" title="(in SciPy v1.8.1)"><code class="xref any docutils literal notranslate"><span class="pre">scipy.stats</span></code></a>
+implementations and documentations are quite complete, so unless you’re
+feeling adventurous, it’s probably a good idea to just use <a class="reference external" href="https://docs.scipy.org/doc/scipy/index.html#module-scipy" title="(in SciPy v1.8.1)"><code class="xref any docutils literal notranslate"><span class="pre">scipy</span></code></a>.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>data</strong><span class="classifier">numpy array or pandas dataframe/series</span></dt><dd><p>Numeric values representing the data of interest, either a random
+variable, probability, or quantile.</p>
+</dd>
+<dt><strong>params</strong><span class="classifier">numpy array or pandas dataframe/series</span></dt><dd><p>the parameters of the function of interest (shape, scale, etc.)</p>
+<ul class="simple">
+<li><p>weibull: (shape, scale)</p></li>
+<li><p>exponential: (rate,)</p></li>
+<li><p>lnorm: (mu, sigma)</p></li>
+<li><p>normal: (mu, sigma)</p></li>
+<li><p>gamma: (shape, scale)</p></li>
+</ul>
+</dd>
+<dt><strong>disttype</strong><span class="classifier">str</span></dt><dd><p>the distribution type, which currently includes</p>
+<ul class="simple">
+<li><p>pdf (probability density function)</p></li>
+<li><p>cdf (cumulative distribution function)</p></li>
+<li><p>inv-cdf (inverse cumulative distribution function)</p></li>
+<li><p>sf (survival function, 1 - cdf)</p></li>
+<li><p>left-truncated-cdf</p></li>
+<li><p>left-truncated-inv-cdf.</p></li>
+</ul>
+<p>(Note: not all of these options may be available for all funct values)</p>
+</dd>
+<dt><strong>funct</strong><span class="classifier">str</span></dt><dd><p>the distribution function, which currently includes weibull, 
+exponential, log-normal (as lnorm), normal, and gamma</p>
+</dd>
+<dt><strong>log</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to use the log of the distribution or not. The default is
+False.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>numpy array</dt><dd><p>an array containing the evaluation of the distribution.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>Raised when invalid distribution type or function is chosen.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tsdst.distributions</span> <span class="kn">import</span> <span class="n">dwrap</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.975</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dwrap</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">disttype</span><span class="o">=</span><span class="s2">&quot;inv-cdf&quot;</span><span class="p">,</span> <span class="n">funct</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">array([0.        , 1.95996398])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

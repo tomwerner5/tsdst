@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.distributions.dpoibin\_PA
+===============================
+
+.. currentmodule:: tsdst.distributions
+
+.. autofunction:: dpoibin_PA

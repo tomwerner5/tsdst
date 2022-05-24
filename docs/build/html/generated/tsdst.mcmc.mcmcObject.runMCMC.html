@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>tsdst.mcmc.mcmcObject.runMCMC &#8212; tsdst 1.0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.mcmc.mcmcObject.showChain" href="tsdst.mcmc.mcmcObject.showChain.html" />
+    <link rel="prev" title="tsdst.mcmc.mcmcObject.removeChain" href="tsdst.mcmc.mcmcObject.removeChain.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b></b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.mcmc.mcmcObject.runMCMC</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.mcmc.mcmcObject.removeChain.html" title="Previous Chapter: tsdst.mcmc.mcmcObject.removeChain"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.mcmc.mc...</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.mcmc.mcmcObject.showChain.html" title="Next Chapter: tsdst.mcmc.mcmcObject.showChain"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.mcmc.mc... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.mcmc.mcmcObject.runMCMC.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  </div>
+<div class=col-md-9 content><section id="tsdst-mcmc-mcmcobject-runmcmc">
+<h1>tsdst.mcmc.mcmcObject.runMCMC<a class="headerlink" href="#tsdst-mcmc-mcmcobject-runmcmc" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="tsdst.mcmc.mcmcObject.runMCMC">
+<span class="sig-prename descclassname"><span class="pre">mcmcObject.</span></span><span class="sig-name descname"><span class="pre">runMCMC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initSampleSize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algoOpts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raftOpts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chainName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_acf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trace_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_density_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_acf_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acfType</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pacf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acf_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_raftery</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">750000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burnin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpost_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/mcmc.html#mcmcObject.runMCMC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.mcmc.mcmcObject.runMCMC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate MCMC samples and evaluate samples size (using Raftery)
+and convergence.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>start</strong><span class="classifier">numpy array</span></dt><dd><p>Starting values for the MCMC.</p>
+</dd>
+<dt><strong>initSampleSize</strong><span class="classifier">int</span></dt><dd><p>The number of MCMC samples to draw on the first run. It’s good to start relatively small, because the
+Raftery evaluation will tell you how many more samples need to be drawn.</p>
+</dd>
+<dt><strong>lpost</strong><span class="classifier">function</span></dt><dd><p>Log posterior function.</p>
+</dd>
+<dt><strong>algo</strong><span class="classifier">function</span></dt><dd><p>The MCMC algorithm to use (could be anything, but needs to have the same arguments as inputs for the
+algorithms already defined, namely:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>start<span class="classifier">numpy array</span></dt><dd><p>Starting values for the MCMC.</p>
+</dd>
+<dt>niter<span class="classifier">int</span></dt><dd><p>Number of iterations.</p>
+</dd>
+<dt>lpost<span class="classifier">function</span></dt><dd><p>Log posterior function.</p>
+</dd>
+<dt>postArgs<span class="classifier">dict</span></dt><dd><p>Extra arguments for the log posterior function. The default is None</p>
+</dd>
+<dt>options<span class="classifier">dict, optional</span></dt><dd><p>Extra arguments for the specific MCMC algorithm</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt><strong>algoOpts</strong><span class="classifier">dict, optional</span></dt><dd><p>Extra arguments for the specific MCMC algorithm. The default is None.</p>
+</dd>
+<dt><strong>raftOpts</strong><span class="classifier">dict, optional</span></dt><dd><p>A dictionary containing the options for the Raftery evaluation. The default is None. Options include:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>q<span class="classifier">float, optional</span></dt><dd><p>Quantiles of interest (in terms of percentiles, i.e. between 0 and 1). The default is [0.025, 0.5, 0.975].</p>
+</dd>
+<dt>r<span class="classifier">float, optional</span></dt><dd><p>Accuracy. The default is 0.005.</p>
+</dd>
+<dt>s<span class="classifier">float, optional</span></dt><dd><p>Probability. The default is 0.95.</p>
+</dd>
+<dt>converge_eps<span class="classifier">float, optional</span></dt><dd><p>Convergence threshold (epsilon). The default is 0.001.</p>
+</dd>
+<dt>thin<span class="classifier">int, optional</span></dt><dd><p>Thining amount. The default is 1.</p>
+</dd>
+<dt>print_each<span class="classifier">bool, optional</span></dt><dd><p>Print results at each evaluation. The default is False.</p>
+</dd>
+<dt>print_final<span class="classifier">bool, optional</span></dt><dd><p>Print the final results. The default is False.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt><strong>chainName</strong><span class="classifier">str, optional</span></dt><dd><p>The name of the chain that will be created. If None,
+‘<cite>Chain_</cite>’ + int (for number of chains in the collection)
+will be used. The default is None.</p>
+</dd>
+<dt><strong>max_tries</strong><span class="classifier">int, optional</span></dt><dd><p>The max number of times to try and jitter before admitting defeat. If the jitter fails, the reason for the
+covariance matrix not being positive definite may not be due to randomness, and may require
+a re-evaluation of the problem space. The default is 100.</p>
+</dd>
+<dt><strong>sd</strong><span class="classifier">float, optional</span></dt><dd><p>The standard deviation of the normal distribution used to draw the
+jitter amount from. In other words, the jittered covariance is the 
+covariance matrix plus a random draw X, where X~N(0, sd).
+The default is 0.02.</p>
+</dd>
+<dt><strong>plot_trace</strong><span class="classifier">bool, optional</span></dt><dd><p>Plot the trace of the MCMC samples. The default is True.</p>
+</dd>
+<dt><strong>plot_density</strong><span class="classifier">bool, optional</span></dt><dd><p>Plot the posterior density of the MCMC samples.
+The default is True.</p>
+</dd>
+<dt><strong>plot_acf</strong><span class="classifier">bool, optional</span></dt><dd><p>Plot the auto-correlation. The default is True.</p>
+</dd>
+<dt><strong>plot_trace_args</strong><span class="classifier">dict</span></dt><dd><p>Arguments for the plotTrace function. Default is None.</p>
+</dd>
+<dt><strong>plot_density_args</strong><span class="classifier">dict</span></dt><dd><p>Arguments for the plotDensity function. Default is None.</p>
+</dd>
+<dt><strong>plot_acf_args</strong><span class="classifier">dict</span></dt><dd><p>Arguments for the plotACF function. Default is None.</p>
+</dd>
+<dt><strong>acf_type</strong><span class="classifier">str</span></dt><dd><p>Ether ‘acf’, ‘pacf’, or None. Default is ‘pacf’. If None, pacf
+calculation is not performed.</p>
+</dd>
+<dt><strong>acf_args</strong><span class="classifier">dict</span></dt><dd><p>Arguments to pass to the <cite>acf</cite> function. Default is None.</p>
+</dd>
+<dt><strong>do_raftery</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to perform the raftery evaluation, or stop after the
+first chain generation. Default is True.</p>
+</dd>
+<dt><strong>max_iters</strong><span class="classifier">int, optional</span></dt><dd><p>The max number of new samples to draw. For example, if the Raftery
+evaluation recommends 1 million new samples, and max_iters is 
+750000, then the new samples will be restricted at 750000.
+The default is 750000.</p>
+</dd>
+<dt><strong>burnin</strong><span class="classifier">int, optional</span></dt><dd><p>The number of initial MCMC samples to drop from the chain.
+If burnin is negative or zero, the burnin amount will be determined
+automatically. If positive, it will drop that amount. If 
+None, it will do nothing. The default is 0.</p>
+</dd>
+<dt><strong>lpost_args</strong><span class="classifier">dict, optional</span></dt><dd><p>Any extra arguments to pass to the log posterior function.
+The default is None.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>None.</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

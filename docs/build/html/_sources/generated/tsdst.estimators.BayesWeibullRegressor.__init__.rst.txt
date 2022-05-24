@@ -1,0 +1,11 @@
+.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.estimators.BayesWeibullRegressor.\_\_init\_\_
+===================================================
+
+.. currentmodule:: tsdst.estimators
+
+.. automethod:: BayesWeibullRegressor.__init__

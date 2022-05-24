@@ -1,0 +1,11 @@
+.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.estimators.BayesPoissonRegressor.predict
+==============================================
+
+.. currentmodule:: tsdst.estimators
+
+.. automethod:: BayesPoissonRegressor.predict

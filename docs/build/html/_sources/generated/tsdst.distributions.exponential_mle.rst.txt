@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.distributions.exponential\_mle
+====================================
+
+.. currentmodule:: tsdst.distributions
+
+.. autofunction:: exponential_mle

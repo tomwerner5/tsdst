@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.nn.initializers.lecun\_uniform
+====================================
+
+.. currentmodule:: tsdst.nn.initializers
+
+.. autofunction:: lecun_uniform

@@ -1,0 +1,11 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.distributions.glm\_likelihood\_gaussian
+=============================================
+
+.. currentmodule:: tsdst.distributions
+
+.. autofunction:: glm_likelihood_gaussian

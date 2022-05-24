@@ -1,0 +1,34 @@
+﻿.. raw:: html
+
+    </div>
+    <div class=col-md-9 content>
+
+tsdst.estimators.BayesWeibullRegressor
+======================================
+
+.. currentmodule:: tsdst.estimators
+
+.. autoclass:: BayesWeibullRegressor
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: ./
+   
+      ~BayesWeibullRegressor.__init__
+      ~BayesWeibullRegressor.adjust_params_
+      ~BayesWeibullRegressor.decision_function
+      ~BayesWeibullRegressor.fit
+      ~BayesWeibullRegressor.get_params
+      ~BayesWeibullRegressor.predict
+      ~BayesWeibullRegressor.score
+      ~BayesWeibullRegressor.set_params
+   
+   
+
+   
+   
+   
