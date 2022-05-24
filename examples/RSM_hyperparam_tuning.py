@@ -262,9 +262,9 @@ class RSMSearchCV(object):
                               fit_data_labels=self.fit_data_labels)
         self.B = np.zeros((self.num_hyperparams, self.num_hyperparams))
         
-        y_pred = self.model.predict(self.fit_data)
-        n_obs = self.surface_mean.shape[0]
-        n_coef = self.model.coef_.size + 1
+        #y_pred = self.model.predict(self.fit_data)
+        #n_obs = self.surface_mean.shape[0]
+        #n_coef = self.model.coef_.size + 1
         
         self.B[np.triu_indices(self.num_hyperparams)] = self.model.coef_[
                                                         self.num_hyperparams:]
@@ -288,7 +288,7 @@ class RSMSearchCV(object):
                               'stationary point altered. Change eigen_thres ' 
                               'if this is not what you intend')
                 U = self.eigen_vectors_B[:, active]
-                laminv = 1/self.eigen_values_B[active]
+                laminv = 1.0/self.eigen_values_B[active]
                 self.stationary_points_encoded = -0.5 * U.dot(np.diag(laminv)).dot(U.T).dot(self.model.coef_[:self.num_hyperparams])
 
                 if sum(active) < U.shape[0]:

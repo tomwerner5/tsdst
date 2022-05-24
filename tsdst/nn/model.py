@@ -2,7 +2,7 @@ import numpy as np
 
 from ..metrics import rpmse, bias, accuracy
 from ..tmath import norm, norm_der
-from .activations import ( relu, elu, gelu, gelu_der, gelu_approx,
+from .activations import (relu, elu, gelu, gelu_der, gelu_approx,
                      gelu_speedy, gelu_speedy_der,
                      sigmoid, sigmoid_der,
                      softmax, softmax_der, relu_der, cross_entropy,
@@ -14,12 +14,14 @@ from .activations import ( relu, elu, gelu, gelu_der, gelu_approx,
                      linear, mse, mse_linear_der)
 from .initializers import (he_uniform, he_normal, xavier_uniform,
                              xavier_normal, lecun_uniform, lecun_normal,
-                             random
+                             random_normal
                              )
 from .optimizers import gradient_descent, adam
 
 
 class NeuralNetwork(object):
+    """The base class for custom neural networks in numpy
+    """
     def __init__(self,
                  model,
                  eval_size=10,
@@ -176,10 +178,10 @@ class NeuralNetwork(object):
                                                    theoretical reasons, but
                                                    should be correct to use)
                                 
-                                A value of zero for any of the lambdas will
+                                A value of zero for any of the lambdas will \
                                 that regularization type for that layers.
-                - lp_norm (dict) : A dictionary containing the regularization 
-                                 norm funcitons for each type of
+                - lp_norm (dict) : A dictionary containing the regularization \
+                                 norm funcitons for each type \
                                  regularization.
                                  
                                  The options are:
@@ -595,7 +597,7 @@ class NeuralNetwork(object):
         # Check for an additional metric to evaluate other than cost
         output_layer_components = list(self.model['output'].keys())
         has_metric = False
-        if 'evaluation_metric' in  output_layer_components:
+        if 'evaluation_metric' in output_layer_components:
             if isinstance(self.model['output']['evaluation_metric'], str):
                 met_func = self.scorer[self.model['output']['evaluation_metric']]
             else:
@@ -781,5 +783,5 @@ class NeuralNetwork(object):
             score_func = self.scorer_list[self.scorer]
         else:
             score_func = self.scorer
-        y_score = self.predict(X, self.wb)
+        y_score = self.predict(X)
         return score_func(y, y_score)

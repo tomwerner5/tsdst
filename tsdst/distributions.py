@@ -270,9 +270,9 @@ def dpoibin_exact(k, p, cdf=False):
     Parameters
     ----------
     k : numpy array or int
-        Poisson counts.
+        Poisson count, or number of successful trials (out of len(p) total trials)
     p : numpy array or float
-        Binomial probabilities.
+        Binomial probabilities for each trial.
     cdf : bool, optional
         Compute the cdf. Default is False.
 

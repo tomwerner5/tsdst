@@ -244,21 +244,21 @@ def adaptive_mcmc(start, niter, lpost, postArgs=None, options=None):
     Otherwise, sample from :math:`N(x, (0.1)^{2} I_{d} / d)`.
 
     To calculate :math:`\\Sigma_{n}` efficiently, the algorithm uses the :func:`cholupdate` function. Let :math:`X` be
-    an :math:`m \\times n` matrix of MCMC samples. Then, the equation for population covariance can be defined as follows:
+    an :math:`n \\times d` matrix of `n` MCMC samples and `d` parameters. Then, the equation for population covariance can be defined as follows:
 
-    .. math:: \\Sigma_n = E(XX^T) - E(X)E(X^T) = \\frac{XX^{T}}{n} - \\mu \\mu^{T}
+    .. math:: \\Sigma_n = E(X^{T}X) - E(X^{T})E(X) = \\frac{X^{T}X}{n} - \\mu^{T} \\mu
 
-    The algorithm calculates the cholesky distribution of :math:`XX^{T}` for the first four samples. From that point
-    on, :math:`XX^{T}` is updated using :func:`cholupdate` where `update=True`. If :math:`U < \\beta`, then
-    :math:`\\big( \\frac{XX^{T}}{n} - \\mu \\mu^{T} \\big)` is calculated using :func:`cholupdate(XXT/n, uuT, update=False)<cholupdate>`.
+    The algorithm calculates the cholesky distribution of :math:`X^{T}X` for the first four samples. From that point
+    on, :math:`X^{T}X` is updated using :func:`cholupdate` where `update=True`. If :math:`U < \\beta`, then
+    :math:`\\big( \\frac{X^{T}X}{n} - \\mu^{T} \\mu \\big)` is calculated using :func:`cholupdate(XTX/n, uTu, update=False)<cholupdate>`.
     This algorithm uses the sample covariance, which can be calculated using the following trick:
 
-    .. math:: \\Big( \\frac{XX^{T}}{n} - \\mu \\mu^{T} \\Big) \\Big(\\frac{n}{n-1} \\Big)
+    .. math:: \\Big( \\frac{X^{T}X}{n} - \\mu^{T} \\mu \\Big) \\Big(\\frac{n}{n-1} \\Big)
 
     The algorithm multiplies :math:`\\Sigma_{n}` by :math:`\\frac{2.38^2}{d}`, which makes the final covariance used
     to create the candidate samples:
 
-    .. math:: \\Sigma_{n} = \\Big( \\frac{2.38^2}{d} \\Big) \\Big( \\frac{XX^{T}}{n} - \\mu \\mu^{T} \\Big) \\Big(\\frac{n}{n-1} \\Big)
+    .. math:: \\Sigma_{n} = \\Big( \\frac{2.38^2}{d} \\Big) \\Big( \\frac{X^{T}X}{n} - \\mu^{T} \\mu \\Big) \\Big(\\frac{n}{n-1} \\Big)
 
     """
     
@@ -1387,11 +1387,52 @@ class mcmcObject(object):
     def tj_convergence_test(self, chainName, eps=0.025, quantiles=[0.05, 0.95],
                             window_size=None, num_windows=5, slide=50,
                             window_space=0, bin_limit=0.6, print_final=False):
-        """A homemade test to evaluate convergence. This test evaluates a moving
-        window, or a list of moving windows and compares the values of the
-        distribution tails in those windows. If the distribution tails of all
-        the moving windows is in line with the distribution tails of the final
-        n samples of the chain, then the chain is considered to have converged.
+        """A test to evaluate convergence. 
+        
+        This test evaluates a moving window, or a list of moving windows and
+        compares the values of the distribution tails in those windows. If the
+        distribution tails of all the moving windows is in line with the
+        distribution tails of the final n samples of the chain, then the chain
+        is considered to have converged.
+        
+        This is a homemade convergence test for MCMC chains developed by Tom
+        Werner and Joel Linford (TJ). While these ideas were novel to them at
+        the time of discovery, it has since been revealed that their methods are
+        related or similar to diagnostics proposed by more noteworthy
+        statisticians, such as Heidelberger and Welch or Gewke. Still, this
+        method has proven to perform well when compared with more
+        well-known methods.
+
+        This method uses moving windows (default is 5) to “slide” across the
+        chain (starting from the beginning) and measure the given quantiles of
+        the chain in each window (for example, the top 5% or the lower 5%), and
+        compare that with the equivalent quantile values at the end of the
+        chain. If all 5 windows are within some percent difference (eps,
+        percent expressed in decimals) of the ending quantiles, then the
+        chain is assumed to have reached a stationary distribution. bin_limit
+        is defined as the percentage of the chain (starting from the beginning)
+        that the windows are allowed to pass through. If any of the windows pass
+        by the bin_limt, then the chain is said to have not reached
+        stationarity.
+        
+        If window_size=None, then the window size is determined to be 5% of the
+        total numbers of rows. slide is how much the windows move down the chain
+        after each iteration, and window_space is the amount of space between
+        windows. eps is the tolerance of the percent difference. quantiles
+        should be a list of decimals representing the quantiles of interest.
+        
+        This method requires some assumptions:
+
+            1. That the chain has been run long enough to have already reached \
+               stationarity of the target distribution, not stationarity of an \
+               arbitrary distribution
+                - For example, this could be used after the Raftery diagnostic \
+                  or after obtaining a sufficient number of Effective samples
+            2. That the burn-in value is being interpreted as the closest points \
+               in the chain to which stationarity occurs, and that the maximum \
+               value between parameters is chosen for the burn-in value
+            3. That both parameters must pass for the burn-in value to be valid \
+               and for the chain to be considered reaching stationarity.
 
         Parameters
         ----------

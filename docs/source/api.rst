@@ -77,6 +77,11 @@ MCMC module.
 Estimators
 ----------
 
+Bayesian Estimators
+~~~~~~~~~~~~~~~~~~~
+
+Bayesian Estimators using MCMC to calculate model parameters and associated errors.
+
 .. autosummary::
     :toctree: generated/
     :nosignatures:
@@ -90,19 +95,38 @@ Estimators
 Feature Selection
 -----------------
 
+Value Drop Procedures
+~~~~~~~~~~~~~~~~~~~~~
+
 .. autosummary::
     :toctree: generated/
     :nosignatures:
 
-    feature_selection.forwardSelection
     feature_selection.getHighCorrs
     feature_selection.dropCorrProcedure
     feature_selection.dropHighCorrs
     feature_selection.naiveScoreDrop
     feature_selection.naiveVarDrop
+    feature_selection.vifDrop
+
+Selection Algorithms
+~~~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    feature_selection.forwardSelection
+
+Feature Importance
+~~~~~~~~~~~~~~~~~~
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
     feature_selection.permutation_importance
     feature_selection.permutation_importance_CV
-    feature_selection.vifDrop
 
 .. _mcmc_api:
 
@@ -127,6 +151,14 @@ MCMC Supporting Functions
 
     mcmc.applyMCMC
     mcmc.cholupdate
+
+MCMC Diagnostics
+~~~~~~~~~~~~~~~~
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
     mcmc.minESS
     mcmc.multiESS
     mcmc.raftery
@@ -147,6 +179,9 @@ MCMC Algorithms
 
 Modeling
 --------
+
+Modeling Tools
+~~~~~~~~~~~~~~
 
 .. autosummary::
     :toctree: generated/

@@ -348,7 +348,7 @@ def runScorers(X, Y, splits, model, mtype, metrics=None,
         The default is 'classification'.
     metrics : list, optional
         The metrics to include in the analysis.
-        The default is ['Accuracy', 'F1', 'Sens/Recall',
+        The default is ['Accuracy', 'F1', 'Sens/Recall', \
                         'Specificity', 'ppv', 'npv', 'AUC'].
     avg : str, optional
         for metrics where it applies, such as AUC, how to calculate the
@@ -386,7 +386,6 @@ def runScorers(X, Y, splits, model, mtype, metrics=None,
     -------
     keys : dict
         A dictionary containing the results.
-
     """
     if metrics is None:
         metrics = DEFAULT_METRICS
@@ -1293,8 +1292,10 @@ def BPCA_initmodel(y, q):
     S = S[:q]
     #V = V.T[:, :q]
 
-    M['mu'] = np.nansum(y, axis=0)/np.array([np.sum(~np.isnan(y[:, col])) for col in range(y.shape[1])])
-
+    #M['mu'] = np.nansum(y, axis=0)/np.array([np.sum(~np.isnan(y[:, col])) for col in range(y.shape[1])])
+    M['mu'] = np.nanmean(y, axis=0)
+    
+    # W are the Principal axis vectors
     M['W'] = U * np.sqrt(S);
     M['tau'] = 1/(np.sum(np.diag(covy)) - np.sum(np.diag(S)))
     taumax = 1e10
@@ -1315,7 +1316,7 @@ def BPCA_initmodel(y, q):
 
 
 def BPCA_dostep(M, y):
-    """The workhorse of the bPCA algorithm, the Expectation-Maximization
+    """The workhorse of the bPCA algorithm, the EM-like (or Variational Bayes)
     step.
 
     Parameters
@@ -1340,6 +1341,8 @@ def BPCA_dostep(M, y):
     n = len(idx)
     
     dy = y[idx, :] - np.tile(M['mu'], (n, 1))
+    
+    # x is the factor scores
     x = M['tau'] * Rxinv_o.dot(M['W'].T).dot(dy.T)
 
     Tt = dy.T.dot(x.T)
@@ -1353,7 +1356,9 @@ def BPCA_dostep(M, y):
         ex = M['tau']*Wo.T.dot(dyo.T)
         x = Rxinv.dot(ex)
         
+        # estimating data missing values
         dym = Wm.dot(x)
+        
         dy = y[i, :].copy()
         dy[M['nomissidx'][i]] = dyo.T
         dy[M['missidx'][i]] = dym.T
@@ -1372,6 +1377,8 @@ def BPCA_dostep(M, y):
     
     M['tau'] = (d + 2*M['gtau0']/N)/(trS - np.trace(Tt.T.dot(M['W'])) + (M['mu'].dot(M['mu'].T)*M['gmu0'] + 2*M['gtau0']/M['btau0'])/N)
     M['SigW'] = Dwinv*(d/N)
+    
+    # hyperparameter alpha update
     M['alpha'] = (2*M['galpha0'] + d)/(M['tau']*np.diag(M['W'].T.dot(M['W'])) + np.diag(M['SigW']) + 2*M['galpha0']/M['balpha0'])
 
     return M
