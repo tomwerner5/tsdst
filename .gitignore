@@ -45,7 +45,6 @@ PYPI_DESCRIPTION.txt
 **/backup
 **/.ipynb_checkpoints
 **/cdsf.py
-**/build
 **/dist
 **/log
 **/qr_tmp
