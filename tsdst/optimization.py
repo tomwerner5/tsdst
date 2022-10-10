@@ -5,7 +5,16 @@ import warnings
 from scipy.stats import norm
 
 
-def signIntervals(fun, lower=-50, upper=50, step=0.01, fun_args=None):
+def sign(x):
+    """Return the sign of x, either -1 or 1. It is assumed 0 is a sign of 1."""
+    if x >= 0:
+        return 1
+    else:
+        return -1
+
+
+def signIntervals(fun, lower=-50, upper=50, step=0.01, fun_args=None,
+                  curvature=False):
     """
     Returns the boundaries of all possible roots in a function. Works well
     with Brent root method.
@@ -21,37 +30,50 @@ def signIntervals(fun, lower=-50, upper=50, step=0.01, fun_args=None):
     step : float, optional
         The interval between values in (lower, upper) to investigate.
         The default is 0.01.
-    fun_args : dict
+    fun_args : dict, optional
         Optional arguments to pass to fun.
+    curvature : bool, optional
+        Assuming `fun` is a derivative of some function `Fun`, True will return
+        whether each root is a minimum or a maximum in `Fun`.
 
     Returns
     -------
     bounds : list
         A list of tuples containing the upper and lower bounds of possible
         roots.
+    concavity : list, optional
+        A list of strings, either "minimum" or "maximum", depending on the
+        curvature of the integral of `fun` in the given bounds.
 
     """
     if fun_args is None:
         fun_args = {}
-    x = np.arange(lower, upper, step)
-    steps = len(x)
-    fx = np.zeros(steps)
-    for i in range(steps):
-        fx[i] = fun(x[i], **fun_args)
-
-    curr = np.sign(fx[0])
-    changeList = np.zeros(1)
-
-    for j in range(steps):
-        if np.sign(fx[j]) != curr:
-            changeList = np.concatenate((changeList, np.array(j).reshape(1, )))
-            curr = np.sign(fx[j])
-
+        
+    x_s = np.arange(lower, upper, step)
+    fx = np.zeros(x_s.shape[0])
+    current_sign = 1
+    lower_bound_index = 0
     bounds = []
-    for k in range(len(changeList[:-1])):
-        bounds.append((x[int(changeList[k])], x[int(changeList[k + 1])]))
+    curves = []
+    
+    for i, x in enumerate(x_s):
+        fx[i] = fun(x, **fun_args)
+        
+        if i == 0:
+            current_sign = sign(fx[i])
+            
+        if sign(fx[i]) != current_sign:
+            bounds.append((x_s[lower_bound_index], x))
+            if current_sign == -1:
+                curves.append("minimum")
+            else:
+                curves.append("maximum")
+            lower_bound_index = i
 
-    return bounds
+    if curvature:
+        return bounds, curves
+    else:
+        return bounds
 
 
 def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
@@ -146,7 +168,7 @@ def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
             s = b - fb*((b - a)/(fb - fa))
 
         delta = abs(2*fun_tol*abs(b))
-        if ((s < ((3*a + b)/4) and s > b) or
+        if (((s - (3*a + b)/4)*(s-b) >= 0) or
            (mflag and abs(s - b) >= abs(b - c)/2) or
            (not mflag and abs(s - b) >= abs(c - d)/2) or
            (mflag and abs(b - c) < abs(delta)) or

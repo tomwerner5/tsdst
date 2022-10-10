@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsdst/optimization.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/optimization.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,7 +125,8 @@
       <workItem from="1639775454781" duration="2993000" />
       <workItem from="1640110866399" duration="36000" />
       <workItem from="1645813770336" duration="2169000" />
-      <workItem from="1653360568284" duration="6387000" />
+      <workItem from="1653360568284" duration="10015000" />
+      <workItem from="1665421065201" duration="1619000" />
     </task>
     <task id="LOCAL-00001" summary="Updated readme. Completed pycharm integration with git">
       <created>1627574652582</created>
@@ -224,7 +226,21 @@
       <option name="project" value="LOCAL" />
       <updated>1653419209730</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="updated sphinx documentation.">
+      <created>1653419475679</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1653419475679</updated>
+    </task>
+    <task id="LOCAL-00016" summary="updated sphinx documentation.">
+      <created>1653419543774</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1653419543774</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
