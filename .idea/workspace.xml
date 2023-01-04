@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsdst/optimization.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsdst/optimization.py" afterDir="false" />
-    </list>
+    <list default="true" id="4418cb2b-0145-4b42-bada-49625651904e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -126,7 +123,7 @@
       <workItem from="1640110866399" duration="36000" />
       <workItem from="1645813770336" duration="2169000" />
       <workItem from="1653360568284" duration="10015000" />
-      <workItem from="1665421065201" duration="1619000" />
+      <workItem from="1665421065201" duration="1802000" />
     </task>
     <task id="LOCAL-00001" summary="Updated readme. Completed pycharm integration with git">
       <created>1627574652582</created>
@@ -240,7 +237,14 @@
       <option name="project" value="LOCAL" />
       <updated>1653419543774</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="added correction to brent method, improved signIntervals functionality and shortened function">
+      <created>1665422857359</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1665422857359</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -281,7 +285,8 @@
     <MESSAGE value="updated sphinx documentation. Fixed minor bugs in modeling and sampling" />
     <MESSAGE value="updated sphinx documentation. updated NN model m_scale description" />
     <MESSAGE value="updated sphinx documentation." />
-    <option name="LAST_COMMIT_MESSAGE" value="updated sphinx documentation." />
+    <MESSAGE value="added correction to brent method, improved signIntervals functionality and shortened function" />
+    <option name="LAST_COMMIT_MESSAGE" value="added correction to brent method, improved signIntervals functionality and shortened function" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
