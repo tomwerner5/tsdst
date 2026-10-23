@@ -1,0 +1,33 @@
+tsdst.mcmc.mcmcObject
+=====================
+
+.. currentmodule:: tsdst.mcmc
+
+.. autoclass:: mcmcObject
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: ./
+   
+      ~mcmcObject.__init__
+      ~mcmcObject.acf
+      ~mcmcObject.addChain
+      ~mcmcObject.bestRaftery
+      ~mcmcObject.burnin
+      ~mcmcObject.plotACF
+      ~mcmcObject.plotDensity
+      ~mcmcObject.plotTrace
+      ~mcmcObject.removeChain
+      ~mcmcObject.runMCMC
+      ~mcmcObject.showChain
+      ~mcmcObject.tj_convergence_test
+   
+   
+
+   
+   
+   

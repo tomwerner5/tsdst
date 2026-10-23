@@ -83,6 +83,18 @@ def test_quick_lasso_and_parallel_reader(classification, tmp_path):
     assert result[0] == count
 
 
+def test_quick_analysis_confusion_matrix_uses_actual_rows_and_predicted_columns():
+    analysis = object.__new__(q.QuickAnalysis)
+    analysis.Ytest = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    analysis.Ypred_test = np.array([0, 0, 0, 1, 1, 0, 1, 1, 1, 1])
+
+    table = analysis.confusion_matrix(print_=False)
+
+    np.testing.assert_array_equal(table.to_numpy(), [[3, 2, 5], [1, 4, 5], [4, 6, 10]])
+    assert table.index.get_level_values(0).unique().tolist() == ["Actual"]
+    assert table.columns.get_level_values(0).unique().tolist() == ["Predicted"]
+
+
 def test_quick_analysis_full_workflow(classification):
     x, y = classification
     data = x.assign(y=y)

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>tsdst.metrics.glm_regularized_AIC &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=062ca7a5" />
+    <script src="../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.metrics.js_div" href="tsdst.metrics.js_div.html" />
+    <link rel="prev" title="tsdst.metrics.aicCalc" href="tsdst.metrics.aicCalc.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../weibull_regression.html">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.metrics.glm_regularized_AIC</a><ul>
+<li><a class="reference internal" href="#tsdst.metrics.glm_regularized_AIC"><code class="docutils literal notranslate"><span class="pre">glm_regularized_AIC()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.metrics.aicCalc.html" title="Previous Chapter: tsdst.metrics.aicCalc"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.metrics.aicCalc</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.metrics.js_div.html" title="Next Chapter: tsdst.metrics.js_div"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.metrics.js_div &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.metrics.glm_regularized_AIC.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">tsdst.metrics.glm_regularized_AIC</a><ul>
+<li><a class="reference internal" href="#tsdst.metrics.glm_regularized_AIC"><code class="docutils literal notranslate"><span class="pre">glm_regularized_AIC()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="tsdst.metrics.aicCalc.html" title="Previous Chapter: tsdst.metrics.aicCalc"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.metrics.aicCalc</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.metrics.js_div.html" title="Next Chapter: tsdst.metrics.js_div"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.metrics.js_div &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.metrics.glm_regularized_AIC.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <section id="tsdst-metrics-glm-regularized-aic">
+<h1>tsdst.metrics.glm_regularized_AIC<a class="headerlink" href="#tsdst-metrics-glm-regularized-aic" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="tsdst.metrics.glm_regularized_AIC">
+<span class="sig-prename descclassname"><span class="pre">tsdst.metrics.</span></span><span class="sig-name descname"><span class="pre">glm_regularized_AIC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_mod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unreg_mod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kawano'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'binomial'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/metrics.html#glm_regularized_AIC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.metrics.glm_regularized_AIC" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate AIC for a generalized linear model estimated with regularization.</p>
+<p>The binomial and Poisson Kawano correction follows Ninomiya and Kawano’s
+2016 paper, AIC for the Lasso in generalized linear models, and the authors’
+sAIC R package. The alternative active-coefficient correction follows the
+Gaussian Lasso degrees-of-freedom argument of Zou, Hastie, and Tibshirani.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>X</strong><span class="classifier">array-like</span></dt><dd><p>Feature matrix without an intercept column.</p>
+</dd>
+<dt><strong>Y</strong><span class="classifier">array-like</span></dt><dd><p>Response values. Binomial responses are zero or one; Poisson responses
+are nonnegative integers; Gaussian responses are real values.</p>
+</dd>
+<dt><strong>reg_mod</strong><span class="classifier">fitted estimator</span></dt><dd><p>Regularized model with <code class="docutils literal notranslate"><span class="pre">coef_</span></code>, <code class="docutils literal notranslate"><span class="pre">intercept_</span></code>, and the appropriate prediction
+method. Binomial uses predict_proba; Poisson predictions are count means
+after the inverse log link.</p>
+</dd>
+<dt><strong>unreg_mod</strong><span class="classifier">fitted estimator</span></dt><dd><p>Corresponding unregularized model used for the binomial or Poisson
+information comparison. The Gaussian branch ignores this argument.</p>
+</dd>
+<dt><strong>tol</strong><span class="classifier">float, optional</span></dt><dd><p>Nonnegative cutoff for active coefficients, abs(coefficient) &gt; tol.
+The same cutoff applies to the intercept. The default is 1e-6.</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">{‘kawano’, ‘hastie’}, optional</span></dt><dd><p>Kawano uses the information-matrix correction. Hastie counts active
+coefficients. Names are case-insensitive. The default is ‘kawano’.</p>
+</dd>
+<dt><strong>family</strong><span class="classifier">{‘binomial’, ‘poisson’, ‘gaussian’}, optional</span></dt><dd><p>Response family. The default is ‘binomial’.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>aic</strong><span class="classifier">float</span></dt><dd><p>Minus twice the unpenalized log likelihood plus the selected correction.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If the family, method, tolerance, response, or coefficient layout is invalid.</p>
+</dd>
+<dt>numpy.linalg.LinAlgError</dt><dd><p>If the active information matrix is singular.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>For binomial and Poisson Kawano AIC, let X_A contain active columns of the
+intercept-augmented design. J=X_A.T &#64; W_fit &#64; X_A and I=X_A.T &#64; W_unreg &#64; X_A.
+The correction is 2*trace(solve(J, I)). The ordinary solve follows the named
+criterion; replacing it with a pseudoinverse would define a different rule.
+For the active-coefficient alternative, the correction is twice the active
+count. Gaussian regression uses this active count plus one estimated noise
+variance parameter, with maximum-likelihood variance RSS/n, for both names.</p>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

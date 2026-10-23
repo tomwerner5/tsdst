@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tsdst.tmath &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=062ca7a5" />
+    <script src="../../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../weibull_regression.html">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary">
+<form action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <h1>Source code for tsdst.tmath</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">combinations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">inv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">rankdata</span><span class="p">,</span> <span class="n">kendalltau</span><span class="p">,</span> <span class="n">gaussian_kde</span>
+
+
+<div class="viewcode-block" id="custom_abs">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.custom_abs.html#tsdst.tmath.custom_abs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">custom_abs</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Innards of the absolute value function. (This is just here for fun).</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : signed float or int</span>
+<span class="sd">        The number to be evaluated.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int or float</span>
+<span class="sd">        The absolute value of x.</span>
+
+<span class="sd">    """</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">x</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">m</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="n">p</span> <span class="o">-</span> <span class="n">x</span></div>
+
+
+
+<div class="viewcode-block" id="powerset">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.powerset.html#tsdst.tmath.powerset">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">powerset</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Create the powerset (all possible combinations) of a list.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    iterable : list or list-like</span>
+<span class="sd">        The collection of items to create a powerset from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of lists</span>
+<span class="sd">        list containing all possible combinations.</span>
+
+<span class="sd">    """</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span></div>
+
+  
+
+<div class="viewcode-block" id="percentIncrease">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.percentIncrease.html#tsdst.tmath.percentIncrease">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">percentIncrease</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculates the percent increase between two numbers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    old : numeric</span>
+<span class="sd">        The old number.</span>
+<span class="sd">    new : numeric</span>
+<span class="sd">        The new number.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numeric</span>
+<span class="sd">        The percent increase (as a decimal).</span>
+
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">new</span> <span class="o">-</span> <span class="n">old</span><span class="p">)</span><span class="o">/</span><span class="n">old</span></div>
+
+
+
+<span class="c1"># This will do a 'first' ranking of the data and return the ranks.</span>
+<span class="c1"># For R-like rank functionality, import scipy's rankdata from </span>
+<span class="c1"># this module</span>
+<div class="viewcode-block" id="rank">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.rank.html#tsdst.tmath.rank">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rank</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">small_rank_is_high_num</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rank_from_1</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Rank items in an array. Using the 'first' method, which ranks ties using</span>
+<span class="sd">    the order of appearance. For rank functionality similar to R, see scipy's</span>
+<span class="sd">    rankdata function (which is imported from this module for convenience).'</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy array or array-like</span>
+<span class="sd">        The array of values to be sorted.</span>
+<span class="sd">    small_rank_is_high_num : bool, optional</span>
+<span class="sd">        Smallest rank value is the highest/largest number.</span>
+<span class="sd">        The default is True.</span>
+<span class="sd">    rank_from_1 : bool, optional</span>
+<span class="sd">        Use 1 as the top rank rather than 0. The default is True.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rk : numpy array</span>
+<span class="sd">        An array containing the ranks.</span>
+
+<span class="sd">    """</span>
+    <span class="n">rk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">small_rank_is_high_num</span><span class="p">:</span>
+        <span class="n">rk</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">rk</span>
+    <span class="k">if</span> <span class="n">rank_from_1</span><span class="p">:</span>
+        <span class="n">rk</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">rk</span></div>
+
+
+
+<div class="viewcode-block" id="cov2cor">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.cov2cor.html#tsdst.tmath.cov2cor">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cov2cor</span><span class="p">(</span><span class="n">V</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Translation of R's cov2cor function</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    V : numpy array</span>
+<span class="sd">        Covariance matrix.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    R : numpy array</span>
+<span class="sd">        Correlation matrix.</span>
+
+<span class="sd">    """</span>
+    <span class="n">p</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">V</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">p</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'V is not a square matrix'</span><span class="p">)</span>
+    <span class="n">Is</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">V</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">Is</span><span class="p">)):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"Diagonal had 0, NA, or infinite entries. Non-finite "</span>
+                      <span class="s2">"result is doubtful"</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">Is</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">V</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">Is</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">return</span> <span class="n">r</span></div>
+
+    
+
+<div class="viewcode-block" id="mann_whitney">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.mann_whitney.html#tsdst.tmath.mann_whitney">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mann_whitney</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_is</span><span class="o">=</span><span class="s1">'groups'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Mann-Whitney sum-rank test.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy array</span>
+<span class="sd">        Values to be evaluated. Either a single group, or an array containing</span>
+<span class="sd">        both group values if y_is == 'groups'</span>
+<span class="sd">    y : numpy array</span>
+<span class="sd">        Values to be evaluated against x, or, if y_is == 'groups',</span>
+<span class="sd">        then y is a boolean value indicating which group the values</span>
+<span class="sd">        of x belong to.</span>
+<span class="sd">    y_is : bool, optional</span>
+<span class="sd">        Whether or not y is itself a group of values, or an indicator variable</span>
+<span class="sd">        for identifying the groups within x. The default is 'groups'.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    res : dict</span>
+<span class="sd">        The results of the Mann-Whitney test.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">if</span> <span class="n">y_is</span> <span class="o">==</span> <span class="s1">'groups'</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">overall_rank</span> <span class="o">=</span> <span class="n">rankdata</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">'average'</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">)))</span>
+        <span class="n">overall_rank</span> <span class="o">=</span> <span class="n">rankdata</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">'average'</span><span class="p">)</span>
+    <span class="n">uni_groups</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+    <span class="n">rank_group1</span> <span class="o">=</span> <span class="n">overall_rank</span><span class="p">[</span><span class="n">Y</span> <span class="o">==</span> <span class="n">uni_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">rank_group2</span> <span class="o">=</span> <span class="n">overall_rank</span><span class="p">[</span><span class="n">Y</span> <span class="o">==</span> <span class="n">uni_groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">sum_ranks_g1</span> <span class="o">=</span> <span class="n">rank_group1</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">sum_ranks_g2</span> <span class="o">=</span> <span class="n">rank_group2</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+    <span class="n">n1</span> <span class="o">=</span> <span class="n">rank_group1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n2</span> <span class="o">=</span> <span class="n">rank_group2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="n">U1</span> <span class="o">=</span> <span class="n">sum_ranks_g1</span> <span class="o">-</span> <span class="p">(</span><span class="n">n1</span><span class="o">*</span><span class="p">(</span><span class="n">n1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">U2</span> <span class="o">=</span> <span class="n">sum_ranks_g2</span> <span class="o">-</span> <span class="p">(</span><span class="n">n2</span><span class="o">*</span><span class="p">(</span><span class="n">n2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span>
+    
+    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'U1'</span><span class="p">:</span> <span class="n">U1</span><span class="p">,</span>
+           <span class="s1">'U2'</span><span class="p">:</span> <span class="n">U2</span><span class="p">,</span>
+           <span class="s1">'n1'</span><span class="p">:</span> <span class="n">n1</span><span class="p">,</span>
+           <span class="s1">'n2'</span><span class="p">:</span> <span class="n">n2</span><span class="p">,</span>
+           <span class="s1">'rank_group1'</span><span class="p">:</span> <span class="n">rank_group1</span><span class="p">,</span>
+           <span class="s1">'rank_group2'</span><span class="p">:</span> <span class="n">rank_group2</span><span class="p">,</span>
+           <span class="s1">'sum_ranks_g1'</span><span class="p">:</span> <span class="n">sum_ranks_g1</span><span class="p">,</span>
+           <span class="s1">'sum_ranks_g2'</span><span class="p">:</span> <span class="n">sum_ranks_g2</span><span class="p">}</span>
+    
+    <span class="n">res</span><span class="p">[</span><span class="s1">'max_U'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'U1'</span> <span class="k">if</span> <span class="n">U1</span> <span class="o">&gt;=</span> <span class="n">U2</span> <span class="k">else</span> <span class="s1">'U2'</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+
+<div class="viewcode-block" id="biserial_rank_corr">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.biserial_rank_corr.html#tsdst.tmath.biserial_rank_corr">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">biserial_rank_corr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_is</span><span class="o">=</span><span class="s1">'groups'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Biserial Rank Correlation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy array</span>
+<span class="sd">        Values to be evaluated. Either a single group, or an array containing</span>
+<span class="sd">        both group values if y_is == 'groups'</span>
+<span class="sd">    y : numpy array</span>
+<span class="sd">        Values to be evaluated against x, or, if y_is == 'groups',</span>
+<span class="sd">        then y is a boolean value indicating which group the values</span>
+<span class="sd">        of x belong to.</span>
+<span class="sd">    y_is : bool, optional</span>
+<span class="sd">        Whether or not y is itself a group of values, or an indicator variable</span>
+<span class="sd">        for identifying the groups within x. The default is 'groups'.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    r : float</span>
+<span class="sd">        Biserial rank correlation.</span>
+
+<span class="sd">    """</span>
+    <span class="n">mw</span> <span class="o">=</span> <span class="n">mann_whitney</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_is</span><span class="o">=</span><span class="n">y_is</span><span class="p">)</span>
+    <span class="n">max_u</span> <span class="o">=</span> <span class="n">mw</span><span class="p">[</span><span class="n">mw</span><span class="p">[</span><span class="s1">'max_U'</span><span class="p">]]</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">max_u</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">mw</span><span class="p">[</span><span class="s1">'n1'</span><span class="p">]</span><span class="o">*</span><span class="n">mw</span><span class="p">[</span><span class="s1">'n2'</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">r</span></div>
+
+
+
+<span class="c1"># mimics R cor function. Columns are correlation variables.</span>
+<span class="c1"># X and Y must at least have the same length</span>
+<div class="viewcode-block" id="corr">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.corr.html#tsdst.tmath.corr">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">corr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'pearson'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Mimics the R cor function to calculate correlations.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy array or pandas dataframe</span>
+<span class="sd">        Either a matrix (to calculate correlations across columns) or a 1D</span>
+<span class="sd">        array to compare with y.</span>
+<span class="sd">    y : numpy array or pandas series, optional</span>
+<span class="sd">        A 1D array to compare with a 1D x, or None if x is a matrix.</span>
+<span class="sd">        The default is None.</span>
+<span class="sd">    method : str, optional</span>
+<span class="sd">        Type of correlation to compute. The default is 'pearson'.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Raised if method provided is invalid.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy array</span>
+<span class="sd">        Array containing the correlation.</span>
+
+<span class="sd">    """</span>
+    <span class="n">cor_mat</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'pearson'</span><span class="p">:</span>
+        <span class="n">cor_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'spearman'</span><span class="p">:</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">rankdata</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">M</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">Dinv</span> <span class="o">=</span> <span class="n">inv</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+        <span class="n">cor_mat</span> <span class="o">=</span> <span class="n">Dinv</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Dinv</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'kendall'</span><span class="p">:</span>
+        <span class="n">cor_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">corrs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">c</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">kendalltau</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span> <span class="n">X</span><span class="p">[:,</span> <span class="n">j</span><span class="p">])</span>
+                <span class="n">corrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">corrs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">corrs</span><span class="p">)</span>
+        <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">cor_mat</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">corrs</span>
+        <span class="n">cor_mat</span><span class="p">[</span><span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">corrs</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Not a valid correlation method. (</span><span class="si">%s</span><span class="s1">) '</span> <span class="o">%</span> <span class="n">method</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">cor_mat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">cor_mat</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cor_mat</span></div>
+
+
+
+<div class="viewcode-block" id="mode_histogram">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.mode_histogram.html#tsdst.tmath.mode_histogram">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mode_histogram</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">bin_max</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">,</span> <span class="n">edge_check</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">approx</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="n">surround</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">surround_step</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># TODO: make this work in a multivariate setting</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculates the mode (from a continuous distribution) using data provided</span>
+<span class="sd">    from a histogram. Created because calculating mode from KDE estimate</span>
+<span class="sd">    can be slow.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : numpy array</span>
+<span class="sd">        Array of data to calculate the mode from.</span>
+<span class="sd">    bin_max : int or str, optional</span>
+<span class="sd">        Number of histogram bins to pass to np.histogram. Can be string or</span>
+<span class="sd">        integer. The default is 'auto'.</span>
+<span class="sd">    edge_check : str or None, optional</span>
+<span class="sd">        The edge of the largest histogram rectangle (mode) to use for</span>
+<span class="sd">        comparing to the original data. For example, if the mode</span>
+<span class="sd">        rectangle of the histogram created is between 1 and 3 on the x-axis,</span>
+<span class="sd">        then 'left' uses 1 for comparison, 'right' uses 3, and 'center' uses</span>
+<span class="sd">        the midpoint 2. If None, the optimal metod is used based on the number</span>
+<span class="sd">        of bins. Default is None.</span>
+<span class="sd">    approx : bool, optional</span>
+<span class="sd">        If approx is True, use the histogram output as the mode. If False, find</span>
+<span class="sd">        the closest value in data to the histogram value and use that as the</span>
+<span class="sd">        mode.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        The mode of the array.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bin_max</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">bin_max</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">bin_max</span><span class="p">:</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bins</span> <span class="o">=</span> <span class="n">bin_max</span>
+    <span class="n">hist</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
+    <span class="n">hist_max_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">hist</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">edge_check</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hist</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edge_check</span> <span class="o">=</span> <span class="s2">"left"</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge_check</span> <span class="o">=</span> <span class="s2">"center"</span>
+    
+    <span class="k">if</span> <span class="n">surround</span><span class="p">:</span>
+        <span class="n">hist_max_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">hist_max_idx</span> <span class="o">-</span> <span class="n">surround_step</span><span class="p">,</span> <span class="n">hist_max_idx</span> <span class="o">+</span> <span class="n">surround_step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hist_max_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">hist_max_indices</span> <span class="o">=</span> <span class="n">hist_max_idx</span>
+        <span class="n">hist_max_values</span> <span class="o">=</span> <span class="n">hist</span><span class="p">[</span><span class="n">hist_max_indices</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">hist_max_indices</span> <span class="o">=</span> <span class="n">hist_max_idx</span>
+    
+    <span class="k">if</span> <span class="n">edge_check</span> <span class="o">==</span> <span class="s2">"center"</span> <span class="ow">or</span> <span class="n">edge_check</span> <span class="o">==</span> <span class="s2">"centre"</span><span class="p">:</span>
+        <span class="n">max_edge</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">hist_max_indices</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="n">hist_max_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">edges</span><span class="p">[</span><span class="n">hist_max_idx</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+    <span class="k">elif</span> <span class="n">edge_check</span> <span class="o">==</span> <span class="s2">"left"</span><span class="p">:</span>
+        <span class="n">max_edge</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">hist_max_indices</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">edge_check</span> <span class="o">==</span> <span class="s2">"right"</span><span class="p">:</span>
+        <span class="n">max_edge</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">hist_max_indices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Not a valid edge_check. See help(mode_histogram)"</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">surround</span><span class="p">:</span>
+        <span class="n">max_edge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">max_edge</span><span class="o">*</span><span class="p">(</span><span class="n">hist_max_values</span><span class="o">/</span><span class="n">hist_max_values</span><span class="o">.</span><span class="n">sum</span><span class="p">()))</span>
+    
+    <span class="k">if</span> <span class="n">approx</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">max_edge</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mode_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">max_edge</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">mode_idx</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">mode</span></div>
+
+    
+
+<div class="viewcode-block" id="mode_kde">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.mode_kde.html#tsdst.tmath.mode_kde">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mode_kde</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">kde_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate mode from gaussian kernel density estimate (using scipy</span>
+<span class="sd">    gaussian_pde).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : numpy array</span>
+<span class="sd">        Array to calculate mode from.</span>
+<span class="sd">    kde_args : dict</span>
+<span class="sd">        A dictionary containing arguments for gaussian_kde (scipy)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mode : </span>
+<span class="sd">        A numeric value, which is the mode.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">kde_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kde_args</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">gaussian_kde</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">kde_args</span><span class="p">)</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">height</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">mode</span></div>
+
+
+
+<div class="viewcode-block" id="norm">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.norm.html#tsdst.tmath.norm">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">use_expo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Calculate a power sum, an Lp norm, or the conventional L0 count.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy.ndarray</span>
+<span class="sd">        Values whose norm or power sum is required.</span>
+<span class="sd">    p : int</span>
+<span class="sd">        Norm order: zero, one, or an order of at least two. Zero returns the</span>
+<span class="sd">        number of nonzero entries, including negative entries.</span>
+<span class="sd">    use_expo : bool, optional</span>
+<span class="sd">        Apply the final 1/p exponent for a positive order when True. If False,</span>
+<span class="sd">        return sum(abs(x)**p), as commonly used in regularization penalties.</span>
+<span class="sd">        The default is False. The option does not affect the L0 count.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    value : numeric</span>
+<span class="sd">        Power sum, rooted norm, or nonzero count.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Ridge regularization commonly uses the squared L2 norm, so this helper</span>
+<span class="sd">    omits the square root by default. L0 is the conventional sparsity count;</span>
+<span class="sd">    it is not a mathematical norm because it does not satisfy homogeneity.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">expo</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">p</span>
+    <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="n">p</span><span class="p">)</span>
+        <span class="c1"># Regularization often uses the power sum without the final root.</span>
+        <span class="c1"># For p&gt;1, abs(x)**p is differentiable at zero; L1 has a kink there.</span>
+        <span class="c1"># Higher powers change sensitivity to large coefficients and are not</span>
+        <span class="c1"># interchangeable with L1 or L2 penalties.</span>
+        <span class="k">if</span> <span class="n">use_expo</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">norm</span><span class="o">**</span><span class="n">expo</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">norm</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Not a valid norm"</span><span class="p">)</span></div>
+
+        
+        
+<div class="viewcode-block" id="norm_der">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.norm_der.html#tsdst.tmath.norm_der">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">norm_der</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">use_expo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Calculate LP norm derivative of a vector.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy array</span>
+<span class="sd">        A 1D numpy array of values.</span>
+<span class="sd">    p : int</span>
+<span class="sd">        The LP norm specification (1,2,3, ...).</span>
+<span class="sd">    use_expo : bool, optional</span>
+<span class="sd">        Use final exponentiation in norm calculation. Particularily for the </span>
+<span class="sd">        L2 norm, regularization applications will use the square of the norm,</span>
+<span class="sd">        so in the L2 case, when use_expo=True, a 1/p exponent is</span>
+<span class="sd">        added to the final result.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numeric</span>
+<span class="sd">        Value of the LP norm derivative on the vector.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This derivative is intended for positive p. L0 is discontinuous at zero</span>
+<span class="sd">    and has no ordinary gradient there.</span>
+<span class="sd">    """</span>
+    <span class="n">norm_der</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_expo</span><span class="p">:</span>
+        <span class="n">norm_der</span> <span class="o">=</span> <span class="n">norm_der</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">norm_der</span></div>
+
+
+        
+<div class="viewcode-block" id="mahalanobis">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.mahalanobis.html#tsdst.tmath.mahalanobis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mahalanobis</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">produce</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate mahalanobis distance on a matrix of column vectors. </span>
+<span class="sd">    Assumes that rows are observations and columns are features.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : numpy array or pandas dataframe</span>
+<span class="sd">        The data to calculate distances on (columns are variables, rows are</span>
+<span class="sd">        observations).</span>
+<span class="sd">    produce : str, optional</span>
+<span class="sd">        Variation of the output to produce, either `squared`, `leverage',</span>
+<span class="sd">        or `sqrt` (None). The default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy array</span>
+<span class="sd">        Array containing the distances.</span>
+
+<span class="sd">    """</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cent</span> <span class="o">=</span> <span class="n">arr</span> <span class="o">-</span> <span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">covmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">cent</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">invcov</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">invcov</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">covmat</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">invcov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">covmat</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span><span class="p">:</span>
+            <span class="n">invcov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">covmat</span><span class="p">)</span>
+    <span class="n">md2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cent</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">invcov</span><span class="p">)</span> <span class="o">*</span> <span class="n">cent</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">produce</span> <span class="o">==</span> <span class="s2">"squared"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">md2</span>
+    <span class="k">elif</span> <span class="n">produce</span> <span class="o">==</span> <span class="s2">"leverage"</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">md2</span><span class="o">/</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">n</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">md2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="scaling">
+<a class="viewcode-back" href="../../generated/tsdst.tmath.scaling.html#tsdst.tmath.scaling">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">scaling</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+            <span class="n">center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Common scaling algorithm. Either min-max (with any desired bound),</span>
+<span class="sd">    standardizing, max absolute scaling, or robust scaling.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy array</span>
+<span class="sd">        The data.</span>
+<span class="sd">    a : float, optional</span>
+<span class="sd">        The minimum value desired. The default is 0.</span>
+<span class="sd">    b : float, optional</span>
+<span class="sd">        The maximum value desired. The default is 1.</span>
+<span class="sd">    percentile : list or array-like, optional</span>
+<span class="sd">        Provide percentile bounds on values. The default is (0, 100).</span>
+<span class="sd">    center : float or str, optional</span>
+<span class="sd">        Either a value representing the centrality measure, or a string</span>
+<span class="sd">        for the measure to be computed, either mean or median.</span>
+<span class="sd">        If None, use the minimum of the percentile bounds.</span>
+<span class="sd">        The default is None.</span>
+<span class="sd">    scale : float or str, optional</span>
+<span class="sd">        Either a value representing the dispersion measure, or a string</span>
+<span class="sd">        for the measure to be computed, either std (standard deviation),</span>
+<span class="sd">        var (variance), or maxAbs.</span>
+<span class="sd">        If None, use the absolute difference of the percentile bounds.</span>
+<span class="sd">        The default is None.</span>
+<span class="sd">    ddof : int, optional</span>
+<span class="sd">        Degrees of freedom for the variance/std. dev measure. The default is 0.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        Raised if center is an invalid type.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    scaled : numpy array</span>
+<span class="sd">        The scaled values.</span>
+
+<span class="sd">    """</span>
+    <span class="n">lower</span> <span class="o">=</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">centVal</span> <span class="o">=</span> <span class="n">scaleVal</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">center</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">centVal</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">center</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">center</span> <span class="o">==</span> <span class="s2">"mean"</span><span class="p">:</span>
+                <span class="n">centVal</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">center</span> <span class="o">==</span> <span class="s2">"median"</span><span class="p">:</span>
+                <span class="n">centVal</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"center must be a string, either 'mean' or "</span>
+                                <span class="s2">"'median', else a number (central tendency)"</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">percentile</span><span class="p">)</span>
+        <span class="n">centVal</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">lower</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">scaleVal</span> <span class="o">=</span> <span class="n">scale</span><span class="o">/</span><span class="mi">1</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="s2">"maxAbs"</span><span class="p">:</span>
+                <span class="n">scaleVal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">scale</span> <span class="o">==</span> <span class="s2">"std"</span><span class="p">:</span>
+                <span class="n">scaleVal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="n">ddof</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">scale</span> <span class="o">==</span> <span class="s2">"var"</span><span class="p">:</span>
+                <span class="n">scaleVal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanvar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="n">ddof</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">percentile</span><span class="p">)</span>
+        <span class="n">scaleVal</span> <span class="o">=</span> <span class="n">upper</span> <span class="o">-</span> <span class="n">lower</span>
+
+    <span class="n">scaled</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span><span class="o">*</span><span class="n">centVal</span><span class="o">/</span><span class="n">scaleVal</span> <span class="o">+</span> <span class="n">a</span>
+
+    <span class="k">return</span> <span class="n">scaled</span></div>
+
+        
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

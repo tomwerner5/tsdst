@@ -10,7 +10,7 @@ import warnings
 from numba import jit
 from numpy import linalg as la
 from scipy.special import loggamma
-from scipy.stats import chi2
+from scipy.stats import chi2, norm as normal
 from scipy.linalg import toeplitz, solve
 from sklearn.preprocessing import scale
 from timeit import default_timer as dt
@@ -167,99 +167,62 @@ def cholupdate(L, x, update=True):
 
 
 def adaptive_mcmc(start, niter, lpost, postArgs=None, options=None):
-    """A random walk metropolis algorithm that adaptively tunes the covariance
-    matrix.
+    r"""Run Adaptive Mixture Metropolis with an updated proposal covariance.
 
-    Based on methods by Rosenthal (who improved on Haario\'s method).
-    The method by Rosenthal is sometimes referred to as Adaptive Mixture
-    Metropolis, while the algorithm by Haario is called Adaptive Metropolis and
-    is generally considered to be the historically first adaptive Metropolis
-    algorithm.
+    This implementation follows the adaptive covariance approach associated
+    with Haario and Rosenthal. A small fixed normal proposal is mixed with a
+    normal proposal based on the accumulated chain covariance.
 
     Parameters
     ----------
-    start : numpy array
-        Starting values for the MCMC.
+    start : numpy.ndarray
+        Initial parameter vector on the scale used by lpost.
     niter : int
-        Number of iterations.
-    lpost : function
-        Log posterior function.
-    postArgs : dict
-        Extra arguments for the log posterior function. The default is :obj:`None` . Parameter options include
-
-            - beta : (:obj:`float`) Between 0 and 1. Decides the proportion to sample for each section of the mixture \
-            distribution. A mixture distribution is essentially like adding two distributions together. However, to \
-            avoid some complicated math, one way to sample from a mixture of two distributions is to use a trick, \
-            namely, to first sample from a uniform distribution between 0, 1, and then evaluate whether that value \
-            is above some threshold (beta in this case). If it is, sample from the first distribution, otherwise, \
-            sample from the second.
-            - progress : (:obj:`bool`) Whether to display progress bar.
-            - prev_vals : (:obj:`dict`) The previous values of the last run, namely:
-
-                - chol2 : (:obj:`numpy array`) The decomposed covariance matrix of the parameters.
-                - sumx : (:obj:`numpy array`) The current sum of the parameter value (for each parameter)
-                - prev_i : (:obj:`int` or :obj:`float`) The number of samples represented in sumx. Used in averaging \
-                sumx
-
-    options : :obj:`dict`, optional
-        Extra arguments for the MCMC algorithm, such as
+        Number of samples, including the initial state.
+    lpost : callable
+        Log posterior on the sampled parameter scale. The sampler uses normal
+        random-walk proposals and a Metropolis acceptance ratio.
+    postArgs : dict, optional
+        Keyword arguments passed to lpost. The default is None.
+    options : dict, optional
+        Sampler options. beta is the probability of selecting the small fixed
+        proposal, default 0.05. progress controls the progress display.
+        prev_vals resumes stored chol2, sumx, and prev_i state from an earlier
+        run. These options belong in options, rather than postArgs.
 
     Returns
     -------
-    parm : numpy array
-        MCMC samples.
-    prev_vals : dict
-        The ending values of the MCMC algorithm. Useful when you want to
-        continue where you left off.
+    result : dict
+        parameters contains the sampled parameter matrix. prev_vals contains
+        the accumulated state needed to continue the chain.
 
     Notes
     -----
+    With d parameters and accumulated sample covariance Sigma_n, the proposal
+    mixture is
 
-    A random walk metropolis algorithm that adaptively tunes the covariance matrix. Based on methods by Rosenthal
-    (who improved on Haario's method). The method by Rosenthal is sometimes refered to as Adaptive Mixture Metropolis,
-    while the algorithm by Haario is called Adaptive Metropolis and is generally considered to be the historically first
-    adaptive Metropolis algorithm.
+    .. math::
 
-    This method is identical to a Random Walk Metropolis algorithm, except that it adapts the covariance matrix after
-    each iteration based on the sample covariance of the entire chain up to the current iteration. The candidate values
-    in the MCMC chain are then sampled from a mixed density distribution defined as follows:
+        Q_n(x, \cdot) = (1-\beta)N(x, 2.38^2\Sigma_n/d)
+                       + \beta N(x, 0.1^2 I_d/d).
 
-    .. math:: Q_{n}(x, \\cdot) = (1 - \\beta)N(x, (2.38)^{2} \\Sigma_{n}/d) + \\beta N(x, (0.1)^{2} I_{d} / d)
+    A uniform draw selects the component. When U < beta, the sampler uses the
+    small fixed component; otherwise it uses the adaptive component. This
+    selection samples the mixture directly without inverting a mixture CDF.
+    The initial 2*d samples use the small proposal while covariance state is
+    initialized.
 
-    * :math:`Q_{n}`: The proposal distribution
-    * :math:`N`: Normal Distribution
-    * :math:`\\beta`: some small constant, usually 0.05
-    * :math:`\\Sigma_{n}`: sample covariance up to the :math:`n^{th}` iteration
-    * :math:`d`: the number of parameters
-    * :math:`I_{d}`: the :math:`d \\times d` identity matrix
+    For a matrix X containing accumulated draws and column mean mu, sample
+    covariance can be written as
 
-    To sample from any density distribution, you must first calculate the inverse cdf of the function, otherwise
-    known as the quantile function. Assuming that there is a simple method to generate a uniform random number with
-    range :math:`[0, 1]` (most programming languages do), then calculating a random number from any distribution is
-    simple. First, generate the random uniform number, and use it as the input to the quantile function. However,
-    in many practical situations (such as with the normal distribution), calculating the quantile function is
-    non-trivial. The same is true for the above mixed density distribution. Therefore, to simplify sampling from
-    the mixed density distribution, use a uniform random number generator to sample a number :math:`U` between
-    :math:`[0, 1]`. Then, if :math:`U < \\beta`, then sample the candidate value from :math:`N(x, (2.38)^{2} \\Sigma_{n}/d)`.
-    Otherwise, sample from :math:`N(x, (0.1)^{2} I_{d} / d)`.
+    .. math::
 
-    To calculate :math:`\\Sigma_{n}` efficiently, the algorithm uses the :func:`cholupdate` function. Let :math:`X` be
-    an :math:`n \\times d` matrix of `n` MCMC samples and `d` parameters. Then, the equation for population covariance can be defined as follows:
+        \left(X^T X/n - \mu^T\mu\right)n/(n-1).
 
-    .. math:: \\Sigma_n = E(X^{T}X) - E(X^{T})E(X) = \\frac{X^{T}X}{n} - \\mu^{T} \\mu
-
-    The algorithm calculates the cholesky distribution of :math:`X^{T}X` for the first four samples. From that point
-    on, :math:`X^{T}X` is updated using :func:`cholupdate` where `update=True`. If :math:`U < \\beta`, then
-    :math:`\\big( \\frac{X^{T}X}{n} - \\mu^{T} \\mu \\big)` is calculated using :func:`cholupdate(XTX/n, uTu, update=False)<cholupdate>`.
-    This algorithm uses the sample covariance, which can be calculated using the following trick:
-
-    .. math:: \\Big( \\frac{X^{T}X}{n} - \\mu^{T} \\mu \\Big) \\Big(\\frac{n}{n-1} \\Big)
-
-    The algorithm multiplies :math:`\\Sigma_{n}` by :math:`\\frac{2.38^2}{d}`, which makes the final covariance used
-    to create the candidate samples:
-
-    .. math:: \\Sigma_{n} = \\Big( \\frac{2.38^2}{d} \\Big) \\Big( \\frac{X^{T}X}{n} - \\mu^{T} \\mu \\Big) \\Big(\\frac{n}{n-1} \\Big)
-
+    The code updates the Cholesky factor of the accumulated cross-product
+    matrix with cholupdate. A rank-one downdate removes the mean contribution
+    before applying the 2.38/sqrt(d) proposal scale. The stored running sum
+    and sample count allow this calculation to continue across runs.
     """
     
     beta = 0.05
@@ -591,7 +554,7 @@ def samp_size_calc_raftery(q=0.025, r=0.005, s=0.95):
         Minimum number of samples needed.
 
     """
-    phi = qnorm_approx(0.5 * (1.0 + s))
+    phi = normal.ppf(0.5 * (1.0 + s))
     nmin = np.ceil((q * (1.0 - q) * phi**2)/r**2).astype(int)
     return phi, nmin
 
@@ -751,7 +714,38 @@ def mobmc(chain, b):
 
 
 def msvec(chain, b, method='bartlett'):
-    """Estimate a spectral covariance matrix with a lag window."""
+    r"""Estimate the spectral covariance matrix of a centered MCMC chain.
+
+    Translated from the lag-window estimator in R's mcmcse package. Spectral
+    covariance includes serial dependence across iterations. It is the
+    asymptotic covariance of sqrt(n) times the Monte Carlo sample mean, rather
+    than only the marginal covariance of a single draw.
+
+    Parameters
+    ----------
+    chain : array-like, shape (n_samples, n_parameters)
+        Mean-centered chain values. The caller must subtract the column means.
+        mcse_multi performs this centering before calling this function.
+    b : int
+        Lag-window bandwidth. Positive lags below b are included.
+    method : {'bartlett', 'tukey'}
+        Lag-window weighting rule. The default is 'bartlett'.
+
+    Returns
+    -------
+    covariance : numpy.ndarray
+        Spectral covariance estimate, with one row and column per parameter.
+        Divide by n to estimate the covariance of the sample mean. Standard
+        errors follow from sqrt(diag(covariance)/n).
+
+    Notes
+    -----
+    For a centered chain, Gamma_k = chain[:-k].T @ chain[k:] / n. The estimator
+    adds Gamma_0 once and, for each included positive lag, adds the window
+    weight times Gamma_k + Gamma_k.T. In an independent chain, the positive-lag
+    terms approach zero and spectral covariance approaches marginal covariance.
+    Serial correlation can make those two covariance matrices quite different.
+    """
     chain = np.asarray(chain).reshape(len(chain), -1)
     n = len(chain)
     result = chain.T @ chain / n
@@ -1022,26 +1016,80 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args=None):
 
 
 def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001, thin=1, print_=False):
-    """Estimate burn-in, sample count, and thinning with the Raftery-Lewis diagnostic.
+    r"""Estimate burn-in and sampling requirements with the Raftery-Lewis diagnostic.
 
-    Transition counts use NumPy arrays. The diagnostic requires both binary
-    quantile states and enough transitions between those states.
+    The diagnostic studies the indicator that a sampled parameter is at or
+    below its q quantile. It finds enough thinning for a first-order Markov
+    approximation, then estimates burn-in and the total iterations needed to
+    estimate that quantile probability within the requested accuracy.
+
+    Parameters
+    ----------
+    chain : array-like
+        Finite MCMC samples. Rows are samples; columns are parameters. A
+        one-dimensional chain is treated as one parameter.
+    q : float, optional
+        Quantile of interest, between zero and one. The default is 0.025.
+    r : float, optional
+        Absolute accuracy for the quantile probability. The default is 0.005.
+    s : float, optional
+        Probability of meeting that accuracy. The default is 0.95.
+    converge_eps : float, optional
+        Tolerance used in the burn-in calculation. The default is 0.001.
+    thin : int, optional
+        Existing iteration spacing between supplied samples, as in coda's
+        mcmc(..., thin=thin). This does not discard input rows. The default is 1.
+    print_ : bool, optional
+        Print the result table. The default is False.
+
+    Returns
+    -------
+    result : pandas.DataFrame
+        One row per parameter. Burn-in (M), Total (N), Lower Bound (Nmin),
+        Dependence Factor (I), and Thinning (k) report the required iterations,
+        independent-sampling lower bound, N/Nmin, and selected iteration spacing.
+        The dependence factor retains full precision; coda prints three
+        significant digits.
+
+    Raises
+    ------
+    ValueError
+        If probabilities or spacing are invalid, the chain is nonfinite or too
+        short, or the quantile states have too few transitions.
+
+    Notes
+    -----
+    The independent lower bound comes from a binomial-proportion sample-size
+    calculation. A likelihood-ratio/BIC comparison of first- and second-order
+    binary Markov models selects thinning. A large dependence factor indicates
+    that serial dependence substantially increases the sample requirement.
+    Values above five are a common reason to inspect initialization, posterior
+    correlation, parameterization, or the sampler; the diagnostic alone does
+    not establish convergence.
     """
-    if not 0 < q < 1 or not 0 < r < 1 or not 0 < s < 1 or thin < 1:
+    if (not 0 < q < 1 or not 0 < r < 1 or not 0 < s < 1
+            or not 0 < converge_eps < 1 or not isinstance(thin, (int, np.integer)) or thin < 1):
         raise ValueError('Use probabilities between 0 and 1 and positive thinning')
     chain = np.asarray(chain).reshape(len(chain), -1)
+    if not np.isfinite(chain).all():
+        raise ValueError('The diagnostic requires finite chain values')
+    # The lower bound is the independent binomial-proportion sample requirement.
     phi, nmin = samp_size_calc_raftery(q, r, s)
     if len(chain) < nmin:
         raise ValueError('The chain needs at least {} samples'.format(nmin))
     rows = []
     for values in chain.T:
+        # Convert the quantile event U_t <= u_q to the binary Markov states Z_t.
         binary = (values <= np.quantile(values, q)).astype(int)
         if np.unique(binary).size < 2:
             raise ValueError('The diagnostic needs a nonconstant chain')
-        for k in range(thin, len(binary) - 2, thin):
-            states = binary[::k]
+        for stride in range(1, len(binary) - 2):
+            k = stride*thin
+            states = binary[::stride]
             if len(states) < 4:
                 raise ValueError('Too few transitions for this quantile')
+            # Compare first- and second-order Markov dependence with a likelihood
+            # ratio and BIC penalty, following the Raftery-Lewis/coda construction.
             table = np.zeros((2, 2, 2))
             np.add.at(table, (states[:-2], states[1:-1], states[2:]), 1)
             expected = np.zeros_like(table)
@@ -1063,6 +1111,8 @@ def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001, thin=1, print_=
         persistence = abs(1 - total)
         burn = 0 if persistence == 0 else max(0, np.ceil(np.log(converge_eps * total / max(alpha, beta)) / np.log(persistence))) * k
         keep = np.ceil((2 - total) * alpha * beta * phi ** 2 / (total ** 3 * r ** 2)) * k
+        # N/Nmin measures the extra iterations attributed to serial dependence.
+        # Large values suggest checking initialization, posterior coupling, or the sampler.
         rows.append([burn, burn + keep, nmin, (burn + keep) / nmin, k])
     result = pd.DataFrame(rows, columns=['Burn-in (M)', 'Total (N)', 'Lower Bound (Nmin)',
                                          'Dependence Factor (I)', 'Thinning (k)'])

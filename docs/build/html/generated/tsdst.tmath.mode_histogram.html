@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>tsdst.tmath.mode_histogram &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=062ca7a5" />
+    <script src="../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.tmath.mode_kde" href="tsdst.tmath.mode_kde.html" />
+    <link rel="prev" title="tsdst.tmath.corr" href="tsdst.tmath.corr.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../weibull_regression.html">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.tmath.mode_histogram</a><ul>
+<li><a class="reference internal" href="#tsdst.tmath.mode_histogram"><code class="docutils literal notranslate"><span class="pre">mode_histogram()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.tmath.corr.html" title="Previous Chapter: tsdst.tmath.corr"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.tmath.corr</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.tmath.mode_kde.html" title="Next Chapter: tsdst.tmath.mode_kde"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.tmath.mode_kde &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.tmath.mode_histogram.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">tsdst.tmath.mode_histogram</a><ul>
+<li><a class="reference internal" href="#tsdst.tmath.mode_histogram"><code class="docutils literal notranslate"><span class="pre">mode_histogram()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="tsdst.tmath.corr.html" title="Previous Chapter: tsdst.tmath.corr"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.tmath.corr</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.tmath.mode_kde.html" title="Next Chapter: tsdst.tmath.mode_kde"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.tmath.mode_kde &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.tmath.mode_histogram.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <section id="tsdst-tmath-mode-histogram">
+<h1>tsdst.tmath.mode_histogram<a class="headerlink" href="#tsdst-tmath-mode-histogram" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="tsdst.tmath.mode_histogram">
+<span class="sig-prename descclassname"><span class="pre">tsdst.tmath.</span></span><span class="sig-name descname"><span class="pre">mode_histogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surround</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surround_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/tmath.html#mode_histogram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.tmath.mode_histogram" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the mode (from a continuous distribution) using data provided
+from a histogram. Created because calculating mode from KDE estimate
+can be slow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">numpy array</span></dt><dd><p>Array of data to calculate the mode from.</p>
+</dd>
+<dt><strong>bin_max</strong><span class="classifier">int or str, optional</span></dt><dd><p>Number of histogram bins to pass to np.histogram. Can be string or
+integer. The default is ‘auto’.</p>
+</dd>
+<dt><strong>edge_check</strong><span class="classifier">str or None, optional</span></dt><dd><p>The edge of the largest histogram rectangle (mode) to use for
+comparing to the original data. For example, if the mode
+rectangle of the histogram created is between 1 and 3 on the x-axis,
+then ‘left’ uses 1 for comparison, ‘right’ uses 3, and ‘center’ uses
+the midpoint 2. If None, the optimal metod is used based on the number
+of bins. Default is None.</p>
+</dd>
+<dt><strong>approx</strong><span class="classifier">bool, optional</span></dt><dd><p>If approx is True, use the histogram output as the mode. If False, find
+the closest value in data to the histogram value and use that as the
+mode.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>The mode of the array.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

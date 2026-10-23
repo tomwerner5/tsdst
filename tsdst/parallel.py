@@ -5,10 +5,36 @@ from .utils import updateProgBar
 
 
 def p_prog_simp(args, loop_args, function, n_jobs=2, verbose=True, use_threads=True):
-    """Run keyword tasks and return results in input order.
+    r"""Run keyword-argument tasks with an optional progress display.
 
-    Parallel task failures remain exception objects in the result list.
-    The function keeps the input argument dictionaries unchanged.
+    Parameters
+    ----------
+    args : dict
+        Common keyword arguments supplied to every task.
+    loop_args : list of dict
+        Per-task arguments. A task's values override duplicate common keys.
+    function : callable
+        Function called with the merged keyword arguments.
+    n_jobs : int, optional
+        Number of workers. One runs serially. The default is 2.
+    verbose : bool, optional
+        Show progress when True. The default is True.
+    use_threads : bool, optional
+        Use threads when True, or processes when False. Process tasks require
+        pickleable callables and arguments. The default is True.
+
+    Returns
+    -------
+    results : list
+        Outputs in input task order. Parallel exceptions occupy the corresponding
+        output position as exception objects. Serial exceptions propagate.
+
+    Notes
+    -----
+    The helper leaves the common and per-task dictionaries unchanged. It submits
+    all parallel tasks before collecting results. For a bounded submission queue,
+    use p_prog_simp_memorySafe. Process workers need an importable execution
+    context, which can matter in interactive frontends.
     """
     t0 = dt()
     tasks = [{**args, **task} for task in loop_args]
@@ -35,7 +61,36 @@ def p_prog_simp(args, loop_args, function, n_jobs=2, verbose=True, use_threads=T
 
 
 def p_prog_simp_memorySafe(args, loop_args, function, n_jobs=2):
-    """Run process tasks with at most n_jobs submitted tasks at a time."""
+    r"""Run process tasks in bounded batches to limit queued work.
+
+    This variant was introduced to reduce memory used by submitting all tasks
+    at once. It keeps at most n_jobs tasks submitted in each batch. A new batch
+    is submitted after the preceding batch has been collected.
+
+    Parameters
+    ----------
+    args : dict
+        Common keyword arguments supplied to every task.
+    loop_args : list of dict
+        Per-task arguments, overriding duplicate common keys.
+    function : callable
+        Function called with each merged argument mapping.
+    n_jobs : int, optional
+        Number of process workers and maximum batch size. The default is 2.
+        One runs serially through p_prog_simp.
+
+    Returns
+    -------
+    results : list
+        Outputs in input task order. With multiple workers, an exception object
+        occupies the failed task's position. Serial exceptions propagate.
+
+    Notes
+    -----
+    Bounding queued futures does not place a fixed limit on the memory retained
+    inside each worker. Inputs are not mutated. Progress is displayed while
+    results are collected. Process callables and arguments must be pickleable.
+    """
     if n_jobs == 1:
         return p_prog_simp(args, loop_args, function, n_jobs=1)
     results = []

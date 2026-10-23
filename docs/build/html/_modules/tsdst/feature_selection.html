@@ -1,30 +1,29 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tsdst.feature_selection &#8212; tsdst 1.0.11 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
+    <title>tsdst.feature_selection &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=062ca7a5" />
+    <script src="../../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=4ea706d9"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../../_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
 
   </head><body>
 
@@ -39,7 +38,7 @@
         </button>
         <a class="navbar-brand" href="../../index.html">
           tsdst</a>
-        <span class="navbar-text navbar-version pull-left"><b></b></span>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -57,6 +56,8 @@
       aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -101,29 +102,39 @@
 
 <div class="container">
   <div class="row">
-    <div class="body col-md-12 content" role="main">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary">
+<form action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
       
   <h1>Source code for tsdst.feature_selection</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">StratifiedKFold</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">mktime</span>
-<span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">dt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">StratifiedKFold</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">clone</span>
 
-<span class="kn">from</span> <span class="nn">.distributions</span> <span class="kn">import</span> <span class="p">(</span><span class="n">likelihood_bernoulli</span><span class="p">,</span> <span class="n">likelihood_poisson</span><span class="p">,</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.distributions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">likelihood_bernoulli</span><span class="p">,</span> <span class="n">likelihood_poisson</span><span class="p">,</span>
                             <span class="n">likelihood_gaussian</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.metrics</span> <span class="kn">import</span> <span class="n">aicCalc</span>
-<span class="kn">from</span> <span class="nn">.parallel</span> <span class="kn">import</span> <span class="n">p_prog_simp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">aicCalc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.parallel</span><span class="w"> </span><span class="kn">import</span> <span class="n">p_prog_simp</span>
 <span class="c1">#from .tmath import percentIncrease, powerset</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">updateProgBar</span><span class="p">,</span> <span class="n">print_time</span>
 
 
-<div class="viewcode-block" id="naiveVarDrop"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.naiveVarDrop.html#tsdst.feature_selection.naiveVarDrop">[docs]</a><span class="k">def</span> <span class="nf">naiveVarDrop</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">searchCols</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">standardize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">asList</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="naiveVarDrop">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.naiveVarDrop.html#tsdst.feature_selection.naiveVarDrop">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">naiveVarDrop</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">searchCols</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">standardize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">asList</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">print_</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Drop columns based on which columns have variance below the threshold.</span>
 
 <span class="sd">    Parameters</span>
@@ -145,7 +156,7 @@
 <span class="sd">    list or dataframe</span>
 <span class="sd">        Either list of columns to be dropped or dataframe with columns removed.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">cols_to_drop</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">searchCols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">searchCols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
@@ -154,15 +165,18 @@
         <span class="k">if</span> <span class="n">var</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
             <span class="n">cols_to_drop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">print_</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dropped &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols_to_drop</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; low-var Columns&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Dropped "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols_to_drop</span><span class="p">))</span> <span class="o">+</span> <span class="s2">" low-var Columns"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">asList</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">cols_to_drop</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">cols_to_drop</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="naiveScoreDrop"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.naiveScoreDrop.html#tsdst.feature_selection.naiveScoreDrop">[docs]</a><span class="k">def</span> <span class="nf">naiveScoreDrop</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">asList</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="naiveScoreDrop">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.naiveScoreDrop.html#tsdst.feature_selection.naiveScoreDrop">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">naiveScoreDrop</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">asList</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Drop columns based on which columns have scores below the threshold. This </span>
 <span class="sd">    could be used with any arbitrary score function, where scores is a </span>
 <span class="sd">    1-column dataframe, in which the index are column names, and the values</span>
@@ -184,7 +198,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    list or dataframe</span>
 <span class="sd">        Either list of columns to be dropped or dataframe with columns removed.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">cols_to_drop</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">scores</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
         <span class="n">score</span> <span class="o">=</span> <span class="n">scores</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
@@ -194,10 +208,13 @@
         <span class="k">return</span> <span class="n">cols_to_drop</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">cols_to_drop</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
     
     
-<div class="viewcode-block" id="getHighCorrs"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.getHighCorrs.html#tsdst.feature_selection.getHighCorrs">[docs]</a><span class="k">def</span> <span class="nf">getHighCorrs</span><span class="p">(</span><span class="n">corr_mat</span><span class="p">,</span> <span class="n">corr_thres</span><span class="p">,</span> <span class="n">split_key</span><span class="o">=</span><span class="s2">&quot;..&amp;..&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="getHighCorrs">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.getHighCorrs.html#tsdst.feature_selection.getHighCorrs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">getHighCorrs</span><span class="p">(</span><span class="n">corr_mat</span><span class="p">,</span> <span class="n">corr_thres</span><span class="p">,</span> <span class="n">split_key</span><span class="o">=</span><span class="s2">"..&amp;.."</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Given a correlation matrix, return the</span>
 <span class="sd">    correlations that are above the threshold.</span>
 <span class="sd">    </span>
@@ -212,8 +229,8 @@
 <span class="sd">        Between 0 and 1.</span>
 <span class="sd">    split_key : str, optional</span>
 <span class="sd">        The unique key to use to join the column names together, for example,</span>
-<span class="sd">        if split_key was &#39;..&amp;..&#39;, then the index for that correlation would be</span>
-<span class="sd">        &#39;col1..&amp;..col2&#39;. The default is &quot;..&amp;..&quot;.</span>
+<span class="sd">        if split_key was '..&amp;..', then the index for that correlation would be</span>
+<span class="sd">        'col1..&amp;..col2'. The default is "..&amp;..".</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -221,7 +238,7 @@
 <span class="sd">        A dataframe containing a list of the top correlations from the</span>
 <span class="sd">        correlation matrix.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">top_corr</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">columns</span> <span class="o">=</span> <span class="n">corr_mat</span><span class="o">.</span><span class="n">columns</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">corr_mat</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
@@ -237,8 +254,11 @@
     <span class="k">return</span> <span class="n">top_corr</span></div>
 
 
-<div class="viewcode-block" id="dropHighCorrs"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.dropHighCorrs.html#tsdst.feature_selection.dropHighCorrs">[docs]</a><span class="k">def</span> <span class="nf">dropHighCorrs</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">top_corr</span><span class="p">,</span> <span class="n">split_key</span><span class="o">=</span><span class="s2">&quot;..&amp;..&quot;</span><span class="p">,</span> <span class="n">asList</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="dropHighCorrs">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.dropHighCorrs.html#tsdst.feature_selection.dropHighCorrs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dropHighCorrs</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">top_corr</span><span class="p">,</span> <span class="n">split_key</span><span class="o">=</span><span class="s2">"..&amp;.."</span><span class="p">,</span> <span class="n">asList</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Remove high inter-correlations from the dataset. When dropping a column,</span>
 <span class="sd">    the column with the lowest variance is selected.</span>
 <span class="sd">    </span>
@@ -252,11 +272,11 @@
 <span class="sd">    top_corr : dataframe</span>
 <span class="sd">        The output from the getHighCorrs function, or, a dataframe containing a</span>
 <span class="sd">        list of the high correlations, where the index is a list of the column</span>
-<span class="sd">        names concatenated together by split_key, for example, &#39;col1..&amp;..col2&#39;.</span>
+<span class="sd">        names concatenated together by split_key, for example, 'col1..&amp;..col2'.</span>
 <span class="sd">    split_key : str, optional</span>
 <span class="sd">        The unique key to use to join the column names together, for example,</span>
-<span class="sd">        if split_key was &#39;..&amp;..&#39;, then the index for that correlation would be</span>
-<span class="sd">        &#39;col1..&amp;..col2&#39;. The default is &quot;..&amp;..&quot;.</span>
+<span class="sd">        if split_key was '..&amp;..', then the index for that correlation would be</span>
+<span class="sd">        'col1..&amp;..col2'. The default is "..&amp;..".</span>
 <span class="sd">    asList : bool, optional</span>
 <span class="sd">        Return only the list of columns to be dropped. The default is False.</span>
 <span class="sd">    print_ : bool, optional</span>
@@ -267,7 +287,7 @@
 <span class="sd">    list or dataframe</span>
 <span class="sd">        Either list of columns to be dropped or dataframe with columns removed.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">cols_to_drop</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">top_corr</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">split_key</span><span class="p">)</span>
@@ -278,18 +298,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">cols_to_drop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cols</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">print_</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dropped &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols_to_drop</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; high-corr Columns&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Dropped "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols_to_drop</span><span class="p">))</span> <span class="o">+</span> <span class="s2">" high-corr Columns"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">asList</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">cols_to_drop</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">cols_to_drop</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="dropCorrProcedure"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.dropCorrProcedure.html#tsdst.feature_selection.dropCorrProcedure">[docs]</a><span class="k">def</span> <span class="nf">dropCorrProcedure</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">corr_thres</span><span class="p">,</span> <span class="n">split_key</span><span class="o">=</span><span class="s2">&quot;..&amp;..&quot;</span><span class="p">,</span> 
+
+<div class="viewcode-block" id="dropCorrProcedure">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.dropCorrProcedure.html#tsdst.feature_selection.dropCorrProcedure">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dropCorrProcedure</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">corr_thres</span><span class="p">,</span> <span class="n">split_key</span><span class="o">=</span><span class="s2">"..&amp;.."</span><span class="p">,</span> 
                       <span class="n">asList</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="c1"># TODO: add an option for dropping columns that have a low correlation with</span>
     <span class="c1"># the target</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates the inter-correlation of the columns in a matrix/dataframe, and then</span>
 <span class="sd">    drops columns that are above a given threshold.</span>
 
@@ -303,8 +326,8 @@
 <span class="sd">        Between 0 and 1.</span>
 <span class="sd">    split_key : str, optional</span>
 <span class="sd">        The unique key to use to join the column names together, for example,</span>
-<span class="sd">        if split_key was &#39;..&amp;..&#39;, then the index for that correlation would be</span>
-<span class="sd">        &#39;col1..&amp;..col2&#39;. The default is &quot;..&amp;..&quot;.</span>
+<span class="sd">        if split_key was '..&amp;..', then the index for that correlation would be</span>
+<span class="sd">        'col1..&amp;..col2'. The default is "..&amp;..".</span>
 <span class="sd">    asList : bool, optional</span>
 <span class="sd">        Return only the list of columns to be dropped. The default is False.</span>
 <span class="sd">    print_ : bool, optional</span>
@@ -315,7 +338,7 @@
 <span class="sd">    dropped_cor : dataframe</span>
 <span class="sd">        Dataframe with High correlation columns dropped.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
     <span class="n">corr_mat</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span>
@@ -325,13 +348,16 @@
     <span class="k">return</span> <span class="n">dropped_cor</span></div>
 
 
-<div class="viewcode-block" id="permutation_importance"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.permutation_importance.html#tsdst.feature_selection.permutation_importance">[docs]</a><span class="k">def</span> <span class="nf">permutation_importance</span><span class="p">(</span><span class="n">fit_model</span><span class="p">,</span> <span class="n">Xtest</span><span class="p">,</span> <span class="n">Ytest</span><span class="p">,</span>
-                           <span class="n">metric_func</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="s2">&quot;dsc&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="permutation_importance">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.permutation_importance.html#tsdst.feature_selection.permutation_importance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">permutation_importance</span><span class="p">(</span><span class="n">fit_model</span><span class="p">,</span> <span class="n">Xtest</span><span class="p">,</span> <span class="n">Ytest</span><span class="p">,</span>
+                           <span class="n">metric_func</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="s2">"dsc"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Performs permutation importance on a fitted model.</span>
 <span class="sd">    </span>
 <span class="sd">    Assumes that your metric function takes inputs in this order: ytrue, yperd.</span>
-<span class="sd">    If it doesn&#39;t, write a simple wrapper that will. Also assumes a pretrained</span>
+<span class="sd">    If it doesn't, write a simple wrapper that will. Also assumes a pretrained</span>
 <span class="sd">    model with a predict method.</span>
 <span class="sd">    </span>
 <span class="sd">    Credit: https://explained.ai/rf-importance/</span>
@@ -341,7 +367,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fit_model : sklearn, (or similar)</span>
-<span class="sd">        Can be any model that has a &#39;predict&#39; method.</span>
+<span class="sd">        Can be any model that has a 'predict' method.</span>
 <span class="sd">    Xtest : pandas Dataframe</span>
 <span class="sd">        The observations in the feature or design matrix to perform the</span>
 <span class="sd">        permutation test on.</span>
@@ -353,15 +379,15 @@
 <span class="sd">    seed : int, optional</span>
 <span class="sd">        Set Random Seed for reporducibility. The default is None.</span>
 <span class="sd">    sort : str, optional</span>
-<span class="sd">        Either &#39;asc&#39; for ascending or &#39;dsc&#39; for descending.</span>
-<span class="sd">        The default is &quot;dsc&quot;.</span>
+<span class="sd">        Either 'asc' for ascending or 'dsc' for descending.</span>
+<span class="sd">        The default is "dsc".</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    res : dataframe</span>
 <span class="sd">        A dataframe containing the results of the permutation test.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">Ypred</span> <span class="o">=</span> <span class="n">fit_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xtest</span><span class="p">)</span>
     <span class="n">baseline</span> <span class="o">=</span> <span class="n">metric_func</span><span class="p">(</span><span class="n">Ytest</span><span class="p">,</span> <span class="n">Ypred</span><span class="p">)</span>
     <span class="n">imps</span> <span class="o">=</span> <span class="p">[]</span>
@@ -374,22 +400,25 @@
         <span class="n">score</span> <span class="o">=</span> <span class="n">metric_func</span><span class="p">(</span><span class="n">Ytest</span><span class="p">,</span> <span class="n">Ypred</span><span class="p">)</span>
         <span class="n">Xtest</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_copy</span>
         <span class="n">imps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">baseline</span> <span class="o">-</span> <span class="n">score</span><span class="p">)</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imps</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">Xtest</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Importance&quot;</span><span class="p">])</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">imps</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">Xtest</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Importance"</span><span class="p">])</span>
     <span class="c1"># Could reduce the sorting to a one-liner, but this way someone</span>
     <span class="c1"># could choose not to sort. Though, probably not a useful feature.</span>
-    <span class="k">if</span> <span class="n">sort</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">sort</span> <span class="o">==</span> <span class="s2">&quot;dsc&quot;</span><span class="p">:</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sort</span> <span class="o">==</span> <span class="s2">"asc"</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Importance'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sort</span> <span class="o">==</span> <span class="s2">"dsc"</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Importance'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">res</span></div>
 
 
-<div class="viewcode-block" id="permutation_importance_CV"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.permutation_importance_CV.html#tsdst.feature_selection.permutation_importance_CV">[docs]</a><span class="k">def</span> <span class="nf">permutation_importance_CV</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">metric_func</span><span class="p">,</span> <span class="n">num_splits</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="s2">&quot;dsc&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="permutation_importance_CV">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.permutation_importance_CV.html#tsdst.feature_selection.permutation_importance_CV">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">permutation_importance_CV</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">metric_func</span><span class="p">,</span> <span class="n">num_splits</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="s2">"dsc"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Performs a cross-validated permutation importance on a non-fitted model.</span>
 <span class="sd">    </span>
 <span class="sd">    Assumes that your metric function takes inputs in this order: ytrue, yperd.</span>
-<span class="sd">    If it doesn&#39;t, write a simple wrapper that will. Also assumes a pretrained</span>
+<span class="sd">    If it doesn't, write a simple wrapper that will. Also assumes a pretrained</span>
 <span class="sd">    model with a predict method.</span>
 <span class="sd">    </span>
 <span class="sd">    Credit: https://explained.ai/rf-importance/</span>
@@ -399,7 +428,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    model : sklearn, (or similar)</span>
-<span class="sd">        Can be any model that has a &#39;predict&#39; method. Send to the function </span>
+<span class="sd">        Can be any model that has a 'predict' method. Send to the function </span>
 <span class="sd">        unfitted, only instantiated</span>
 <span class="sd">    X : pandas Dataframe</span>
 <span class="sd">        The observations in the feature or design matrix to perform the</span>
@@ -414,15 +443,15 @@
 <span class="sd">    seed : int, optional</span>
 <span class="sd">        Set Random Seed for reporducibility. The default is None.</span>
 <span class="sd">    sort : str, optional</span>
-<span class="sd">        Either &#39;asc&#39; for ascending or &#39;dsc&#39; for descending.</span>
-<span class="sd">        The default is &quot;dsc&quot;.</span>
+<span class="sd">        Either 'asc' for ascending or 'dsc' for descending.</span>
+<span class="sd">        The default is "dsc".</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    res : dataframe</span>
 <span class="sd">        A dataframe containing the results of the permutation test.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">splits</span> <span class="o">=</span> <span class="n">StratifiedKFold</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="n">num_splits</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">pi_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
@@ -431,23 +460,24 @@
         <span class="n">Ytrain</span><span class="p">,</span> <span class="n">Ytest</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">train_idx</span><span class="p">],</span> <span class="n">Y</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">test_idx</span><span class="p">]</span>
         <span class="n">fi_model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">Ytrain</span><span class="p">)</span>
         <span class="n">pi</span> <span class="o">=</span> <span class="n">permutation_importance</span><span class="p">(</span><span class="n">fi_model</span><span class="p">,</span> <span class="n">Xtest</span><span class="p">,</span> <span class="n">Ytest</span><span class="p">,</span>
-                                <span class="n">metric_func</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">)</span>
+                                <span class="n">metric_func</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="s2">"None"</span><span class="p">)</span>
         <span class="n">pi_total</span> <span class="o">+=</span> <span class="n">pi</span><span class="o">.</span><span class="n">values</span>
         <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Completed &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_splits</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Completed "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" of "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_splits</span><span class="p">))</span>
     <span class="n">pi_total</span> <span class="o">/=</span> <span class="n">num_splits</span>
-    <span class="n">pi_tot_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pi_total</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Importance&quot;</span><span class="p">])</span>
+    <span class="n">pi_tot_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pi_total</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Importance"</span><span class="p">])</span>
     <span class="c1"># Could reduce the sorting to a one-liner, but this way someone</span>
     <span class="c1"># could choose not to sort. Though, probably not a useful feature.</span>
-    <span class="k">if</span> <span class="n">sort</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span><span class="p">:</span>
-        <span class="n">pi_tot_df</span> <span class="o">=</span> <span class="n">pi_tot_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">sort</span> <span class="o">==</span> <span class="s2">&quot;dsc&quot;</span><span class="p">:</span>
-        <span class="n">pi_tot_df</span> <span class="o">=</span> <span class="n">pi_tot_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sort</span> <span class="o">==</span> <span class="s2">"asc"</span><span class="p">:</span>
+        <span class="n">pi_tot_df</span> <span class="o">=</span> <span class="n">pi_tot_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Importance'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sort</span> <span class="o">==</span> <span class="s2">"dsc"</span><span class="p">:</span>
+        <span class="n">pi_tot_df</span> <span class="o">=</span> <span class="n">pi_tot_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Importance'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pi_tot_df</span></div>
 
 
-<span class="k">def</span> <span class="nf">_calcForwardAICs</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">family</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_calcForwardAICs</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">family</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A utility function for the forwardSelection algorithm. Calculates AIC</span>
 <span class="sd">    values for a two-class classification model.</span>
 
@@ -470,365 +500,269 @@
 <span class="sd">    score : float</span>
 <span class="sd">        The AIC (or variant) score.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">mod</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="n">mod</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
 
     <span class="n">ss</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">ncoefs</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">ncoefs</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">'fit_intercept'</span><span class="p">,</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">'has_constant'</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">'gaussian'</span><span class="p">:</span>
+        <span class="n">ncoefs</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># Gaussian likelihood also estimates the residual variance.</span>
 
-    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;binomial&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">"binomial"</span><span class="p">:</span>
         <span class="n">nllf</span> <span class="o">=</span> <span class="n">likelihood_bernoulli</span>
         <span class="c1"># Assumes the probability of positive class</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;poisson&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">"poisson"</span><span class="p">:</span>
         <span class="n">nllf</span> <span class="o">=</span> <span class="n">likelihood_poisson</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s2">"gaussian"</span><span class="p">:</span>
         <span class="n">nllf</span> <span class="o">=</span> <span class="n">likelihood_gaussian</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not a valid family&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Not a valid family"</span><span class="p">)</span>
 
-    <span class="n">loglike</span> <span class="o">=</span> <span class="n">nllf</span><span class="p">(</span><span class="n">y_true</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span> <span class="n">y_score</span><span class="o">=</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">neg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">loglike</span> <span class="o">=</span> <span class="n">nllf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">neg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="n">score</span> <span class="o">=</span> <span class="n">aicCalc</span><span class="p">(</span><span class="n">loglike</span><span class="p">,</span> <span class="n">ncoefs</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="n">ss</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">score</span>
 
 
-<span class="k">def</span> <span class="nf">_doParallelForward</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">save_name</span><span class="p">,</span> <span class="n">save_ext</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
-                      <span class="n">target_var</span><span class="p">,</span> <span class="n">new_predictor</span><span class="p">,</span> <span class="n">use_probabilities</span><span class="p">,</span>
-                      <span class="n">mod_cols</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">Yprob</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">serialize_flavor</span><span class="o">=</span><span class="s1">&#39;feather&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A helper function to lessen the load on memory when computing in parallel.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_doParallelForward</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">save_name</span><span class="p">,</span> <span class="n">save_ext</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">target_var</span><span class="p">,</span>
+                       <span class="n">new_predictor</span><span class="p">,</span> <span class="n">use_probabilities</span><span class="p">,</span> <span class="n">mod_cols</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span>
+                       <span class="n">Yprob</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">serialize_flavor</span><span class="o">=</span><span class="s1">'feather'</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Read a shared temporary table and score one forward-selection candidate.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    save_path : str</span>
-<span class="sd">        Path to temporary saved data.</span>
+<span class="sd">        Temporary directory containing the table.</span>
 <span class="sd">    save_name : str</span>
-<span class="sd">        Name of temporary data.</span>
+<span class="sd">        Temporary file name without its extension.</span>
 <span class="sd">    save_ext : str</span>
-<span class="sd">        The name of the temporary file extension.</span>
+<span class="sd">        Feather or Parquet extension.</span>
 <span class="sd">    metric : str</span>
-<span class="sd">        The AIC metric to be used, for example, aic, aicc, bic, ebic, hastie, </span>
-<span class="sd">        or kwano.</span>
-<span class="sd">    model : sklearn, or similar</span>
-<span class="sd">        Any model that has a fit and predict method.</span>
+<span class="sd">        Information criterion passed to _calcForwardAICs.</span>
+<span class="sd">    model : estimator</span>
+<span class="sd">        Estimator specification. Each candidate is fitted on its own clone.</span>
 <span class="sd">    target_var : str</span>
-<span class="sd">        The column containing the target (or response) variable.</span>
-<span class="sd">    new_predictor : str</span>
-<span class="sd">        The column name of the most recently added predictor.</span>
+<span class="sd">        Response column in the temporary table.</span>
+<span class="sd">    new_predictor : str or list of str</span>
+<span class="sd">        Candidate predictor column or columns.</span>
 <span class="sd">    use_probabilities : bool</span>
-<span class="sd">        Whether or not to use predicted probabilities as the only other feature</span>
-<span class="sd">        in the set, or to use the actual features in performing the forward </span>
-<span class="sd">        selection.</span>
-<span class="sd">    mod_cols : list</span>
-<span class="sd">        Columns that made it into the final model.</span>
+<span class="sd">        Use a supplied previous-model probability column with the new candidate.</span>
+<span class="sd">    mod_cols : list of str</span>
+<span class="sd">        Previously selected predictors when probability compression is not used.</span>
 <span class="sd">    family : str</span>
-<span class="sd">        The family of distributions to calculate log-likelihood from.</span>
-<span class="sd">    Yprob : numpy array or pandas series, optional</span>
-<span class="sd">        The predicted probabilities from the current model, if applicable.</span>
-<span class="sd">        The default is None.</span>
-<span class="sd">    serialize_flavor : str</span>
-<span class="sd">        Which mode of downsaving data to use, currently supports &#39;feather&#39; and</span>
-<span class="sd">        &#39;msgpack&#39;. Unfortunately, as of pandas 0.25.0, msgpack is no longer </span>
-<span class="sd">        supported.</span>
-<span class="sd">        </span>
-<span class="sd">        Note: using feather requires pyarrow</span>
+<span class="sd">        Binomial, Poisson, or Gaussian response family.</span>
+<span class="sd">    Yprob : array-like, optional</span>
+<span class="sd">        Previous-model second-class probabilities in table row order.</span>
+<span class="sd">    serialize_flavor : {'feather', 'parquet'}, optional</span>
+<span class="sd">        Temporary table format. The default is 'feather'.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    res : float</span>
-<span class="sd">        The AIC (or variant) result.</span>
+<span class="sd">    score : float</span>
+<span class="sd">        Candidate information criterion; lower is better.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="c1"># Note: Should probably update this to feather (as of 2019)</span>
-    <span class="c1"># since it is faster and better on memory in general.</span>
-    <span class="c1"># Since this is not long term storage, feather would be a </span>
-    <span class="c1"># good choice. However, for long-term storage, parquet is </span>
-    <span class="c1"># probably the best option</span>
-
-    <span class="k">if</span> <span class="n">serialize_flavor</span> <span class="o">==</span> <span class="s1">&#39;msgpack&#39;</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_msgpack</span><span class="p">(</span><span class="n">save_path</span> <span class="o">+</span> <span class="n">save_name</span> <span class="o">+</span> <span class="n">save_ext</span><span class="p">)</span>
-        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">6</span><span class="p">:])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
-        <span class="n">chunks</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span>
-        <span class="n">mergedDF</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
-            <span class="n">mergedDF</span> <span class="o">=</span> <span class="n">mergedDF</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;chunk_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">chunk</span><span class="p">)])</span>
-    <span class="k">elif</span> <span class="n">serialize_flavor</span> <span class="o">==</span> <span class="s1">&#39;feather&#39;</span><span class="p">:</span>
-        <span class="n">mergedDF</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_feather</span><span class="p">(</span><span class="n">save_path</span> <span class="o">+</span> <span class="n">save_name</span> <span class="o">+</span> <span class="n">save_ext</span><span class="p">)</span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Workers receive table paths instead of pickled copies of a large dataframe.</span>
+<span class="sd">    Feather and Parquet require the optional PyArrow dependency. These are</span>
+<span class="sd">    short-lived working tables rather than a model archive.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">serialize_flavor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'feather'</span><span class="p">,</span> <span class="s1">'parquet'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Serialization must use feather or parquet'</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pd</span><span class="p">,</span> <span class="s1">'read_'</span> <span class="o">+</span> <span class="n">serialize_flavor</span><span class="p">)(</span><span class="n">save_path</span> <span class="o">+</span> <span class="n">save_name</span> <span class="o">+</span> <span class="n">save_ext</span><span class="p">)</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">new_predictor</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_predictor</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">new_predictor</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_probabilities</span> <span class="ow">and</span> <span class="n">Yprob</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">predictors</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">columns</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">predictors</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">'Yprob'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Yprob</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not a supported serialize method.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">serialize_flavor</span><span class="p">))</span>
-    
+        <span class="n">predictors</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="nb">list</span><span class="p">(</span><span class="n">mod_cols</span><span class="p">)</span> <span class="o">+</span> <span class="n">columns</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">_calcForwardAICs</span><span class="p">(</span><span class="n">predictors</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">target_var</span><span class="p">],</span> <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">family</span><span class="p">)</span>
 
-    <span class="n">Y</span> <span class="o">=</span> <span class="n">mergedDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">target_var</span><span class="p">]</span>
-
-    <span class="k">if</span> <span class="n">use_probabilities</span><span class="p">:</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;Yprob&#39;</span><span class="p">:</span> <span class="n">Yprob</span><span class="p">,</span>
-                          <span class="n">new_predictor</span><span class="p">:</span> <span class="n">mergedDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">new_predictor</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-                         <span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">mergedDF</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">mergedDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">mod_cols</span> <span class="o">+</span> <span class="n">new_predictor</span><span class="p">]</span>
-
-    <span class="n">res</span> <span class="o">=</span> <span class="n">_calcForwardAICs</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">family</span><span class="p">)</span>
-
-    <span class="c1"># For debugging purposes, to attempt to force garbage collection in parallel</span>
-    <span class="c1">#data = []</span>
-    <span class="c1">#chunks = []</span>
-    <span class="c1">#mergedDF = []</span>
-    <span class="c1">#X = []</span>
-    <span class="c1">#Y = []</span>
-        
-    <span class="k">return</span> <span class="n">res</span>
-
-<span class="k">def</span> <span class="nf">_prepare_for_parallel</span><span class="p">(</span><span class="n">XY</span><span class="p">,</span> <span class="n">serialize_flavor</span><span class="o">=</span><span class="s1">&#39;feather&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Utility function to setup the data for parallel processing with low</span>
-<span class="sd">    memory overhead.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_prepare_for_parallel</span><span class="p">(</span><span class="n">XY</span><span class="p">,</span> <span class="n">serialize_flavor</span><span class="o">=</span><span class="s1">'feather'</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Save a dataframe for forward-selection workers to read.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    XY : pandas dataframe</span>
-<span class="sd">        The combined independent variables/features and reponse/target</span>
-<span class="sd">        variable.</span>
+<span class="sd">    XY : pandas.DataFrame</span>
+<span class="sd">        Predictors and response in one table.</span>
+<span class="sd">    serialize_flavor : {'feather', 'parquet'}, optional</span>
+<span class="sd">        Temporary file format. Both require PyArrow. The default is 'feather'.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    save_name : str</span>
-<span class="sd">        The name of the temporary data.</span>
+<span class="sd">        File name stem within the temporary directory.</span>
 <span class="sd">    save_path : str</span>
-<span class="sd">        The name of the temporary file path.</span>
+<span class="sd">        Newly created temporary directory.</span>
 <span class="sd">    save_ext : str</span>
-<span class="sd">        The name of the temporary file extension.</span>
-<span class="sd">    num_chunks : int</span>
-<span class="sd">        The number of chunks inside pandas msgpck format (determined by </span>
-<span class="sd">        dataframe size).</span>
-<span class="sd">    serialize_flavor : str</span>
-<span class="sd">        Which mode of downsaving data to use, currently supports &#39;feather&#39; and</span>
-<span class="sd">        &#39;msgpack&#39;. Unfortunately, as of pandas 0.25.0, msgpack is no longer </span>
-<span class="sd">        supported.</span>
-<span class="sd">        </span>
-<span class="sd">        Note: using feather requires pyarrow</span>
+<span class="sd">        File extension matching the chosen format.</span>
+<span class="sd">    num_chunks : None</span>
+<span class="sd">        Retained return slot. One complete columnar table is written.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
-        
-    <span class="n">save_path</span> <span class="o">=</span> <span class="s1">&#39;forward_tmp&#39;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">save_path</span><span class="p">):</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
-    <span class="n">save_name</span> <span class="o">=</span> <span class="s1">&#39;/forward_run_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">mktime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())))</span>
-    <span class="n">save_ext</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-    
-    <span class="k">if</span> <span class="n">serialize_flavor</span> <span class="o">==</span> <span class="s1">&#39;msgpack&#39;</span><span class="p">:</span>
-        <span class="n">save_ext</span> <span class="o">=</span> <span class="s1">&#39;.msg&#39;</span>
-        <span class="n">num_chunks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(((</span><span class="n">XY</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">pd</span><span class="o">.</span><span class="n">to_msgpack</span><span class="p">(</span><span class="n">save_path</span> <span class="o">+</span> <span class="n">save_name</span> <span class="o">+</span> <span class="n">save_ext</span><span class="p">,</span> <span class="p">{</span>
-            <span class="s1">&#39;chunk_</span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">):</span><span class="n">chunk</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">XY</span><span class="p">,</span> <span class="n">num_chunks</span><span class="p">))</span>
-            <span class="p">})</span>
-    <span class="k">elif</span> <span class="n">serialize_flavor</span> <span class="o">==</span> <span class="s1">&#39;feather&#39;</span><span class="p">:</span>
-        <span class="n">save_ext</span> <span class="o">=</span> <span class="s1">&#39;.fth&#39;</span>
-        <span class="n">num_chunks</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">XY</span><span class="o">.</span><span class="n">to_feather</span><span class="p">(</span><span class="n">save_path</span> <span class="o">+</span> <span class="n">save_name</span> <span class="o">+</span> <span class="n">save_ext</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> is not a supported serialize method.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">serialize_flavor</span><span class="p">))</span>
-    
-    <span class="k">return</span> <span class="n">save_name</span><span class="p">,</span> <span class="n">save_path</span><span class="p">,</span> <span class="n">save_ext</span><span class="p">,</span> <span class="n">num_chunks</span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The caller owns the returned temporary file and directory and must remove</span>
+<span class="sd">    them after the search. MessagePack storage from older pandas is no longer</span>
+<span class="sd">    supported; the current formats are Feather and Parquet.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+    <span class="k">if</span> <span class="n">serialize_flavor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'feather'</span><span class="p">,</span> <span class="s1">'parquet'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Serialization must use feather or parquet'</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">'tsdst-forward-'</span><span class="p">)</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">extension</span> <span class="o">=</span> <span class="s1">'/data'</span><span class="p">,</span> <span class="s1">'.feather'</span> <span class="k">if</span> <span class="n">serialize_flavor</span> <span class="o">==</span> <span class="s1">'feather'</span> <span class="k">else</span> <span class="s1">'.parquet'</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">XY</span><span class="p">,</span> <span class="s1">'to_'</span> <span class="o">+</span> <span class="n">serialize_flavor</span><span class="p">)(</span><span class="n">path</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="n">extension</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">extension</span><span class="p">,</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="forwardSelection"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.forwardSelection.html#tsdst.feature_selection.forwardSelection">[docs]</a><span class="k">def</span> <span class="nf">forwardSelection</span><span class="p">(</span><span class="n">XY</span><span class="p">,</span> <span class="n">target_var</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;bic&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;gaussian&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="forwardSelection">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.forwardSelection.html#tsdst.feature_selection.forwardSelection">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">forwardSelection</span><span class="p">(</span><span class="n">XY</span><span class="p">,</span> <span class="n">target_var</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">'bic'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">'gaussian'</span><span class="p">,</span>
                      <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">early_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">perc_min</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
                      <span class="n">stop_at_p</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">stop_when</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">use_probabilities</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                     <span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">serialze_flavor</span><span class="o">=</span><span class="s1">&#39;feather&#39;</span><span class="p">,</span>
-                     <span class="n">use_threads</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A forward selection algorithm for classification only right now. Still </span>
-<span class="sd">    needs some work.</span>
-<span class="sd">    </span>
-<span class="sd">    Note: it is a known bug for this function to fail when n_jobs &gt; 1 while</span>
-<span class="sd">    using sypder. This is because of an issue with spyder and the p_prog_simp</span>
-<span class="sd">    function. I have not been able to discover why, or provide a fix.</span>
-<span class="sd">    If you run a script with this function from the console, it should run</span>
-<span class="sd">    just fine. </span>
+                     <span class="n">return_type</span><span class="o">=</span><span class="s1">'all'</span><span class="p">,</span> <span class="n">serialize_flavor</span><span class="o">=</span><span class="s1">'feather'</span><span class="p">,</span> <span class="n">use_threads</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Select predictors greedily by an information criterion.</span>
+
+<span class="sd">    Each step fits every remaining candidate with the previously selected</span>
+<span class="sd">    predictors and chooses the lowest criterion. The first step selects the</span>
+<span class="sd">    best single predictor. Later steps stop when the criterion does not improve.</span>
+<span class="sd">    This is a greedy search; an exhaustive search would consider the powerset</span>
+<span class="sd">    of predictors and has exponential cost.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    XY : pandas dataframe</span>
-<span class="sd">        The combined independent variables/features and reponse/target</span>
-<span class="sd">        variable.</span>
+<span class="sd">    XY : pandas.DataFrame</span>
+<span class="sd">        Combined predictors and response, with named columns.</span>
 <span class="sd">    target_var : str</span>
-<span class="sd">        The column containing the target (or response) variable.</span>
-<span class="sd">    model : sklearn, or similar</span>
-<span class="sd">        An unfitted model. Any model that has a fit and predict method.</span>
-<span class="sd">    metric : str</span>
-<span class="sd">        The AIC metric to be used, for example, aic, aicc, bic, ebic, hastie, </span>
-<span class="sd">        or kwano.</span>
-<span class="sd">    family : str</span>
-<span class="sd">        The family of distributions to calculate log-likelihood from.</span>
+<span class="sd">        Response column.</span>
+<span class="sd">    model : estimator</span>
+<span class="sd">        An unfitted estimator with fit and predict, plus predict_proba for a</span>
+<span class="sd">        binomial family. Candidate fits and the returned fit use separate clones.</span>
+<span class="sd">    metric : {'aic', 'aicc', 'bic', 'ebic'}, optional</span>
+<span class="sd">        Information criterion; lower is better. The default is 'bic'.</span>
+<span class="sd">    family : {'gaussian', 'binomial', 'poisson'}, optional</span>
+<span class="sd">        Likelihood family. The default is 'gaussian'.</span>
 <span class="sd">    verbose : bool, optional</span>
-<span class="sd">        Output the steps and progress as it completes. The default is True.</span>
+<span class="sd">        Print selected predictors and progress. The default is True.</span>
 <span class="sd">    n_jobs : int, optional</span>
-<span class="sd">        If greater than 1, perform operation in parallel. The default is 1.</span>
+<span class="sd">        Positive worker count. One runs serially. The default is 1.</span>
+<span class="sd">    early_stop : bool, optional</span>
+<span class="sd">        Also apply stop_at_p and consecutive-small-improvement stopping.</span>
+<span class="sd">        The default is False.</span>
 <span class="sd">    perc_min : float, optional</span>
-<span class="sd">        --NOT IMPLEMENTED--. The percent change minimum for breaking early,</span>
-<span class="sd">        if no meanigful change in metric is detected. The default is 0.01.</span>
+<span class="sd">        Minimum relative criterion improvement before a step counts as small.</span>
+<span class="sd">        Improvement is (previous-current)/max(abs(previous), 1).</span>
+<span class="sd">        Used with early_stop=True. The default is 0.01.</span>
 <span class="sd">    stop_at_p : int, optional</span>
-<span class="sd">        The number of selections to stop at. In other words, it selects up to</span>
-<span class="sd">        `p` predictors, even if the optimal model is not yet found and more</span>
-<span class="sd">        tests could be done. The default is 1000.</span>
+<span class="sd">        Maximum selected feature count with early stopping. The default is 1000.</span>
 <span class="sd">    stop_when : int, optional</span>
-<span class="sd">        Stop the operations when the metric no longer continues to decrease,</span>
-<span class="sd">        after evaluating the next stop_when columns. The default is 5.</span>
+<span class="sd">        Consecutive small improvements allowed with early stopping.</span>
+<span class="sd">        The default is 5.</span>
 <span class="sd">    use_probabilities : bool, optional</span>
-<span class="sd">        Whether or not to use predicted probabilities as the only other feature</span>
-<span class="sd">        in the set, or to use the actual features in performing the forward </span>
-<span class="sd">        selection. The default is False.</span>
-<span class="sd">    return_type : str, optional</span>
-<span class="sd">        Which object to return, can be either list, model, data, or all.</span>
-<span class="sd">        The default is &#39;all&#39;.</span>
-<span class="sd">    serialize_flavor : str</span>
-<span class="sd">        Which mode of downsaving data to use, currently supports &#39;feather&#39; and</span>
-<span class="sd">        &#39;msgpack&#39;. Unfortunately, as of pandas 0.25.0, msgpack is no longer </span>
-<span class="sd">        supported.</span>
+<span class="sd">        For binomial selection, compress the previous selected model to its</span>
+<span class="sd">        second-class probability column when at least two predictors have</span>
+<span class="sd">        already been selected. The final returned model is fitted to the</span>
+<span class="sd">        selected original predictors. The default is False.</span>
+<span class="sd">    return_type : {'list', 'model', 'data', 'all'}, optional</span>
+<span class="sd">        Return selected names, the fitted model, selected predictor data, or all</span>
+<span class="sd">        three as a tuple. The default is 'all'.</span>
+<span class="sd">    serialize_flavor : {'feather', 'parquet'}, optional</span>
+<span class="sd">        Temporary worker table format. PyArrow is required for parallel work.</span>
+<span class="sd">        The default is 'feather'.</span>
 <span class="sd">    use_threads : bool, optional</span>
-<span class="sd">        Use threads instead of processes for parallel operation.f</span>
-<span class="sd">        </span>
-<span class="sd">        Note: using feather requires pyarrow</span>
+<span class="sd">        Use threads when True or processes when False. Process callables and</span>
+<span class="sd">        estimators must be pickleable. The default is True.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    list, model, data, or tuple of objects</span>
-<span class="sd">        Either return as list, model, data, or all. The default is &#39;all&#39;.</span>
+<span class="sd">    result : list, estimator, pandas.DataFrame, or tuple</span>
+<span class="sd">        Objects selected by return_type. The input estimator and dataframe are</span>
+<span class="sd">        not mutated. A tie in criterion improvement stops the search.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">t0</span> <span class="o">=</span> <span class="n">dt</span><span class="p">()</span>
-    
-    <span class="n">total_possible_complexity</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(((</span><span class="n">XY</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="p">((</span><span class="n">XY</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="n">XY</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
-    
-    <span class="k">if</span> <span class="n">early_stop</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">stop_at_p</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">XY</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="n">complexity</span> <span class="o">=</span> <span class="n">total_possible_complexity</span>
-            <span class="n">stop_at_p</span> <span class="o">=</span> <span class="n">XY</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">complexity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">XY</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop_at_p</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">complexity</span> <span class="o">=</span> <span class="n">total_possible_complexity</span>
-        <span class="n">stop_at_p</span> <span class="o">=</span> <span class="n">XY</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
-    
-    
-    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="n">print_time</span><span class="p">(</span><span class="s2">&quot;Problem Complexity: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">complexity</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; Iterations Needed, &quot;</span> <span class="o">+</span>
-                   <span class="nb">str</span><span class="p">(</span><span class="n">total_possible_complexity</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; Possible...&quot;</span><span class="p">,</span>
-                   <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">(),</span> <span class="n">backsn</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    
-    <span class="c1"># Use this for an exhaustive search</span>
-    <span class="c1">#all_combos = list(powerset(X.columns))</span>
-    <span class="n">final_mod_cols</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">leftover_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">XY</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="n">target_var</span><span class="p">]</span>
-    <span class="n">currentScore</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-    <span class="c1">#early_stop_counter = 0</span>
-    <span class="n">loop_counter</span> <span class="o">=</span> <span class="mi">0</span>
-    
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Information criteria use unpenalized likelihoods and include an estimated</span>
+<span class="sd">    intercept and Gaussian noise variance in the parameter count. AICc is</span>
+<span class="sd">    undefined when n &lt;= k+1 and then returns infinity. Relative stopping is an</span>
+<span class="sd">    optional computational choice and does not replace the information criterion.</span>
+<span class="sd">    Temporary worker tables are removed in the search cleanup path.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">target_var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">XY</span> <span class="ow">or</span> <span class="n">n_jobs</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Supply a target column and a positive job count'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'all'</span><span class="p">,</span> <span class="s1">'list'</span><span class="p">,</span> <span class="s1">'data'</span><span class="p">,</span> <span class="s1">'model'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'return_type must be all, list, data, or model'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_probabilities</span> <span class="ow">and</span> <span class="n">family</span> <span class="o">!=</span> <span class="s1">'binomial'</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Probability compression requires the binomial family'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">XY</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Forward selection needs at least one candidate predictor'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">early_stop</span> <span class="ow">and</span> <span class="p">(</span><span class="n">stop_at_p</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">stop_when</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">perc_min</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Use positive stopping counts and perc_min between zero and one'</span><span class="p">)</span>
+    <span class="n">selected</span><span class="p">,</span> <span class="n">remaining</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">XY</span> <span class="k">if</span> <span class="n">column</span> <span class="o">!=</span> <span class="n">target_var</span><span class="p">]</span>
+    <span class="n">best</span><span class="p">,</span> <span class="n">small_steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="n">arguments</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-            <span class="n">print_time</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Preparing Parallel Operation...&quot;</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
-            
-        <span class="n">save_name</span><span class="p">,</span> <span class="n">save_path</span><span class="p">,</span> <span class="n">save_ext</span><span class="p">,</span> <span class="n">num_chunks</span> <span class="o">=</span> <span class="n">_prepare_for_parallel</span><span class="p">(</span><span class="n">XY</span><span class="p">)</span>
-        <span class="n">arg</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;save_path&#39;</span><span class="p">:</span> <span class="n">save_path</span><span class="p">,</span>
-               <span class="s1">&#39;save_name&#39;</span><span class="p">:</span> <span class="n">save_name</span><span class="p">,</span>
-               <span class="s1">&#39;save_ext&#39;</span><span class="p">:</span> <span class="n">save_ext</span><span class="p">,</span>
-               <span class="s1">&#39;metric&#39;</span><span class="p">:</span> <span class="n">metric</span><span class="p">,</span>
-               <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
-               <span class="s1">&#39;target_var&#39;</span><span class="p">:</span> <span class="n">target_var</span><span class="p">,</span>
-               <span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="n">family</span><span class="p">,</span>
-               <span class="s1">&#39;use_probabilities&#39;</span><span class="p">:</span> <span class="n">use_probabilities</span><span class="p">,</span>
-               <span class="s1">&#39;mod_cols&#39;</span><span class="p">:</span> <span class="n">final_mod_cols</span><span class="p">,</span>
-               <span class="s1">&#39;Yprob&#39;</span><span class="p">:</span> <span class="kc">None</span>
-              <span class="p">}</span>
-    
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">XY</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">use_probabilities</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># create current model and probability array</span>
-            <span class="n">initial_fit</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">final_mod_cols</span><span class="p">],</span> <span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">target_var</span><span class="p">])</span>
-            <span class="n">Yprob</span> <span class="o">=</span> <span class="n">initial_fit</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">final_mod_cols</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
-            <span class="c1">#print(&#39;\nprob gen step: &#39;, Yprob.shape, &quot;\n&quot;)</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">extension</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_prepare_for_parallel</span><span class="p">(</span><span class="n">XY</span><span class="p">,</span> <span class="n">serialize_flavor</span><span class="p">)</span>
+        <span class="n">arguments</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">save_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">save_ext</span><span class="o">=</span><span class="n">extension</span><span class="p">,</span>
+                         <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">target_var</span><span class="o">=</span><span class="n">target_var</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="n">family</span><span class="p">,</span>
+                         <span class="n">use_probabilities</span><span class="o">=</span><span class="n">use_probabilities</span><span class="p">,</span> <span class="n">serialize_flavor</span><span class="o">=</span><span class="n">serialize_flavor</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">limit</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">remaining</span><span class="p">),</span> <span class="n">stop_at_p</span><span class="p">)</span> <span class="k">if</span> <span class="n">early_stop</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">remaining</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">limit</span><span class="p">):</span>
+            <span class="n">probability</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">use_probabilities</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Fit the current selected model before compressing it to a probability feature.</span>
+                <span class="n">previous</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">XY</span><span class="p">[</span><span class="n">selected</span><span class="p">],</span> <span class="n">XY</span><span class="p">[</span><span class="n">target_var</span><span class="p">])</span>
+                <span class="n">probability</span> <span class="o">=</span> <span class="n">previous</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">XY</span><span class="p">[</span><span class="n">selected</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">arg</span><span class="p">[</span><span class="s1">&#39;Yprob&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Yprob</span>
-        
-        <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">scores</span> <span class="o">=</span> <span class="n">p_prog_simp</span><span class="p">({</span><span class="o">**</span><span class="n">arguments</span><span class="p">,</span> <span class="s1">'mod_cols'</span><span class="p">:</span> <span class="n">selected</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="s1">'Yprob'</span><span class="p">:</span> <span class="n">probability</span><span class="p">},</span>
+                         <span class="p">[{</span><span class="s1">'new_predictor'</span><span class="p">:</span> <span class="p">[</span><span class="n">column</span><span class="p">]}</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">remaining</span><span class="p">],</span>
+                         <span class="n">_doParallelForward</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">use_threads</span><span class="o">=</span><span class="n">use_threads</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="n">score</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">remaining</span><span class="p">:</span>
+                    <span class="n">predictors</span> <span class="o">=</span> <span class="n">XY</span><span class="p">[</span><span class="n">selected</span> <span class="o">+</span> <span class="p">[</span><span class="n">column</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="n">probability</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">predictors</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">'Yprob'</span><span class="p">:</span> <span class="n">probability</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="n">XY</span><span class="p">[</span><span class="n">column</span><span class="p">]},</span> <span class="n">index</span><span class="o">=</span><span class="n">XY</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                    <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_calcForwardAICs</span><span class="p">(</span><span class="n">predictors</span><span class="p">,</span> <span class="n">XY</span><span class="p">[</span><span class="n">target_var</span><span class="p">],</span> <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">family</span><span class="p">))</span>
+            <span class="n">winner</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">scores</span><span class="p">))</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">winner</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">selected</span> <span class="ow">and</span> <span class="n">current</span> <span class="o">&gt;=</span> <span class="n">best</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="c1"># The optional relative-improvement rule limits expensive sequences of small gains.</span>
+            <span class="n">improvement</span> <span class="o">=</span> <span class="p">(</span><span class="n">best</span><span class="o">-</span><span class="n">current</span><span class="p">)</span><span class="o">/</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">best</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">best</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">small_steps</span> <span class="o">=</span> <span class="n">small_steps</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">improvement</span> <span class="o">&lt;</span> <span class="n">perc_min</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">selected</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">remaining</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">winner</span><span class="p">))</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="n">current</span>
             <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="n">print_time</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Performing &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; of &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">stop_at_p</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; Steps...&quot;</span><span class="p">,</span>
-                           <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">(),</span> <span class="n">backsn</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">loop_arg</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;new_predictor&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">col</span><span class="p">]}</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">leftover_cols</span><span class="p">]</span>
-            <span class="n">scores</span> <span class="o">=</span> <span class="n">p_prog_simp</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">loop_arg</span><span class="p">,</span> <span class="n">_doParallelForward</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span>
-                                 <span class="n">use_threads</span><span class="o">=</span><span class="n">use_threads</span><span class="p">)</span>
-            <span class="c1">#return scores</span>
-            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                <span class="n">loop_counter</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">loop_arg</span><span class="p">)</span>
-                <span class="n">updateProgBar</span><span class="p">(</span><span class="n">loop_counter</span><span class="p">,</span> <span class="n">complexity</span><span class="p">,</span> <span class="n">t0</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">leftover_cols</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">use_probabilities</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="c1">#print(&#39;loop step: &#39;, XY.loc[:, col].values.shape, &quot;\n&quot;)</span>
-                    <span class="n">XY_prob</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;Yprob&#39;</span><span class="p">:</span> <span class="n">Yprob</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">XY</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-                    <span class="n">score</span> <span class="o">=</span> <span class="n">_calcForwardAICs</span><span class="p">(</span><span class="n">XY_prob</span><span class="p">,</span> <span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">target_var</span><span class="p">],</span>
-                                             <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">family</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">score</span> <span class="o">=</span> <span class="n">_calcForwardAICs</span><span class="p">(</span><span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">final_mod_cols</span> <span class="o">+</span> <span class="p">[</span><span class="n">col</span><span class="p">]],</span> <span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">target_var</span><span class="p">],</span>
-                                             <span class="n">model</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">family</span><span class="p">)</span>
-                <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
-            
-                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="n">loop_counter</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="n">updateProgBar</span><span class="p">(</span><span class="n">loop_counter</span><span class="p">,</span> <span class="n">complexity</span><span class="p">,</span> <span class="n">t0</span><span class="p">)</span>
-        
-        <span class="n">minScore</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">minScore</span> <span class="o">&gt;</span> <span class="n">currentScore</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">No further imporovement in the model. Breaking...&quot;</span><span class="p">)</span>
-            <span class="k">break</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">currentScore</span> <span class="o">=</span> <span class="n">minScore</span>
-        
-        <span class="n">minScoreLoc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">minScore</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scores</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">final_mod_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">leftover_cols</span><span class="p">[</span><span class="n">minScoreLoc</span><span class="p">])</span>
-        <span class="k">del</span> <span class="n">leftover_cols</span><span class="p">[</span><span class="n">minScoreLoc</span><span class="p">]</span>
-        
-        <span class="c1"># could be useful if I wanted to do something like accuracy,</span>
-        <span class="c1"># but for AIC/BIC, this isn&#39;t necessary</span>
-        <span class="c1">#if np.abs(percentIncrease(minScore, prev_minScore)) &lt; perc_min:</span>
-        <span class="c1">#    early_stop_counter += 1</span>
-        <span class="c1">#else:</span>
-        <span class="c1">#    early_stop_counter = 0</span>
-        <span class="c1">#</span>
-        <span class="c1">#if early_stop_counter &gt;= stop_when:</span>
-        <span class="c1">#    print(&#39;Stopped Early&#39;)</span>
-        <span class="c1">#    break</span>
-        <span class="c1">#if i &gt;= stop_at_p:</span>
-        <span class="c1">#    print(&#39;Stopped at &#39;, str(i), &#39; selected predictors&#39;)</span>
-        <span class="c1">#    break</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">'Selected </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1"> = </span><span class="si">{:.6g}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">selected</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">metric</span><span class="p">,</span> <span class="n">best</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">early_stop</span> <span class="ow">and</span> <span class="n">small_steps</span> <span class="o">&gt;=</span> <span class="n">stop_when</span><span class="p">:</span>
+                <span class="k">break</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">arguments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="n">extension</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s1">'list'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">selected</span>
+    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s1">'data'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">XY</span><span class="p">[</span><span class="n">selected</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">fitted</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">XY</span><span class="p">[</span><span class="n">selected</span><span class="p">],</span> <span class="n">XY</span><span class="p">[</span><span class="n">target_var</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s1">'model'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fitted</span>
+    <span class="k">return</span> <span class="n">selected</span><span class="p">,</span> <span class="n">fitted</span><span class="p">,</span> <span class="n">XY</span><span class="p">[</span><span class="n">selected</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
 
-    <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">file_</span> <span class="o">=</span> <span class="n">save_path</span> <span class="o">+</span> <span class="n">save_name</span> <span class="o">+</span> <span class="n">save_ext</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Could Not find file &#39;</span><span class="p">,</span> <span class="n">file_</span><span class="p">,</span> <span class="s1">&#39;Continuing...&#39;</span><span class="p">)</span>
-            
-    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s1">&#39;list&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">final_mod_cols</span>
-    <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s1">&#39;model&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">final_mod_cols</span><span class="p">],</span> <span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">target_var</span><span class="p">])</span>
-    <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s1">&#39;data&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">final_mod_cols</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">final_mod_cols</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">final_mod_cols</span><span class="p">],</span>
-                                         <span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">target_var</span><span class="p">]),</span> <span class="n">XY</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">final_mod_cols</span><span class="p">]</span></div>
 
 <span class="c1">## TODO: import vif from modeling and incorporate a vif drop  </span>
-<div class="viewcode-block" id="vifDrop"><a class="viewcode-back" href="../../generated/tsdst.feature_selection.vifDrop.html#tsdst.feature_selection.vifDrop">[docs]</a><span class="k">def</span> <span class="nf">vifDrop</span><span class="p">():</span>
-    <span class="k">return</span> <span class="mi">0</span></div>
+<div class="viewcode-block" id="vifDrop">
+<a class="viewcode-back" href="../../generated/tsdst.feature_selection.vifDrop.html#tsdst.feature_selection.vifDrop">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">vifDrop</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Report that VIF-based feature removal is not implemented."""</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">'Use modeling.vif to inspect variance inflation factors'</span><span class="p">)</span></div>
+
 </pre></div>
 
     </div>
@@ -843,7 +777,7 @@
     </p>
     <p>
         &copy; Copyright 2020 - present, Tom Werner.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
     </p>
   </div>
 </footer>

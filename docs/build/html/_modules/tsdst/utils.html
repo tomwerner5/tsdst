@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tsdst.utils &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=062ca7a5" />
+    <script src="../../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../weibull_regression.html">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary">
+<form action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <h1>Source code for tsdst.utils</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bisect</span><span class="w"> </span><span class="kn">import</span> <span class="n">bisect_right</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">getpass</span><span class="w"> </span><span class="kn">import</span> <span class="n">getpass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">timeit</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">dt</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_url</span>
+
+
+<div class="viewcode-block" id="dsn_getTable">
+<a class="viewcode-back" href="../../generated/tsdst.utils.dsn_getTable.html#tsdst.utils.dsn_getTable">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dsn_getTable</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">dialect</span><span class="p">,</span> <span class="n">dsn</span><span class="p">,</span> <span class="n">pw</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_engine_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">read_sql_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Load data into python from a SQL database.</span>
+
+<span class="sd">    Requires a DSN or connection string. Uses SQLAlchemy to make the</span>
+<span class="sd">    connection, and closes the connection on completion.</span>
+<span class="sd">    See https://docs.sqlalchemy.org/en/20/core/engines.html for</span>
+<span class="sd">    help building connection strings.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sql : str, or list</span>
+<span class="sd">        A string containing the SQL query to run (It should be something</span>
+<span class="sd">        that returns a table), or a list of sql statements to return multiple</span>
+<span class="sd">        tables (tables are returned as a list of pandas dataframes, in this</span>
+<span class="sd">        case).</span>
+<span class="sd">    user : str</span>
+<span class="sd">        The username for the database application, if applicable.</span>
+<span class="sd">    dialect : str</span>
+<span class="sd">        The database flavor (oracle, mysql, etc.)</span>
+<span class="sd">    dsn : str</span>
+<span class="sd">        Can either be a saved DSN from your computer, or a string that</span>
+<span class="sd">        represents all the relevant information provided in a DSN.</span>
+<span class="sd">        It can also be a host:port combination. See sqlalchemy</span>
+<span class="sd">        documentation for more details.</span>
+<span class="sd">    pw : str, optional</span>
+<span class="sd">        The password for the database application that matches the user</span>
+<span class="sd">        specified, if applicable. If None or '', getpass will ask for a</span>
+<span class="sd">        password. If there is no password, just leave it blank.</span>
+<span class="sd">        The default is None.</span>
+<span class="sd">    create_engine_args : dict, optional</span>
+<span class="sd">        A dictionary containing arguments to be passed to SQLAlchemy's</span>
+<span class="sd">        create_engine function.</span>
+<span class="sd">    read_sql_args : dict, optional</span>
+<span class="sd">        A dictionary containing arguments to be passed to pandas'</span>
+<span class="sd">        read_sql function.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    data : pandas dataframe or list</span>
+<span class="sd">        A dataframe (or list of dataframes) containing the returned data.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The DSN may contain a host, port, database path, and query parameters.</span>
+<span class="sd">    Those components are parsed before credentials are assigned, so characters</span>
+<span class="sd">    such as @, /, and : in passwords are escaped correctly. The engine is</span>
+<span class="sd">    disposed even when a query or write raises an exception. These helpers</span>
+<span class="sd">    build credentialed DSN URLs; SQLite uses a different URL form and can be</span>
+<span class="sd">    used directly through a SQLAlchemy engine and pandas' SQL functions.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pw</span><span class="p">:</span>
+        <span class="n">pw</span> <span class="o">=</span> <span class="n">getpass</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">'Password: '</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">make_url</span><span class="p">(</span><span class="n">dialect</span> <span class="o">+</span> <span class="s2">"://"</span> <span class="o">+</span> <span class="n">dsn</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">pw</span><span class="p">)</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">create_engine_args</span> <span class="ow">or</span> <span class="p">{}))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">read_sql_args</span> <span class="ow">or</span> <span class="p">{}))</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">read_sql_args</span> <span class="ow">or</span> <span class="p">{}))</span> <span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">]</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="dsn_saveTable">
+<a class="viewcode-back" href="../../generated/tsdst.utils.dsn_saveTable.html#tsdst.utils.dsn_saveTable">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dsn_saveTable</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">tableName</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">dialect</span><span class="p">,</span> <span class="n">dsn</span><span class="p">,</span> <span class="n">pw</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_engine_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">to_sql_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Save pandas dataframe to database.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pandas dataframe</span>
+<span class="sd">        The data to save to a table.</span>
+<span class="sd">    tableName : str</span>
+<span class="sd">        The name of the table in the database.</span>
+<span class="sd">    user : str</span>
+<span class="sd">        The username for the database application, if applicable.</span>
+<span class="sd">    dialect : str</span>
+<span class="sd">        The database flavor (oracle, mysql, etc.)</span>
+<span class="sd">    dsn : str</span>
+<span class="sd">        Can either be a saved DSN from your computer, or a string that</span>
+<span class="sd">        represents all the relevant information provided in a DSN.</span>
+<span class="sd">        It can also be a host:port combination. See sqlalchemy</span>
+<span class="sd">        documentation for more details.</span>
+<span class="sd">    pw : str, optional</span>
+<span class="sd">        The password for the database application that matches the user</span>
+<span class="sd">        specified, if applicable. If None or '', getpass will ask for a</span>
+<span class="sd">        password. If there is no password, just leave it blank.</span>
+<span class="sd">        The default is None.</span>
+<span class="sd">    create_engine_args : dict, optional</span>
+<span class="sd">        A dictionary containing arguments to be passed to SQLAlchemy's</span>
+<span class="sd">        create_engine function. The default is None.</span>
+<span class="sd">    to_sql_args : dict, optional</span>
+<span class="sd">        A dictionary containing arguments to be passed to pandas'</span>
+<span class="sd">        to_sql function. The default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The DSN may contain a host, port, database path, and query parameters.</span>
+<span class="sd">    Those components are parsed before credentials are assigned, so characters</span>
+<span class="sd">    such as @, /, and : in passwords are escaped correctly. The engine is</span>
+<span class="sd">    disposed even when a query or write raises an exception. These helpers</span>
+<span class="sd">    build credentialed DSN URLs; SQLite uses a different URL form and can be</span>
+<span class="sd">    used directly through a SQLAlchemy engine and pandas' SQL functions.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pw</span><span class="p">:</span>
+        <span class="n">pw</span> <span class="o">=</span> <span class="n">getpass</span><span class="p">(</span><span class="n">prompt</span><span class="o">=</span><span class="s1">'Password: '</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">make_url</span><span class="p">(</span><span class="n">dialect</span> <span class="o">+</span> <span class="s2">"://"</span> <span class="o">+</span> <span class="n">dsn</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">pw</span><span class="p">)</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">create_engine_args</span> <span class="ow">or</span> <span class="p">{}))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">to_sql</span><span class="p">(</span><span class="n">tableName</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">to_sql_args</span> <span class="ow">or</span> <span class="p">{}))</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="pretty_print_time">
+<a class="viewcode-back" href="../../generated/tsdst.utils.pretty_print_time.html#tsdst.utils.pretty_print_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pretty_print_time</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Convert time in seconds to a clock-like time, i.e. 00:00:00.00 format.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ts : float</span>
+<span class="sd">        Start time (or elapsed time if te is None).</span>
+<span class="sd">    te : float, optional</span>
+<span class="sd">        End time. The default is None.</span>
+<span class="sd">    decimals : int, optional</span>
+<span class="sd">        The number of decimal places to use for tracking miliseconds.</span>
+<span class="sd">        The default is 0</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pretty : str</span>
+<span class="sd">        Prettified time.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">te</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">ts</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">te</span> <span class="o">-</span> <span class="n">ts</span>
+    
+    <span class="n">hours_placeholder</span> <span class="o">=</span> <span class="n">t</span><span class="o">/</span><span class="mf">3600.0</span>
+    <span class="n">hours</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">hours_placeholder</span><span class="p">)</span>
+    
+    <span class="n">minutes_placeholder</span> <span class="o">=</span> <span class="p">(</span><span class="n">hours_placeholder</span> <span class="o">-</span> <span class="n">hours</span><span class="p">)</span> <span class="o">*</span> <span class="mf">60.0</span>
+    <span class="n">minutes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">minutes_placeholder</span><span class="p">)</span>
+    
+    <span class="n">seconds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">minutes_placeholder</span> <span class="o">-</span> <span class="n">minutes</span><span class="p">)</span> <span class="o">*</span> <span class="mf">60.0</span><span class="p">,</span> <span class="n">decimals</span><span class="p">)</span>
+    
+    <span class="n">h</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">hours</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="s2">"0"</span> <span class="o">+</span> <span class="n">h</span>
+    
+    <span class="n">m</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">minutes</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="s2">"0"</span> <span class="o">+</span> <span class="n">m</span>
+    
+    <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">seconds</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">"0"</span> <span class="o">+</span> <span class="n">s</span>
+    
+    <span class="k">if</span> <span class="n">decimals</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">second_decimal</span> <span class="o">=</span> <span class="n">seconds</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s1">'.'</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">second_decimal</span><span class="o">*</span><span class="mi">10</span><span class="o">**</span><span class="n">decimals</span><span class="p">))])</span>
+    
+    <span class="n">pretty</span> <span class="o">=</span> <span class="n">h</span> <span class="o">+</span> <span class="s2">":"</span> <span class="o">+</span> <span class="n">m</span> <span class="o">+</span> <span class="s2">":"</span> <span class="o">+</span> <span class="n">s</span>
+    <span class="k">return</span> <span class="n">pretty</span></div>
+
+
+
+<div class="viewcode-block" id="checkDir">
+<a class="viewcode-back" href="../../generated/tsdst.utils.checkDir.html#tsdst.utils.checkDir">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">checkDir</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">make</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Check if a directory exists. If it doesn't, create it.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory : str</span>
+<span class="sd">        Directory to check.</span>
+<span class="sd">    make : bool, optional</span>
+<span class="sd">        Whether or not to create a missing directory. The default is True.</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        Print results.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True if the directory exists.</span>
+
+<span class="sd">    """</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">+</span> <span class="s1">'Directory not found. '</span>
+        <span class="k">if</span> <span class="n">make</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">+</span> <span class="s1">'Directory '</span> <span class="o">+</span> <span class="n">directory</span> <span class="o">+</span> <span class="s1">' created.'</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">+</span> <span class="s1">'Directory '</span> <span class="o">+</span> <span class="n">directory</span> <span class="o">+</span> <span class="s1">'not created.'</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+    
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span></div>
+
+
+
+<div class="viewcode-block" id="print_message_with_time">
+<a class="viewcode-back" href="../../generated/tsdst.utils.print_message_with_time.html#tsdst.utils.print_message_with_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_message_with_time</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">display_realtime</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">backsn</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_dir</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span>
+                            <span class="n">log_filename</span><span class="o">=</span><span class="s2">"pmwt.log"</span><span class="p">,</span> <span class="n">log_args</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span>
+                            <span class="n">time_first</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Print a message with a timestamp. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    msg : str</span>
+<span class="sd">        The message you want to print.</span>
+<span class="sd">    ts : float</span>
+<span class="sd">        Start time in seconds, or elapsed time if te is None.</span>
+<span class="sd">    te : float, optional</span>
+<span class="sd">        End time in seconds. The default is None.</span>
+<span class="sd">    display_realtime : bool, optional</span>
+<span class="sd">        Display the system (calendar) time as part of the output.</span>
+<span class="sd">        The default is True.</span>
+<span class="sd">    backsn : bool, optional</span>
+<span class="sd">        Add '\\n'. The default is False.</span>
+<span class="sd">    log : bool, optional</span>
+<span class="sd">        Save message to a log file. The default is False.</span>
+<span class="sd">    log_dir : str, optional</span>
+<span class="sd">        The directory for the log file. The default is "log".</span>
+<span class="sd">    log_filename : str, optional</span>
+<span class="sd">        The name of the logfile. The default is "pmwt.log".</span>
+<span class="sd">    log_args : str, optional</span>
+<span class="sd">        The read/write specification, for example, wb, w, a, etc.</span>
+<span class="sd">        The default is "a" for append. See open function in python for more</span>
+<span class="sd">        details.</span>
+<span class="sd">    time_first : bool, optional</span>
+<span class="sd">        Place time at the begininng of the message. The default is False.</span>
+<span class="sd">    decimals : int, optional</span>
+<span class="sd">        The number of decimal places to use for tracking miliseconds.</span>
+<span class="sd">        The default is 0</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    printed : str</span>
+<span class="sd">        Printed message with time.</span>
+
+<span class="sd">    """</span>
+    <span class="n">date_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%I:%M:%S %p (%b </span><span class="si">%d</span><span class="s2">)"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">display_realtime</span><span class="p">:</span>
+        <span class="n">time_str</span> <span class="o">=</span> <span class="n">pretty_print_time</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">te</span><span class="p">,</span> <span class="n">decimals</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" Current Time: "</span> <span class="o">+</span> <span class="n">date_time</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">time_str</span> <span class="o">=</span> <span class="n">pretty_print_time</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">te</span><span class="p">,</span> <span class="n">decimals</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">time_first</span><span class="p">:</span>
+        <span class="n">printed</span> <span class="o">=</span> <span class="n">time_str</span> <span class="o">+</span> <span class="n">msg</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">printed</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">+</span> <span class="n">time_str</span>
+    <span class="k">if</span> <span class="n">backsn</span><span class="p">:</span>
+        <span class="n">printed</span> <span class="o">=</span> <span class="n">printed</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">printed</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+        <span class="n">checkDir</span><span class="p">(</span><span class="n">log_dir</span><span class="p">)</span>
+    <span class="n">logfile</span> <span class="o">=</span> <span class="n">log_dir</span> <span class="o">+</span> <span class="s2">"/"</span> <span class="o">+</span> <span class="n">log_filename</span>
+    <span class="n">logfile</span> <span class="o">=</span> <span class="n">logfile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"//"</span><span class="p">,</span> <span class="s2">"/"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="n">log_args</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">printed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">printed</span></div>
+
+    
+
+<div class="viewcode-block" id="print_time">
+<a class="viewcode-back" href="../../generated/tsdst.utils.print_time.html#tsdst.utils.print_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_time</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Wrapper for print_message_with_time. Shortened for ease of use.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *args : </span>
+<span class="sd">        Positional arguments (passed to print_message_with_time).</span>
+<span class="sd">    **kwargs : </span>
+<span class="sd">        Keyword Arguments (passed to print_message_with_time).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None.</span>
+
+<span class="sd">    """</span>
+    <span class="n">print_message_with_time</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="save_checkpoint">
+<a class="viewcode-back" href="../../generated/tsdst.utils.save_checkpoint.html#tsdst.utils.save_checkpoint">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_checkpoint</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">ts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">display_realtime</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">backsn</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_dir</span><span class="o">=</span><span class="s2">"log"</span><span class="p">,</span> <span class="n">log_filename</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">log_args</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span>
+                    <span class="n">time_first</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">checkpoint_dir</span><span class="o">=</span><span class="s2">"checkpoints"</span><span class="p">,</span>
+                    <span class="n">checkpoint_filename</span><span class="o">=</span><span class="s2">"chkpnt"</span><span class="p">,</span> <span class="n">checkpoint_extension</span><span class="o">=</span><span class="s2">"pkl"</span><span class="p">,</span>
+                    <span class="n">checkpoint_args</span><span class="o">=</span><span class="s2">"wb"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Save a python object to a pickle file as a checkpoint. Log message as </span>
+<span class="sd">    logfile with the export.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj : any python object (must be pickleable)</span>
+<span class="sd">        The object to pickle.</span>
+<span class="sd">    msg : str</span>
+<span class="sd">        The message you want to print.</span>
+<span class="sd">    ts : float</span>
+<span class="sd">        Start time in seconds, or elapsed time if te is None.</span>
+<span class="sd">    te : float, optional</span>
+<span class="sd">        End time in seconds. The default is None.</span>
+<span class="sd">    decimals : int, optional</span>
+<span class="sd">        The number of decimal places to use for tracking miliseconds.</span>
+<span class="sd">        The default is 0</span>
+<span class="sd">    display_realtime : bool, optional</span>
+<span class="sd">        Display the system (calendar) time as part of the output.</span>
+<span class="sd">        The default is True.</span>
+<span class="sd">    backsn : bool, optional</span>
+<span class="sd">        Add '\\n'. The default is False.</span>
+<span class="sd">    log : bool, optional</span>
+<span class="sd">        Save message to a log file. The default is False.</span>
+<span class="sd">    log_dir : str, optional</span>
+<span class="sd">        The directory for the log file. The default is "log".</span>
+<span class="sd">    log_filename : str, optional</span>
+<span class="sd">        The name of the logfile. The default is "pmwt.log".</span>
+<span class="sd">    log_args : str, optional</span>
+<span class="sd">        The read/write specification, for example, wb, w, a, etc.</span>
+<span class="sd">        The default is "a" for append. See open function in python for more</span>
+<span class="sd">        details.</span>
+<span class="sd">    time_first : bool, optional</span>
+<span class="sd">        Place time at the begininng of the message. The default is False.</span>
+<span class="sd">    checkpoint_dir : str, optional</span>
+<span class="sd">        The directory to save the checkpoint. The default is "checkpoints".</span>
+<span class="sd">    checkpoint_filename : str, optional</span>
+<span class="sd">        The filename for the checkpoint. The default is "chkpnt".</span>
+<span class="sd">    checkpoint_extension : str, optional</span>
+<span class="sd">        The file extension for the checkpoint. The default is "pkl".</span>
+<span class="sd">    checkpoint_args : str, optional</span>
+<span class="sd">        The read/write specification, for example, wb, w, a, etc.</span>
+<span class="sd">        See open function in python for more details.</span>
+<span class="sd">        The default is "wb" for write binary.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None.</span>
+
+<span class="sd">    """</span>
+    <span class="n">print_message_with_time</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">msg</span><span class="p">,</span> <span class="n">ts</span><span class="o">=</span><span class="n">ts</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">te</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="n">decimals</span><span class="p">,</span>
+                            <span class="n">display_realtime</span><span class="o">=</span><span class="n">display_realtime</span><span class="p">,</span>
+                            <span class="n">backsn</span><span class="o">=</span><span class="n">backsn</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">,</span> <span class="n">log_dir</span><span class="o">=</span><span class="n">log_dir</span><span class="p">,</span>
+                            <span class="n">log_filename</span><span class="o">=</span><span class="n">log_filename</span><span class="p">,</span>
+                            <span class="n">log_args</span><span class="o">=</span><span class="n">log_args</span><span class="p">,</span> <span class="n">time_first</span><span class="o">=</span><span class="n">time_first</span><span class="p">)</span>
+    <span class="n">checkDir</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">)</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="n">checkpoint_dir</span> <span class="o">+</span> <span class="s1">'/'</span> <span class="o">+</span> <span class="n">checkpoint_filename</span> <span class="o">+</span> <span class="s2">"."</span> <span class="o">+</span> <span class="n">checkpoint_extension</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'//'</span><span class="p">,</span> <span class="s1">'/'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">checkpoint_extension</span> <span class="o">==</span> <span class="s1">'pkl'</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">checkpoint_args</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="updateProgBar">
+<a class="viewcode-back" href="../../generated/tsdst.utils.updateProgBar.html#tsdst.utils.updateProgBar">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">updateProgBar</span><span class="p">(</span><span class="n">curIter</span><span class="p">,</span> <span class="n">totalIter</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">barLength</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Update progress bar. Place this function anywhere in a loop where you want</span>
+<span class="sd">    to keep track of the loop's progress.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    curIter : int</span>
+<span class="sd">        The current iteration.</span>
+<span class="sd">    totalIter : int</span>
+<span class="sd">        The total number of iterations. </span>
+<span class="sd">    t0 : numeric</span>
+<span class="sd">        The start time of the operation (in seconds).</span>
+<span class="sd">    barLength : int, optional</span>
+<span class="sd">        The length of the progress bar. The default is 20.</span>
+<span class="sd">    decimals : int, optional</span>
+<span class="sd">        The number of decimal places to use for tracking miliseconds.</span>
+<span class="sd">        The default is 0</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None.</span>
+
+<span class="sd">    """</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="s2">"Working..."</span>
+    <span class="n">progress</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">curIter</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">totalIter</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">progress</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">progress</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">progress</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">"Finished!..."</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">barLength</span><span class="o">*</span><span class="n">progress</span><span class="p">))</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\r</span><span class="s2">Percent: [</span><span class="si">{0}</span><span class="s2">] </span><span class="si">{1:.2f}% i</span><span class="s2">ter: </span><span class="si">{2}</span><span class="s2">/</span><span class="si">{3}</span><span class="s2"> </span><span class="si">{4}</span><span class="s2"> Elapsed: </span><span class="si">{5}</span><span class="s2">, Estimated: </span><span class="si">{6}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="s2">"#"</span><span class="o">*</span><span class="n">block</span> <span class="o">+</span> <span class="s2">"-"</span><span class="o">*</span><span class="p">(</span><span class="n">barLength</span> <span class="o">-</span> <span class="n">block</span><span class="p">),</span> 
+        <span class="nb">round</span><span class="p">(</span><span class="n">progress</span><span class="o">*</span><span class="mf">100.0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">curIter</span><span class="p">,</span> <span class="n">totalIter</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span>
+        <span class="n">pretty_print_time</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">dt</span><span class="p">(),</span> <span class="n">decimals</span><span class="o">=</span><span class="n">decimals</span><span class="p">),</span>
+        <span class="n">pretty_print_time</span><span class="p">((</span><span class="n">dt</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span><span class="p">)</span><span class="o">/</span><span class="n">curIter</span> <span class="o">*</span> <span class="p">(</span><span class="n">totalIter</span> <span class="o">-</span> <span class="n">curIter</span><span class="p">),</span>
+                          <span class="n">decimals</span><span class="o">=</span><span class="n">decimals</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">progress</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\r\n</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+        
+        
+<div class="viewcode-block" id="move_columns_to_end">
+<a class="viewcode-back" href="../../generated/tsdst.utils.move_columns_to_end.html#tsdst.utils.move_columns_to_end">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">move_columns_to_end</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Rearrange a pandas dataframe by moving a column (or list of columns)</span>
+<span class="sd">    to the end of the dataframe.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pandas dataframe</span>
+<span class="sd">        Data to rearrange.</span>
+<span class="sd">    col : str or list</span>
+<span class="sd">        String containing one column to move, or list containing several.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    data : pandas dataframe</span>
+<span class="sd">        Data with rearranged columns.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">col</span><span class="p">]</span> <span class="o">+</span> <span class="n">col</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<span class="c1"># Searches a list of text arguments and returns a list that includes/excludes</span>
+<span class="c1"># the list elements that contain the keywords</span>
+<div class="viewcode-block" id="keywordSearch">
+<a class="viewcode-back" href="../../generated/tsdst.utils.keywordSearch.html#tsdst.utils.keywordSearch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">keywordSearch</span><span class="p">(</span><span class="n">text_list</span><span class="p">,</span> <span class="n">include_keywords</span><span class="p">,</span> <span class="n">exclude_keywords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Searches a list of text arguments and returns a list that includes/excludes</span>
+<span class="sd">    the list elements that contain the keywords.</span>
+<span class="sd">    </span>
+<span class="sd">    Useful when searching for column names in a large dataframe, for example.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    text_list : list</span>
+<span class="sd">        List of string values.</span>
+<span class="sd">    include_keywords : list</span>
+<span class="sd">        List of keywords to search for.</span>
+<span class="sd">    exclude_keywords : list, optional</span>
+<span class="sd">        List of keywords that might be similar to include_keywords, but should</span>
+<span class="sd">        be excluded nonetheless. The default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    found_list : list</span>
+<span class="sd">        Returns items from the original list that match the keywords.</span>
+
+<span class="sd">    """</span>
+    <span class="n">found_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">text_list</span><span class="p">:</span>
+        <span class="n">is_in_i_keys</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="mi">1</span> <span class="k">if</span> <span class="n">i_key</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i_key</span> <span class="ow">in</span> <span class="n">include_keywords</span><span class="p">))</span>
+        <span class="n">is_in_e_keys</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">exclude_keywords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">is_in_e_keys</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="mi">1</span> <span class="k">if</span> <span class="n">e_key</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">e_key</span> <span class="ow">in</span> <span class="n">exclude_keywords</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">is_in_i_keys</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">is_in_e_keys</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">found_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found_list</span></div>
+
+
+
+<div class="viewcode-block" id="toFrame">
+<a class="viewcode-back" href="../../generated/tsdst.utils.toFrame.html#tsdst.utils.toFrame">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">toFrame</span><span class="p">(</span><span class="n">todf</span><span class="p">,</span> <span class="n">fromdf</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Convert numpy array to pandas dataframe using past dataframe structure. </span>
+
+<span class="sd">    Useful when you want to store the dataframe values as a seperate numpy</span>
+<span class="sd">    array, and make adjustments to the values, but want to convert back to a</span>
+<span class="sd">    dataframe once the calculations are completed. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    todf : numpy array</span>
+<span class="sd">        Data to convert to pandas dataframe.</span>
+<span class="sd">    fromdf : pandas dataframe</span>
+<span class="sd">        Dataframe containing structure to convert back to.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pandas dataframe</span>
+<span class="sd">        The converted dataframe.</span>
+
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">todf</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">fromdf</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">fromdf</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="inferFeatureType">
+<a class="viewcode-back" href="../../generated/tsdst.utils.inferFeatureType.html#tsdst.utils.inferFeatureType">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">inferFeatureType</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">n_unique</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Infer categorical, numeric, or date from a one-dimensional column's dtype.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : pandas.Series or one-dimensional array-like</span>
+<span class="sd">        Column whose feature type is required. Public pandas dtype checks also</span>
+<span class="sd">        handle nullable extension dtypes.</span>
+<span class="sd">    n_unique : int, optional</span>
+<span class="sd">        Maximum distinct nonmissing count for treating a numeric column as</span>
+<span class="sd">        categorical. A larger count remains numeric. If None, no numeric</span>
+<span class="sd">        category cutoff is applied. The default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    d_type : {'categorical', 'numeric', 'date'}</span>
+<span class="sd">        Inferred feature type. Booleans and nonnumeric columns are categorical.</span>
+<span class="sd">        Datetime and timedelta columns use date.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Missing values are excluded from the unique-count cutoff. For example,</span>
+<span class="sd">    [1, 1, NaN] has one distinct nonmissing value. This rule is independent of</span>
+<span class="sd">    whether a caller separately reports missingness.</span>
+
+<span class="sd">    For inspecting raw NumPy arrays, dtype.kind codes include b for boolean,</span>
+<span class="sd">    i for signed integer, u for unsigned integer, f for floating point, c for</span>
+<span class="sd">    complex, m for timedelta, M for datetime, O for object, S for bytes, U for</span>
+<span class="sd">    Unicode, and V for void data. These kind codes differ from dtype.char:</span>
+<span class="sd">    for example, the character code for boolean is ?, while b can describe a</span>
+<span class="sd">    signed byte. Feature inference uses pandas dtype checks rather than these</span>
+<span class="sd">    character-code shortcuts.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pandas.api.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_bool_dtype</span><span class="p">,</span> <span class="n">is_datetime64_any_dtype</span><span class="p">,</span> <span class="n">is_timedelta64_dtype</span><span class="p">,</span> <span class="n">is_numeric_dtype</span>
+    <span class="n">series</span> <span class="o">=</span> <span class="n">X</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_datetime64_any_dtype</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="ow">or</span> <span class="n">is_timedelta64_dtype</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">dtype</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">'date'</span>
+    <span class="k">if</span> <span class="n">is_bool_dtype</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_numeric_dtype</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">dtype</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">'categorical'</span>
+    <span class="k">if</span> <span class="n">n_unique</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">series</span><span class="o">.</span><span class="n">nunique</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">n_unique</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">'categorical'</span>
+    <span class="k">return</span> <span class="s1">'numeric'</span></div>
+
+
+
+<div class="viewcode-block" id="reshape_to_vector">
+<a class="viewcode-back" href="../../generated/tsdst.utils.reshape_to_vector.html#tsdst.utils.reshape_to_vector">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reshape_to_vector</span><span class="p">(</span><span class="n">ar</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Flatten or reshape an array to be a vector (or transpose an already</span>
+<span class="sd">    flat array).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ar : numpy array</span>
+<span class="sd">        An array to be reshaped.</span>
+<span class="sd">    axis : int, optional</span>
+<span class="sd">        The direction to flatten. The default is 1.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ar : numpy array</span>
+<span class="sd">        The flattened array.</span>
+<span class="sd">    """</span>
+    <span class="c1"># TODO: Need to look at the use case for this again. There may be a more</span>
+    <span class="c1"># efficient way to do this.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ar</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ar</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ar</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ar</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ar</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Invalid axis dimension, either 0 or 1'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ar</span></div>
+
+
+
+<div class="viewcode-block" id="decision_boundary_1D">
+<a class="viewcode-back" href="../../generated/tsdst.utils.decision_boundary_1D.html#tsdst.utils.decision_boundary_1D">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">decision_boundary_1D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">thres</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Divides probabilities `x` into two classes based on threshold value. Everything</span>
+<span class="sd">    above the threshold is the positive class.</span>
+<span class="sd">    """</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">y</span><span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">thres</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+
+<div class="viewcode-block" id="decision_boundary">
+<a class="viewcode-back" href="../../generated/tsdst.utils.decision_boundary.html#tsdst.utils.decision_boundary">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">decision_boundary</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Divides probabilities `x` into classes based on the max probability value.</span>
+<span class="sd">    """</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">y</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">x</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+
+<div class="viewcode-block" id="one_hot_encode">
+<a class="viewcode-back" href="../../generated/tsdst.utils.one_hot_encode.html#tsdst.utils.one_hot_encode">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">one_hot_encode</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The first column is the 0th class, 2nd column is the 1st class, etc...</span>
+<span class="sd">    """</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">)[</span><span class="n">x</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="one_hot_decode">
+<a class="viewcode-back" href="../../generated/tsdst.utils.one_hot_decode.html#tsdst.utils.one_hot_decode">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">one_hot_decode</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The first column is the 0th class, 2nd column is the 1st class, etc...</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="sample">
+<a class="viewcode-back" href="../../generated/tsdst.utils.sample.html#tsdst.utils.sample">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">nsamples</span><span class="p">,</span> <span class="n">prob</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Draw a weighted sample through an interface similar to R's sample.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array : list or list-like</span>
+<span class="sd">        Population to sample from.</span>
+<span class="sd">    nsamples : int</span>
+<span class="sd">        Number of values to draw.</span>
+<span class="sd">    prob : list or list-like, optional</span>
+<span class="sd">        Finite, nonnegative relative weights, one per population value. Weights</span>
+<span class="sd">        need not sum to one. If None, all values have equal weight.</span>
+<span class="sd">    replace : bool, optional</span>
+<span class="sd">        Draw with replacement when True. The default is False.</span>
+<span class="sd">    random_state : int, optional</span>
+<span class="sd">        Seed a local Python Random instance for repeatable results. None uses</span>
+<span class="sd">        a fresh local generator. The default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    samp : list</span>
+<span class="sd">        Sampled population values, in draw order.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If weight count or values are invalid, total weight is not positive,</span>
+<span class="sd">        the requested sample size is negative, or too few positive-weight</span>
+<span class="sd">        population values are available without replacement.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Caller weights are copied. Each draw uses cumulative remaining weights;</span>
+<span class="sd">    without replacement, the selected value's weight is set to zero. Zero-weight</span>
+<span class="sd">    values are never selected. Calls do not change the module-level random</span>
+<span class="sd">    state, and random.seed does not control an unseeded call. Python and R use</span>
+<span class="sd">    different random-number streams, so equal seeds do not imply equal samples.</span>
+<span class="sd">    """</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">if</span> <span class="n">prob</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">),)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="n">weights</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Supply one finite, nonnegative weight per value'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">nsamples</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The sample size must be nonnegative and total weight must be positive'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span> <span class="ow">and</span> <span class="n">nsamples</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The sample size exceeds the population with positive weights'</span><span class="p">)</span>
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsamples</span><span class="p">):</span>
+        <span class="n">cumulative</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">bisect_right</span><span class="p">(</span><span class="n">cumulative</span><span class="p">,</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="n">cumulative</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span><span class="p">:</span>
+            <span class="n">weights</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

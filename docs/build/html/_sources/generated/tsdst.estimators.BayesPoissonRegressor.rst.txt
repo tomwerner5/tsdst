@@ -1,8 +1,3 @@
-﻿.. raw:: html
-
-    </div>
-    <div class=col-md-9 content>
-
 tsdst.estimators.BayesPoissonRegressor
 ======================================
 
@@ -20,12 +15,13 @@ tsdst.estimators.BayesPoissonRegressor
    
       ~BayesPoissonRegressor.__init__
       ~BayesPoissonRegressor.adjust_params_
-      ~BayesPoissonRegressor.decision_function
       ~BayesPoissonRegressor.fit
+      ~BayesPoissonRegressor.get_metadata_routing
       ~BayesPoissonRegressor.get_params
       ~BayesPoissonRegressor.predict
       ~BayesPoissonRegressor.score
       ~BayesPoissonRegressor.set_params
+      ~BayesPoissonRegressor.set_score_request
    
    
 

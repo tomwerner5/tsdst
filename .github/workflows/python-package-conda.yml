@@ -1,44 +1,42 @@
 name: Publish to Conda
 
-#on: [push]
 on:
   release:
     types: [created]
 
+permissions:
+  contents: read
+
 jobs:
   build-linux:
     runs-on: ubuntu-latest
-    #strategy:
-    #  max-parallel: 5
-
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
-    #- uses: actions/checkout@v2
-    #- name: Set up Python 3.8
-    #  uses: actions/setup-python@v2
-    #  with:
-    #    python-version: 3.8
-    #- name: Add conda to system path
-    #  run: |
-    #    # $CONDA is an environment variable pointing to the root of the miniconda directory
-    #    echo $CONDA/bin >> $GITHUB_PATH
-    #- name: Install dependencies
-    #  run: |
-    #    conda install anaconda-client conda-build -n base
-    #- name: Lint with flake8
-    #  run: |
-    #    conda install flake8 #
-    #    # stop the build if there are Python syntax errors or undefined names
-    #    flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    #    # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-    #    flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    #- name: Test with pytest
-    #  run: |
-    #    conda install pytest
-    #    pytest
-    - uses: actions/checkout@v7
-    - name: publish-to-conda
-      uses: tomwerner5/conda-package-publish-action@master
-      with:
-        subDir: 'conda'
-        AnacondaUsername: ${{ secrets.ANACONDA_USERNAME }}
-        AnacondaPassword: ${{ secrets.ANACONDA_PASSWORD }}
+      - uses: actions/checkout@v7
+      - name: Set up current conda tools
+        uses: conda-incubator/setup-miniconda@v4
+        with:
+          miniforge-version: latest
+          python-version: '3.12'
+          activate-environment: tsdst-build
+          channels: conda-forge
+          channel-priority: strict
+          conda-remove-defaults: true
+      - name: Install build and upload tools
+        run: conda install --yes --override-channels --channel conda-forge conda-build anaconda-client
+      - name: Build and check package
+        run: >-
+          conda build conda --python 3.12 --package-format 2
+          --override-channels --channel conda-forge
+          --no-anaconda-upload --output-folder conda-dist
+      - name: Upload package
+        env:
+          ANACONDA_USERNAME: ${{ secrets.ANACONDA_USERNAME }}
+          ANACONDA_PASSWORD: ${{ secrets.ANACONDA_PASSWORD }}
+          ANACONDA_CLIENT_LEGACY_INTERACTIVE_LOGIN: '1'
+        run: |
+          # Use non-browser login with the existing username/password secrets.
+          anaconda org login --username "$ANACONDA_USERNAME" --password "$ANACONDA_PASSWORD"
+          anaconda org upload --user "$ANACONDA_USERNAME" conda-dist/noarch/*.conda

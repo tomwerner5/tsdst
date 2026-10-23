@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Welcome to tsdst’s documentation! &#8212; tsdst 1.0.11 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/clipboard.min.js"></script>
-    <script src="_static/copybutton.js"></script>
+    <title>Welcome to tsdst’s documentation! &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=062ca7a5" />
+    <script src="_static/documentation_options.js?v=20623aea"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=4ea706d9"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="API reference" href="api.html" />
@@ -23,10 +22,10 @@
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
 
   </head><body>
 
@@ -41,7 +40,7 @@
         </button>
         <a class="navbar-brand" href="#">
           tsdst</a>
-        <span class="navbar-text navbar-version pull-left"><b></b></span>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -59,6 +58,8 @@
       aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -115,15 +116,43 @@
 
 <div class="container">
   <div class="row">
-    <div class="body col-md-12 content" role="main">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">Welcome to tsdst’s documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <li>
+    <a href="api.html" title="Next Chapter: API reference"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">API reference &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="_sources/index.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
       
   <section id="welcome-to-tsdst-s-documentation">
-<h1>Welcome to tsdst’s documentation!<a class="headerlink" href="#welcome-to-tsdst-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>This documentation covers all the functions, classes, and methods contained in the tsdst package. It is organized in alphabetical order, first by module name, and then by object name. Many of the methods discussed have general uses, however, most of the examples will be directly related to the reliability of mechanical systems. This document assumes a basic knowledge Bayesian Probability Theory. For more info, see the following <a class="reference external" href="https://en.wikipedia.org/wiki/Bayes%27_theorem">Wikipedia article on Bayes Theorem</a>.</p>
+<h1>Welcome to tsdst’s documentation!<a class="headerlink" href="#welcome-to-tsdst-s-documentation" title="Link to this heading">¶</a></h1>
+<p>This documentation covers the public functions, classes, and methods contained in the tsdst package. It is organized in alphabetical order, first by module name, and then by object name. Many of the methods discussed have general uses, however, most of the examples will be directly related to the reliability of mechanical systems. This document assumes a basic knowledge of Bayesian probability theory. For more info, see the following <a class="reference external" href="https://en.wikipedia.org/wiki/Bayes%27_theorem">Wikipedia article on Bayes Theorem</a>.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Pages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#automatic-eda">Automatic EDA</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.eda.auto_eda.html">tsdst.eda.auto_eda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.eda.EDAReport.html">tsdst.eda.EDAReport</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#distributions">Distributions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api.html#general-functions">General Functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api.html#likelihood-functions">Likelihood Functions</a></li>
@@ -132,6 +161,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#estimators">Estimators</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api.html#bayesian-estimators">Bayesian Estimators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api.html#regularized-regression-uncertainty">Regularized regression uncertainty</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#feature-selection">Feature Selection</a><ul>
@@ -158,13 +188,145 @@
 <li class="toctree-l3"><a class="reference internal" href="api.html#optimizers">Optimizers</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#additional-distribution-functions">Additional distribution functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.distributions.ap_poisson_lasso.html">tsdst.distributions.ap_poisson_lasso</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#additional-estimators">Additional estimators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.estimators.LogReg.html">tsdst.estimators.LogReg</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#additional-mcmc-tools">Additional MCMC tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.mcmc.lag.html">tsdst.mcmc.lag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.mcmc.adjust_matrix.html">tsdst.mcmc.adjust_matrix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.mcmc.mbmc.html">tsdst.mcmc.mbmc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.mcmc.mobmc.html">tsdst.mcmc.mobmc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.mcmc.msvec.html">tsdst.mcmc.msvec</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.mcmc.mcse_multi.html">tsdst.mcmc.mcse_multi</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#metrics">Metrics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.top_20p.html">tsdst.metrics.top_20p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.top_20p_score.html">tsdst.metrics.top_20p_score</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.auc_score.html">tsdst.metrics.auc_score</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.cox_snell_r2.html">tsdst.metrics.cox_snell_r2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.nagelkerke_r2.html">tsdst.metrics.nagelkerke_r2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.tjur_r2.html">tsdst.metrics.tjur_r2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.mcfadden_r2.html">tsdst.metrics.mcfadden_r2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.number_of_nonzero_coef.html">tsdst.metrics.number_of_nonzero_coef</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.conf_mat_metrics.html">tsdst.metrics.conf_mat_metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.bias.html">tsdst.metrics.bias</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.rpmse.html">tsdst.metrics.rpmse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.r2.html">tsdst.metrics.r2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.lr_sd_fromModel.html">tsdst.metrics.lr_sd_fromModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.lr_sd_fromPrediction.html">tsdst.metrics.lr_sd_fromPrediction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.adj_r2.html">tsdst.metrics.adj_r2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.aicCalc.html">tsdst.metrics.aicCalc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.glm_regularized_AIC.html">tsdst.metrics.glm_regularized_AIC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.js_div.html">tsdst.metrics.js_div</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.kl_div.html">tsdst.metrics.kl_div</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.HellingerDistanceMVN.html">tsdst.metrics.HellingerDistanceMVN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.HellingerDistanceUN.html">tsdst.metrics.HellingerDistanceUN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.HotellingsTwoSampleMVTtest.html">tsdst.metrics.HotellingsTwoSampleMVTtest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.metrics.accuracy.html">tsdst.metrics.accuracy</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#additional-modeling-tools">Additional modeling tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.modeling.scoreModel_legacy.html">tsdst.modeling.scoreModel_legacy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.modeling.GenerateRegCov.html">tsdst.modeling.GenerateRegCov</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.modeling.predict.html">tsdst.modeling.predict</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.modeling.corrmat_validity_check.html">tsdst.modeling.corrmat_validity_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.modeling.BPCA_initmodel.html">tsdst.modeling.BPCA_initmodel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.modeling.BPCA_dostep.html">tsdst.modeling.BPCA_dostep</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#optimization">Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.optimization.sign.html">tsdst.optimization.sign</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.optimization.signIntervals.html">tsdst.optimization.signIntervals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.optimization.Brent_1DRoot.html">tsdst.optimization.Brent_1DRoot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.optimization.AdaptiveNMorBrent.html">tsdst.optimization.AdaptiveNMorBrent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.optimization.max_like.html">tsdst.optimization.max_like</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#parallel-tasks">Parallel tasks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.parallel.p_prog_simp.html">tsdst.parallel.p_prog_simp</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.parallel.p_prog_simp_memorySafe.html">tsdst.parallel.p_prog_simp_memorySafe</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#quick-analysis">Quick analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.quick_analysis.calcAICsLasso.html">tsdst.quick_analysis.calcAICsLasso</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.quick_analysis.parallel_AIC_data_retriever.html">tsdst.quick_analysis.parallel_AIC_data_retriever</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.quick_analysis.QuickAnalysis.html">tsdst.quick_analysis.QuickAnalysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#sampling">Sampling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.sampling.downSample.html">tsdst.sampling.downSample</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.sampling.genRandSampFromDF.html">tsdst.sampling.genRandSampFromDF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.sampling.latinHypercube1D.html">tsdst.sampling.latinHypercube1D</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#mathematical-tools">Mathematical tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.custom_abs.html">tsdst.tmath.custom_abs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.powerset.html">tsdst.tmath.powerset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.percentIncrease.html">tsdst.tmath.percentIncrease</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.rank.html">tsdst.tmath.rank</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.cov2cor.html">tsdst.tmath.cov2cor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.mann_whitney.html">tsdst.tmath.mann_whitney</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.biserial_rank_corr.html">tsdst.tmath.biserial_rank_corr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.corr.html">tsdst.tmath.corr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.mode_histogram.html">tsdst.tmath.mode_histogram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.mode_kde.html">tsdst.tmath.mode_kde</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.norm.html">tsdst.tmath.norm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.norm_der.html">tsdst.tmath.norm_der</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.mahalanobis.html">tsdst.tmath.mahalanobis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.tmath.scaling.html">tsdst.tmath.scaling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#utilities">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.dsn_getTable.html">tsdst.utils.dsn_getTable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.dsn_saveTable.html">tsdst.utils.dsn_saveTable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.pretty_print_time.html">tsdst.utils.pretty_print_time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.checkDir.html">tsdst.utils.checkDir</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.print_message_with_time.html">tsdst.utils.print_message_with_time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.print_time.html">tsdst.utils.print_time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.save_checkpoint.html">tsdst.utils.save_checkpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.updateProgBar.html">tsdst.utils.updateProgBar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.move_columns_to_end.html">tsdst.utils.move_columns_to_end</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.keywordSearch.html">tsdst.utils.keywordSearch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.toFrame.html">tsdst.utils.toFrame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.inferFeatureType.html">tsdst.utils.inferFeatureType</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.reshape_to_vector.html">tsdst.utils.reshape_to_vector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.decision_boundary_1D.html">tsdst.utils.decision_boundary_1D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.decision_boundary.html">tsdst.utils.decision_boundary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.one_hot_encode.html">tsdst.utils.one_hot_encode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.one_hot_decode.html">tsdst.utils.one_hot_decode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/tsdst.utils.sample.html">tsdst.utils.sample</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="eda.html">Automatic EDA</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="eda.html#get-started">Get started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="eda.html#types-and-statistics">Types and statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="eda.html#compare-an-optional-response">Compare an optional response</a></li>
+<li class="toctree-l2"><a class="reference internal" href="eda.html#control-work-and-output">Control work and output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="eda.html#api">API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="weibull_regression.html">Weibull regression</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="weibull_regression.html#choose-the-regression-parameter">Choose the regression parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weibull_regression.html#scale-regression">Scale regression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weibull_regression.html#shape-regression">Shape regression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weibull_regression.html#fit-and-predict">Fit and predict</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weibull_regression.html#priors-and-sampled-parameters">Priors and sampled parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="weibull_regression.html#comparison-with-r">Comparison with R</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </section>
 <section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
@@ -184,7 +346,7 @@
     </p>
     <p>
         &copy; Copyright 2020 - present, Tom Werner.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
     </p>
   </div>
 </footer>

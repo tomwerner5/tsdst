@@ -37,7 +37,7 @@ conda install -c tomwerner5 tsdst
 
 ## Using This Package
 
-After installing, simply import to your module with `import tsdst`. A detailed description of each module/function/class (with examples) can be found on the documentation page. Documentation can be found [here:](https://tomwerner5.github.io/tsdst/Descriptions.html)
+After installing, simply import to your module with `import tsdst`. A detailed description of each module/function/class (with examples) can be found on the documentation page. Documentation can be found [here:](https://tomwerner5.github.io/tsdst/)
 
 ## Automatic EDA
 
@@ -73,6 +73,17 @@ python scripts/check_function_coverage.py coverage.json
 The suite checks each package function and method. Line coverage has a separate
 85% minimum. The test workflow covers Python 3.12, 3.13, and 3.14.
 Install `tsdst[io]` to use the Feather and Parquet helpers without the test tools.
+
+Build the documentation in a uv environment:
+
+```bash
+uv pip install --python .venv/bin/python -e '.[docs]'
+.venv/bin/python -m sphinx -b html -W --keep-going -d .venv/sphinx-doctrees docs/source docs/build/html
+```
+
+Open `docs/build/html/index.html` to review the result. The build reports
+missing references and formatting problems as errors.
+
 
 ## Licensing
 

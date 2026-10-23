@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API reference &#8212; tsdst 1.0.11 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/clipboard.min.js"></script>
-    <script src="_static/copybutton.js"></script>
+    <title>API reference &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=062ca7a5" />
+    <script src="_static/documentation_options.js?v=20623aea"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=4ea706d9"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="tsdst.distributions.dpoibin_exact" href="generated/tsdst.distributions.dpoibin_exact.html" />
+    <link rel="next" title="tsdst.eda.auto_eda" href="generated/tsdst.eda.auto_eda.html" />
     <link rel="prev" title="Welcome to tsdst’s documentation!" href="index.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
 
   </head><body>
 
@@ -42,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           tsdst</a>
-        <span class="navbar-text navbar-version pull-left"><b></b></span>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -60,6 +59,8 @@
       aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -74,6 +75,7 @@
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">API reference</a><ul>
+<li><a class="reference internal" href="#automatic-eda">Automatic EDA</a></li>
 <li><a class="reference internal" href="#distributions">Distributions</a><ul>
 <li><a class="reference internal" href="#general-functions">General Functions</a></li>
 <li><a class="reference internal" href="#likelihood-functions">Likelihood Functions</a></li>
@@ -82,6 +84,7 @@
 </li>
 <li><a class="reference internal" href="#estimators">Estimators</a><ul>
 <li><a class="reference internal" href="#bayesian-estimators">Bayesian Estimators</a></li>
+<li><a class="reference internal" href="#regularized-regression-uncertainty">Regularized regression uncertainty</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#feature-selection">Feature Selection</a><ul>
@@ -108,6 +111,17 @@
 <li><a class="reference internal" href="#optimizers">Optimizers</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#additional-distribution-functions">Additional distribution functions</a></li>
+<li><a class="reference internal" href="#additional-estimators">Additional estimators</a></li>
+<li><a class="reference internal" href="#additional-mcmc-tools">Additional MCMC tools</a></li>
+<li><a class="reference internal" href="#metrics">Metrics</a></li>
+<li><a class="reference internal" href="#additional-modeling-tools">Additional modeling tools</a></li>
+<li><a class="reference internal" href="#optimization">Optimization</a></li>
+<li><a class="reference internal" href="#parallel-tasks">Parallel tasks</a></li>
+<li><a class="reference internal" href="#quick-analysis">Quick analysis</a></li>
+<li><a class="reference internal" href="#sampling">Sampling</a></li>
+<li><a class="reference internal" href="#mathematical-tools">Mathematical tools</a></li>
+<li><a class="reference internal" href="#utilities">Utilities</a></li>
 </ul>
 </li>
 </ul>
@@ -123,7 +137,7 @@
     </a>
   </li>
   <li>
-    <a href="generated/tsdst.distributions.dpoibin_exact.html" title="Next Chapter: tsdst.distributions.dpoibin_exact"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.distrib... &raquo;</span>
+    <a href="generated/tsdst.eda.auto_eda.html" title="Next Chapter: tsdst.eda.auto_eda"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.eda.auto_eda &raquo;</span>
     </a>
   </li>
               
@@ -155,22 +169,170 @@
 
 <div class="container">
   <div class="row">
-    <div class="body col-md-12 content" role="main">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">API reference</a><ul>
+<li><a class="reference internal" href="#automatic-eda">Automatic EDA</a></li>
+<li><a class="reference internal" href="#distributions">Distributions</a><ul>
+<li><a class="reference internal" href="#general-functions">General Functions</a></li>
+<li><a class="reference internal" href="#likelihood-functions">Likelihood Functions</a></li>
+<li><a class="reference internal" href="#posterior-functions">Posterior Functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#estimators">Estimators</a><ul>
+<li><a class="reference internal" href="#bayesian-estimators">Bayesian Estimators</a></li>
+<li><a class="reference internal" href="#regularized-regression-uncertainty">Regularized regression uncertainty</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#feature-selection">Feature Selection</a><ul>
+<li><a class="reference internal" href="#value-drop-procedures">Value Drop Procedures</a></li>
+<li><a class="reference internal" href="#selection-algorithms">Selection Algorithms</a></li>
+<li><a class="reference internal" href="#feature-importance">Feature Importance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mcmc">MCMC</a><ul>
+<li><a class="reference internal" href="#mcmc-object">MCMC Object</a></li>
+<li><a class="reference internal" href="#mcmc-supporting-functions">MCMC Supporting Functions</a></li>
+<li><a class="reference internal" href="#mcmc-diagnostics">MCMC Diagnostics</a></li>
+<li><a class="reference internal" href="#mcmc-algorithms">MCMC Algorithms</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modeling">Modeling</a><ul>
+<li><a class="reference internal" href="#modeling-tools">Modeling Tools</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#neural-networks">Neural Networks</a><ul>
+<li><a class="reference internal" href="#activations">Activations</a></li>
+<li><a class="reference internal" href="#initializers">Initializers</a></li>
+<li><a class="reference internal" href="#model">Model</a></li>
+<li><a class="reference internal" href="#optimizers">Optimizers</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#additional-distribution-functions">Additional distribution functions</a></li>
+<li><a class="reference internal" href="#additional-estimators">Additional estimators</a></li>
+<li><a class="reference internal" href="#additional-mcmc-tools">Additional MCMC tools</a></li>
+<li><a class="reference internal" href="#metrics">Metrics</a></li>
+<li><a class="reference internal" href="#additional-modeling-tools">Additional modeling tools</a></li>
+<li><a class="reference internal" href="#optimization">Optimization</a></li>
+<li><a class="reference internal" href="#parallel-tasks">Parallel tasks</a></li>
+<li><a class="reference internal" href="#quick-analysis">Quick analysis</a></li>
+<li><a class="reference internal" href="#sampling">Sampling</a></li>
+<li><a class="reference internal" href="#mathematical-tools">Mathematical tools</a></li>
+<li><a class="reference internal" href="#utilities">Utilities</a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="index.html" title="Previous Chapter: Welcome to tsdst’s documentation!"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Welcome to ts...</span>
+    </a>
+  </li>
+  <li>
+    <a href="generated/tsdst.eda.auto_eda.html" title="Next Chapter: tsdst.eda.auto_eda"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.eda.auto_eda &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="_sources/api.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
       
   <section id="api-reference">
-<span id="api-ref"></span><h1>API reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<span id="api-ref"></span><h1>API reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h1>
+<section id="automatic-eda">
+<h2>Automatic EDA<a class="headerlink" href="#automatic-eda" title="Link to this heading">¶</a></h2>
+<p>Explore tabular data without a response variable. See <a class="reference internal" href="eda.html"><span class="doc">Automatic exploratory data analysis</span></a> for examples.</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.eda.auto_eda.html#tsdst.eda.auto_eda" title="tsdst.eda.auto_eda"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eda.auto_eda</span></code></a></p></td>
+<td><p>Explore tabular data and return an EDA report.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.eda.EDAReport.html#tsdst.eda.EDAReport" title="tsdst.eda.EDAReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eda.EDAReport</span></code></a></p></td>
+<td><p>Store the tables and PNG plots from <code class="xref py py-func docutils literal notranslate"><span class="pre">auto_eda()</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="distributions">
-<span id="distributions-api"></span><h2>Distributions<a class="headerlink" href="#distributions" title="Permalink to this headline">¶</a></h2>
+<span id="distributions-api"></span><h2>Distributions<a class="headerlink" href="#distributions" title="Link to this heading">¶</a></h2>
 <p>This section contains statistical functions for various distributions for a wide range of purposes.</p>
 <section id="general-functions">
-<h3>General Functions<a class="headerlink" href="#general-functions" title="Permalink to this headline">¶</a></h3>
+<h3>General Functions<a class="headerlink" href="#general-functions" title="Link to this heading">¶</a></h3>
 <p>This section includes approximations about the normal distribution, as well as
-calculations for the poison-binomial distribution.</p>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+calculations for the Poisson-binomial distribution.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dwrap</span></code> supports the normal, exponential, Weibull, lognormal, and gamma
+distributions. Each supports <code class="docutils literal notranslate"><span class="pre">pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">cdf</span></code>, <code class="docutils literal notranslate"><span class="pre">sf</span></code>, <code class="docutils literal notranslate"><span class="pre">inv-cdf</span></code>,
+<code class="docutils literal notranslate"><span class="pre">left-truncated-cdf</span></code>, and <code class="docutils literal notranslate"><span class="pre">left-truncated-inv-cdf</span></code>. Append the lower cutoff
+to the distribution parameters for a truncated operation.</p>
+<p>The two log options control separate scales:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Quantile input and output options</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">log_p</span></code></p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">log</span></code></p></th>
+<th class="head"><p>Input</p></th>
+<th class="head"><p>Output</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>False</p></td>
+<td><p>False</p></td>
+<td><p>Probability</p></td>
+<td><p>Quantile</p></td>
+</tr>
+<tr class="row-odd"><td><p>True</p></td>
+<td><p>False</p></td>
+<td><p>Log probability</p></td>
+<td><p>Quantile</p></td>
+</tr>
+<tr class="row-even"><td><p>False</p></td>
+<td><p>True</p></td>
+<td><p>Probability</p></td>
+<td><p>Log quantile</p></td>
+</tr>
+<tr class="row-odd"><td><p>True</p></td>
+<td><p>True</p></td>
+<td><p>Log probability</p></td>
+<td><p>Log quantile</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">log=True</span></code> keeps its existing meaning: return the log of the output.
+For quantiles, use <code class="docutils literal notranslate"><span class="pre">log_p=True</span></code> to accept log probabilities, as in R’s
+<code class="docutils literal notranslate"><span class="pre">qnorm(...,</span> <span class="pre">log.p=TRUE)</span></code>. The same options apply to truncated quantiles.
+Logged quantiles are finite only for positive quantiles. Zero produces
+negative infinity, and a negative quantile produces NaN.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tsdst.distributions</span><span class="w"> </span><span class="kn">import</span> <span class="n">dwrap</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.975</span><span class="p">])</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">dwrap</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">"inv-cdf"</span><span class="p">,</span> <span class="s2">"normal"</span><span class="p">)</span>
+<span class="n">q_from_log_p</span> <span class="o">=</span> <span class="n">dwrap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">"inv-cdf"</span><span class="p">,</span> <span class="s2">"normal"</span><span class="p">,</span> <span class="n">log_p</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">log_q</span> <span class="o">=</span> <span class="n">dwrap</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">"inv-cdf"</span><span class="p">,</span> <span class="s2">"normal"</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">log_q_from_log_p</span> <span class="o">=</span> <span class="n">dwrap</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">"inv-cdf"</span><span class="p">,</span> <span class="s2">"normal"</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">log_p</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>For densities, <code class="docutils literal notranslate"><span class="pre">log=True</span></code> returns log densities. Sum these values for the
+log likelihood of independent observations. Negate the sum for the negative
+log likelihood:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">observations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+<span class="n">nll</span> <span class="o">=</span> <span class="o">-</span><span class="n">dwrap</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">"pdf"</span><span class="p">,</span> <span class="s2">"normal"</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">log_p</span></code> is an input option for quantiles only. Use <code class="docutils literal notranslate"><span class="pre">log=True</span></code> for log
+outputs from <code class="docutils literal notranslate"><span class="pre">pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">cdf</span></code>, <code class="docutils literal notranslate"><span class="pre">sf</span></code>, and <code class="docutils literal notranslate"><span class="pre">left-truncated-cdf</span></code>.</p>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.dpoibin_exact.html#tsdst.distributions.dpoibin_exact" title="tsdst.distributions.dpoibin_exact"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.dpoibin_exact</span></code></a></p></td>
 <td><p>The exact probability mass function for the poisson-binomial distribution.</p></td>
@@ -182,7 +344,7 @@ calculations for the poison-binomial distribution.</p>
 <td><p>Poisson approximation of the Poisson-Binomial probability mass function.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.dwrap.html#tsdst.distributions.dwrap" title="tsdst.distributions.dwrap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.dwrap</span></code></a></p></td>
-<td><p>This function is meant to be similar to the R distribution functions, such as dnorm, pnorm, qnorm, etc.</p></td>
+<td><p>Evaluate a distribution with separate log input and output options.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.pnorm_approx.html#tsdst.distributions.pnorm_approx" title="tsdst.distributions.pnorm_approx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.pnorm_approx</span></code></a></p></td>
 <td><p>This is a fast approximation of the normal cdf, accurate to 1.5e-7.</p></td>
@@ -197,15 +359,11 @@ calculations for the poison-binomial distribution.</p>
 </table>
 </section>
 <section id="likelihood-functions">
-<h3>Likelihood Functions<a class="headerlink" href="#likelihood-functions" title="Permalink to this headline">¶</a></h3>
+<h3>Likelihood Functions<a class="headerlink" href="#likelihood-functions" title="Link to this heading">¶</a></h3>
 <p>These common likelihood functions are presented in two formats, one that is the
 simple likelihood definition (usable for any data), and one that assumes your
 data is part of a GLM or similar model.</p>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.exponential_mle.html#tsdst.distributions.exponential_mle" title="tsdst.distributions.exponential_mle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.exponential_mle</span></code></a></p></td>
 <td><p>Maximum Likelihood Estimate of an exponential distribution (with an option for right-censoring).</p></td>
@@ -232,14 +390,10 @@ data is part of a GLM or similar model.</p>
 </table>
 </section>
 <section id="posterior-functions">
-<h3>Posterior Functions<a class="headerlink" href="#posterior-functions" title="Permalink to this headline">¶</a></h3>
+<h3>Posterior Functions<a class="headerlink" href="#posterior-functions" title="Link to this heading">¶</a></h3>
 <p>These functions are mainly for Bayesian Inference, and for use with the
 MCMC module.</p>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.exp_gamma.html#tsdst.distributions.exp_gamma" title="tsdst.distributions.exp_gamma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.exp_gamma</span></code></a></p></td>
 <td><p>Posterior distribution for an exponential likelihood with a gamma prior.</p></td>
@@ -257,40 +411,61 @@ MCMC module.</p>
 <td><p>Posterior density for the Poisson distribution (assuming uniform prior).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.posterior_logreg_lasso.html#tsdst.distributions.posterior_logreg_lasso" title="tsdst.distributions.posterior_logreg_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.posterior_logreg_lasso</span></code></a></p></td>
-<td><p>The posterior density for a logistic regression model with an L1 penalty term.</p></td>
+<td><p>Evaluate the binary logistic posterior with Laplace coefficient priors.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.ap_logreg_lasso.html#tsdst.distributions.ap_logreg_lasso" title="tsdst.distributions.ap_logreg_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.ap_logreg_lasso</span></code></a></p></td>
-<td><p>The posterior density for a logistic regression model with an L1 penalty term.</p></td>
+<td><p>Evaluate the binary logistic posterior with a learned Laplace prior scale.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.posterior_poisson_lasso.html#tsdst.distributions.posterior_poisson_lasso" title="tsdst.distributions.posterior_poisson_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.posterior_poisson_lasso</span></code></a></p></td>
-<td><p>The posterior density for a poisson regression model with an L1 penalty term.</p></td>
+<td><p>Evaluate the Poisson posterior with normal coefficient priors.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.posterior_poisson_lasso_od.html#tsdst.distributions.posterior_poisson_lasso_od" title="tsdst.distributions.posterior_poisson_lasso_od"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.posterior_poisson_lasso_od</span></code></a></p></td>
-<td><p>The posterior density for a poisson regression model with an L1 penalty term.</p></td>
+<td><p>Evaluate the generalized Poisson posterior with fixed-scale Laplace priors.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.ap_poisson_lasso_od.html#tsdst.distributions.ap_poisson_lasso_od" title="tsdst.distributions.ap_poisson_lasso_od"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.ap_poisson_lasso_od</span></code></a></p></td>
-<td><p>The posterior density for a poisson regression model with an L1 penalty term.</p></td>
+<td><p>Evaluate the generalized Poisson posterior with a learned normal-prior scale.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.weibull_gamma.html#tsdst.distributions.weibull_gamma" title="tsdst.distributions.weibull_gamma"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.weibull_gamma</span></code></a></p></td>
 <td><p>The posterior density for a weibull distribution with a gamma prior.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.weibull_regression_post.html#tsdst.distributions.weibull_regression_post" title="tsdst.distributions.weibull_regression_post"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.weibull_regression_post</span></code></a></p></td>
-<td><p>The posterior density for a weibull regression model with an L1 penalty term.</p></td>
+<td><p>Evaluate a Weibull regression posterior with a selectable regression parameter.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 </section>
 <section id="estimators">
-<span id="estimators-api"></span><h2>Estimators<a class="headerlink" href="#estimators" title="Permalink to this headline">¶</a></h2>
+<span id="estimators-api"></span><h2>Estimators<a class="headerlink" href="#estimators" title="Link to this heading">¶</a></h2>
 <section id="bayesian-estimators">
-<h3>Bayesian Estimators<a class="headerlink" href="#bayesian-estimators" title="Permalink to this headline">¶</a></h3>
+<h3>Bayesian Estimators<a class="headerlink" href="#bayesian-estimators" title="Link to this heading">¶</a></h3>
 <p>Bayesian Estimators using MCMC to calculate model parameters and associated errors.</p>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<p><code class="docutils literal notranslate"><span class="pre">BayesPoissonRegressor.predict</span></code> returns the conditional count mean,
+<code class="docutils literal notranslate"><span class="pre">exp(intercept</span> <span class="pre">+</span> <span class="pre">X</span> <span class="pre">&#64;</span> <span class="pre">coefficients)</span></code>, with or without overdispersion.
+For the generalized Poisson likelihood, <code class="docutils literal notranslate"><span class="pre">theta</span> <span class="pre">=</span> <span class="pre">mean</span> <span class="pre">*</span> <span class="pre">(1</span> <span class="pre">-</span> <span class="pre">delta)</span></code>
+and the conditional variance is <code class="docutils literal notranslate"><span class="pre">mean</span> <span class="pre">/</span> <span class="pre">(1</span> <span class="pre">-</span> <span class="pre">delta)**2</span></code>.
+Predictions use the coefficient summary selected by <code class="docutils literal notranslate"><span class="pre">param_summary</span></code>.
+They do not average count means over all posterior draws.</p>
+<p>The adaptive overdispersion likelihood used with <code class="docutils literal notranslate"><span class="pre">C=None</span></code> now uses this
+same mean parameterization. Refit models trained with that branch.</p>
+<p><code class="docutils literal notranslate"><span class="pre">BayesWeibullRegressor</span></code> accepts <code class="docutils literal notranslate"><span class="pre">regression_parameter=&quot;shape&quot;</span></code> (the existing
+model) or <code class="docutils literal notranslate"><span class="pre">regression_parameter=&quot;scale&quot;</span></code> (a Weibull AFT model). The selected
+parameter varies with covariates; the other parameter is a shared sampled
+scalar. <code class="docutils literal notranslate"><span class="pre">predict_shape</span></code> and <code class="docutils literal notranslate"><span class="pre">predict_scale</span></code> expose both parameters,
+<code class="docutils literal notranslate"><span class="pre">predict</span></code> returns the mean, and <code class="docutils literal notranslate"><span class="pre">predict_variance</span></code> returns the variance.
+<code class="docutils literal notranslate"><span class="pre">fit</span></code> and likelihood scoring accept right-censoring indicators through
+<code class="docutils literal notranslate"><span class="pre">status</span></code>. The <code class="docutils literal notranslate"><span class="pre">over_dispersion</span></code> argument remains unused for this distribution.
+See <a class="reference internal" href="weibull_regression.html"><span class="doc">Weibull regression</span></a> for interpretation, priors, and examples.</p>
+<p>Weibull <code class="docutils literal notranslate"><span class="pre">score</span></code> defaults to R2. <code class="docutils literal notranslate"><span class="pre">scorer=&quot;log_likelihood&quot;</span></code> returns the
+weighted mean log density or log survival contribution. <code class="docutils literal notranslate"><span class="pre">scorer=&quot;D2&quot;</span></code>
+compares sums of Weibull survival-deviance residuals against a fitted null
+Weibull model. This descriptive D2 is not a GLM likelihood-ratio test.
+The Pearson residuals use the actual Weibull variance; their empirical
+inflation estimate is a diagnostic, not a separate distribution parameter.</p>
+<p>Generalized Poisson fitting uses <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">delta</span> <span class="pre">&lt;</span> <span class="pre">1</span></code> for overdispersion.
+Unexpected NaN or positive-infinite posterior values raise an error. Negative
+infinity remains a valid rejection of a proposal outside posterior support.</p>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.estimators.BayesLogRegClassifier.html#tsdst.estimators.BayesLogRegClassifier" title="tsdst.estimators.BayesLogRegClassifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimators.BayesLogRegClassifier</span></code></a></p></td>
 <td><p>A Logistic Regression Classifier that uses MCMC to evaluate the parameters.</p></td>
@@ -299,21 +474,35 @@ MCMC module.</p>
 <td><p>A Poisson Regressor that uses MCMC to evaluate the parameters.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.estimators.BayesWeibullRegressor.html#tsdst.estimators.BayesWeibullRegressor" title="tsdst.estimators.BayesWeibullRegressor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimators.BayesWeibullRegressor</span></code></a></p></td>
-<td><p>A Weibull Regressor that uses MCMC to evaluate the parameters.</p></td>
+<td><p>Fit Weibull shape or scale with covariates and sample the other parameter.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
+<section id="regularized-regression-uncertainty">
+<h3>Regularized regression uncertainty<a class="headerlink" href="#regularized-regression-uncertainty" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">GenerateRegCov</span></code>, <code class="docutils literal notranslate"><span class="pre">RegressionSE</span></code>, and <code class="docutils literal notranslate"><span class="pre">modeling.predict</span></code> accept
+<code class="docutils literal notranslate"><span class="pre">covariance=&quot;sampling&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">covariance=&quot;curvature&quot;</span></code>. Sampling is the
+default. With information matrix S and L2 penalty matrix P, set A=S+lamda*P.
+Sampling covariance uses A^-1 S A^-1; curvature uses A^-1. Linear regression
+multiplies the matrix by an OLS noise-variance estimate. Logistic regression
+uses its fitted Bernoulli information matrix and unit dispersion.</p>
+<p>A separately fitted intercept is unpenalized by default. Set
+<code class="docutils literal notranslate"><span class="pre">penalize_intercept=True</span></code> to include it in the penalty. The supplied
+<code class="docutils literal notranslate"><span class="pre">lamda</span></code> must match the fitted model’s effective L2 penalty. These options
+apply to the standard-error helpers, not the Bayesian posterior priors.</p>
+<p>OLS intervals use Student t critical values. Logistic Wald intervals use
+normal critical values. Intervals for penalized fits are approximations:
+sampling covariance describes the shrunken estimator’s variation and does
+not remove shrinkage bias. Curvature intervals use a local Gaussian-prior
+interpretation with an estimated noise scale when needed.</p>
+</section>
 </section>
 <section id="feature-selection">
-<span id="feature-selection-api"></span><h2>Feature Selection<a class="headerlink" href="#feature-selection" title="Permalink to this headline">¶</a></h2>
+<span id="feature-selection-api"></span><h2>Feature Selection<a class="headerlink" href="#feature-selection" title="Link to this heading">¶</a></h2>
 <section id="value-drop-procedures">
-<h3>Value Drop Procedures<a class="headerlink" href="#value-drop-procedures" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>Value Drop Procedures<a class="headerlink" href="#value-drop-procedures" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.getHighCorrs.html#tsdst.feature_selection.getHighCorrs" title="tsdst.feature_selection.getHighCorrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.getHighCorrs</span></code></a></p></td>
 <td><p>Given a correlation matrix, return the correlations that are above the threshold.</p></td>
@@ -331,32 +520,24 @@ MCMC module.</p>
 <td><p>Drop columns based on which columns have variance below the threshold.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.vifDrop.html#tsdst.feature_selection.vifDrop" title="tsdst.feature_selection.vifDrop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.vifDrop</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Report that VIF-based feature removal is not implemented.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="selection-algorithms">
-<h3>Selection Algorithms<a class="headerlink" href="#selection-algorithms" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>Selection Algorithms<a class="headerlink" href="#selection-algorithms" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.forwardSelection.html#tsdst.feature_selection.forwardSelection" title="tsdst.feature_selection.forwardSelection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.forwardSelection</span></code></a></p></td>
-<td><p>A forward selection algorithm for classification only right now.</p></td>
+<td><p>Select predictors greedily by an information criterion.</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="feature-importance">
-<h3>Feature Importance<a class="headerlink" href="#feature-importance" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>Feature Importance<a class="headerlink" href="#feature-importance" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.feature_selection.permutation_importance.html#tsdst.feature_selection.permutation_importance" title="tsdst.feature_selection.permutation_importance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">feature_selection.permutation_importance</span></code></a></p></td>
 <td><p>Performs permutation importance on a fitted model.</p></td>
@@ -369,14 +550,10 @@ MCMC module.</p>
 </section>
 </section>
 <section id="mcmc">
-<span id="mcmc-api"></span><h2>MCMC<a class="headerlink" href="#mcmc" title="Permalink to this headline">¶</a></h2>
+<span id="mcmc-api"></span><h2>MCMC<a class="headerlink" href="#mcmc" title="Link to this heading">¶</a></h2>
 <section id="mcmc-object">
-<h3>MCMC Object<a class="headerlink" href="#mcmc-object" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>MCMC Object<a class="headerlink" href="#mcmc-object" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.mcmcObject.html#tsdst.mcmc.mcmcObject" title="tsdst.mcmc.mcmcObject"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.mcmcObject</span></code></a></p></td>
 <td><p>An object to hold MCMC chains, and to store/compute useful metrics on them.</p></td>
@@ -385,12 +562,8 @@ MCMC module.</p>
 </table>
 </section>
 <section id="mcmc-supporting-functions">
-<h3>MCMC Supporting Functions<a class="headerlink" href="#mcmc-supporting-functions" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>MCMC Supporting Functions<a class="headerlink" href="#mcmc-supporting-functions" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.applyMCMC.html#tsdst.mcmc.applyMCMC" title="tsdst.mcmc.applyMCMC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.applyMCMC</span></code></a></p></td>
 <td><p>This function iteratively applies the MCMC initialization.</p></td>
@@ -402,12 +575,8 @@ MCMC module.</p>
 </table>
 </section>
 <section id="mcmc-diagnostics">
-<h3>MCMC Diagnostics<a class="headerlink" href="#mcmc-diagnostics" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>MCMC Diagnostics<a class="headerlink" href="#mcmc-diagnostics" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.minESS.html#tsdst.mcmc.minESS" title="tsdst.mcmc.minESS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.minESS</span></code></a></p></td>
 <td><p>Translated from the R mcmcse package.</p></td>
@@ -416,7 +585,7 @@ MCMC module.</p>
 <td><p>This function computes the Effective Sample Size of an MCMC chain.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.raftery.html#tsdst.mcmc.raftery" title="tsdst.mcmc.raftery"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.raftery</span></code></a></p></td>
-<td><p>Calculate the Raftery diagnostic to determine how many more samples are needed.</p></td>
+<td><p>Estimate burn-in and sampling requirements with the Raftery-Lewis diagnostic.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.samp_size_calc_raftery.html#tsdst.mcmc.samp_size_calc_raftery" title="tsdst.mcmc.samp_size_calc_raftery"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.samp_size_calc_raftery</span></code></a></p></td>
 <td><p>Calculate needed sample size for Raftery evaluation.</p></td>
@@ -425,15 +594,11 @@ MCMC module.</p>
 </table>
 </section>
 <section id="mcmc-algorithms">
-<h3>MCMC Algorithms<a class="headerlink" href="#mcmc-algorithms" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>MCMC Algorithms<a class="headerlink" href="#mcmc-algorithms" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.adaptive_mcmc.html#tsdst.mcmc.adaptive_mcmc" title="tsdst.mcmc.adaptive_mcmc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.adaptive_mcmc</span></code></a></p></td>
-<td><p>A random walk metropolis algorithm that adaptively tunes the covariance matrix.</p></td>
+<td><p>Run Adaptive Mixture Metropolis with an updated proposal covariance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.rwm.html#tsdst.mcmc.rwm" title="tsdst.mcmc.rwm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.rwm</span></code></a></p></td>
 <td><p>A random walk metropolis algorithm.</p></td>
@@ -446,14 +611,10 @@ MCMC module.</p>
 </section>
 </section>
 <section id="modeling">
-<span id="modeling-api"></span><h2>Modeling<a class="headerlink" href="#modeling" title="Permalink to this headline">¶</a></h2>
+<span id="modeling-api"></span><h2>Modeling<a class="headerlink" href="#modeling" title="Link to this heading">¶</a></h2>
 <section id="modeling-tools">
-<h3>Modeling Tools<a class="headerlink" href="#modeling-tools" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>Modeling Tools<a class="headerlink" href="#modeling-tools" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.beta_trans.html#tsdst.modeling.beta_trans" title="tsdst.modeling.beta_trans"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.beta_trans</span></code></a></p></td>
 <td><p>Transform the model coefficients in a logistic regression model.</p></td>
@@ -471,13 +632,13 @@ MCMC module.</p>
 <td><p>Calculate the class distributions across each column of the dataset.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.prettyConfMat.html#tsdst.modeling.prettyConfMat" title="tsdst.modeling.prettyConfMat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.prettyConfMat</span></code></a></p></td>
-<td><p>Print a pretty confusion matrix.</p></td>
+<td><p>Return and optionally print a labeled confusion matrix with margins.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.printScores.html#tsdst.modeling.printScores" title="tsdst.modeling.printScores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.printScores</span></code></a></p></td>
 <td><p>A helper function to print the outputs of the crossVal function.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.RegressionSE.html#tsdst.modeling.RegressionSE" title="tsdst.modeling.RegressionSE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.RegressionSE</span></code></a></p></td>
-<td><p>Since sklearn doesn’t generate the standard errors by default…</p></td>
+<td><p>Calculate regression coefficient standard errors and covariance quantities.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.runScorers.html#tsdst.modeling.runScorers" title="tsdst.modeling.runScorers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.runScorers</span></code></a></p></td>
 <td><p>Performs the cross-validation.</p></td>
@@ -493,14 +654,10 @@ MCMC module.</p>
 </section>
 </section>
 <section id="neural-networks">
-<span id="nn-api"></span><h2>Neural Networks<a class="headerlink" href="#neural-networks" title="Permalink to this headline">¶</a></h2>
+<span id="nn-api"></span><h2>Neural Networks<a class="headerlink" href="#neural-networks" title="Link to this heading">¶</a></h2>
 <section id="activations">
-<h3>Activations<a class="headerlink" href="#activations" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>Activations<a class="headerlink" href="#activations" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.activations.create_jac_mask.html#tsdst.nn.activations.create_jac_mask" title="tsdst.nn.activations.create_jac_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.activations.create_jac_mask</span></code></a></p></td>
 <td><p></p></td>
@@ -599,12 +756,8 @@ MCMC module.</p>
 </table>
 </section>
 <section id="initializers">
-<h3>Initializers<a class="headerlink" href="#initializers" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>Initializers<a class="headerlink" href="#initializers" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.he_normal.html#tsdst.nn.initializers.he_normal" title="tsdst.nn.initializers.he_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.he_normal</span></code></a></p></td>
 <td><p>He normal initialization.</p></td>
@@ -627,22 +780,12 @@ MCMC module.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.xavier_uniform.html#tsdst.nn.initializers.xavier_uniform" title="tsdst.nn.initializers.xavier_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.xavier_uniform</span></code></a></p></td>
 <td><p>Xavier uniform initialization.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.lecun_uniform.html#tsdst.nn.initializers.lecun_uniform" title="tsdst.nn.initializers.lecun_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.lecun_uniform</span></code></a></p></td>
-<td><p>Lecun uniform initialization.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.initializers.lecun_normal.html#tsdst.nn.initializers.lecun_normal" title="tsdst.nn.initializers.lecun_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.initializers.lecun_normal</span></code></a></p></td>
-<td><p>Lecun normal initialization.</p></td>
-</tr>
 </tbody>
 </table>
 </section>
 <section id="model">
-<h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>Model<a class="headerlink" href="#model" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.model.NeuralNetwork.html#tsdst.nn.model.NeuralNetwork" title="tsdst.nn.model.NeuralNetwork"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.model.NeuralNetwork</span></code></a></p></td>
 <td><p>The base class for custom neural networks in numpy</p></td>
@@ -651,12 +794,8 @@ MCMC module.</p>
 </table>
 </section>
 <section id="optimizers">
-<h3>Optimizers<a class="headerlink" href="#optimizers" title="Permalink to this headline">¶</a></h3>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
+<h3>Optimizers<a class="headerlink" href="#optimizers" title="Link to this heading">¶</a></h3>
+<table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.nn.optimizers.adam.html#tsdst.nn.optimizers.adam" title="tsdst.nn.optimizers.adam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.optimizers.adam</span></code></a></p></td>
 <td><p>The Adam optimizer.</p></td>
@@ -667,6 +806,329 @@ MCMC module.</p>
 </tbody>
 </table>
 </section>
+</section>
+<section id="additional-distribution-functions">
+<h2>Additional distribution functions<a class="headerlink" href="#additional-distribution-functions" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.distributions.ap_poisson_lasso.html#tsdst.distributions.ap_poisson_lasso" title="tsdst.distributions.ap_poisson_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.ap_poisson_lasso</span></code></a></p></td>
+<td><p>Evaluate the Poisson posterior with a learned normal-prior standard deviation.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="additional-estimators">
+<h2>Additional estimators<a class="headerlink" href="#additional-estimators" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.estimators.LogReg.html#tsdst.estimators.LogReg" title="tsdst.estimators.LogReg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimators.LogReg</span></code></a></p></td>
+<td><p>A class for performing Logistic Regression using scipy.optimize.minimize.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="additional-mcmc-tools">
+<h2>Additional MCMC tools<a class="headerlink" href="#additional-mcmc-tools" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.lag.html#tsdst.mcmc.lag" title="tsdst.mcmc.lag"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.lag</span></code></a></p></td>
+<td><p>Translated from R's mcmcse package</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.adjust_matrix.html#tsdst.mcmc.adjust_matrix" title="tsdst.mcmc.adjust_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.adjust_matrix</span></code></a></p></td>
+<td><p>Translated from R's mcmcse package.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.mbmc.html#tsdst.mcmc.mbmc" title="tsdst.mcmc.mbmc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.mbmc</span></code></a></p></td>
+<td><p>Translated from R's mcmcse package</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.mobmc.html#tsdst.mcmc.mobmc" title="tsdst.mcmc.mobmc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.mobmc</span></code></a></p></td>
+<td><p>Translated from R's mcmcse package</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.mcmc.msvec.html#tsdst.mcmc.msvec" title="tsdst.mcmc.msvec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.msvec</span></code></a></p></td>
+<td><p>Estimate the spectral covariance matrix of a centered MCMC chain.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.mcmc.mcse_multi.html#tsdst.mcmc.mcse_multi" title="tsdst.mcmc.mcse_multi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mcmc.mcse_multi</span></code></a></p></td>
+<td><p>Translated from R's mcmcse package.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="metrics">
+<h2>Metrics<a class="headerlink" href="#metrics" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.top_20p.html#tsdst.metrics.top_20p" title="tsdst.metrics.top_20p"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.top_20p</span></code></a></p></td>
+<td><p>Measures the percent of true positives that are captured in the top 20% of the population (sorted by predicted probabilities).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.top_20p_score.html#tsdst.metrics.top_20p_score" title="tsdst.metrics.top_20p_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.top_20p_score</span></code></a></p></td>
+<td><p>Measures the percent of true positives that are captured in the top 20% of the population (sorted by predicted probabilities).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.auc_score.html#tsdst.metrics.auc_score" title="tsdst.metrics.auc_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.auc_score</span></code></a></p></td>
+<td><p>Area under the ROC curve.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.cox_snell_r2.html#tsdst.metrics.cox_snell_r2" title="tsdst.metrics.cox_snell_r2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.cox_snell_r2</span></code></a></p></td>
+<td><p>Cox-Snell Pseudo R-squared.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.nagelkerke_r2.html#tsdst.metrics.nagelkerke_r2" title="tsdst.metrics.nagelkerke_r2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.nagelkerke_r2</span></code></a></p></td>
+<td><p>Nagelkerke Pseudo R-squared.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.tjur_r2.html#tsdst.metrics.tjur_r2" title="tsdst.metrics.tjur_r2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.tjur_r2</span></code></a></p></td>
+<td><p>Tjur Pseudo R-squared</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.mcfadden_r2.html#tsdst.metrics.mcfadden_r2" title="tsdst.metrics.mcfadden_r2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.mcfadden_r2</span></code></a></p></td>
+<td><p>McFadden's Pseudo R-squared when the saturated model is not available.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.number_of_nonzero_coef.html#tsdst.metrics.number_of_nonzero_coef" title="tsdst.metrics.number_of_nonzero_coef"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.number_of_nonzero_coef</span></code></a></p></td>
+<td><p>Calculates the number of non-zero coefficients in a model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.conf_mat_metrics.html#tsdst.metrics.conf_mat_metrics" title="tsdst.metrics.conf_mat_metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.conf_mat_metrics</span></code></a></p></td>
+<td><p>Confusion Matrix metrics for 0/1 class classification.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.bias.html#tsdst.metrics.bias" title="tsdst.metrics.bias"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.bias</span></code></a></p></td>
+<td><p>Calculate model bias (systemic errors in estimation) in Linear Regression.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.rpmse.html#tsdst.metrics.rpmse" title="tsdst.metrics.rpmse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.rpmse</span></code></a></p></td>
+<td><p>Calculate model PMSE/RPMSE (root predictive mean squared error) in Linear Regression.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.r2.html#tsdst.metrics.r2" title="tsdst.metrics.r2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.r2</span></code></a></p></td>
+<td><p>R-squared for a linear regression model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.lr_sd_fromModel.html#tsdst.metrics.lr_sd_fromModel" title="tsdst.metrics.lr_sd_fromModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.lr_sd_fromModel</span></code></a></p></td>
+<td><p>Linear Regression Model Standard deviation (error) estimate, or, the estimate of the true standard deviation of the underlying distribution for y_true.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.lr_sd_fromPrediction.html#tsdst.metrics.lr_sd_fromPrediction" title="tsdst.metrics.lr_sd_fromPrediction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.lr_sd_fromPrediction</span></code></a></p></td>
+<td><p>Linear Regression Model Standard deviation (error) estimate, or, the estimate of the true standard deviation of the underlying distribution for y_true.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.adj_r2.html#tsdst.metrics.adj_r2" title="tsdst.metrics.adj_r2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.adj_r2</span></code></a></p></td>
+<td><p>Adjusted R-squared for a linear regression model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.aicCalc.html#tsdst.metrics.aicCalc" title="tsdst.metrics.aicCalc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.aicCalc</span></code></a></p></td>
+<td><p>Generic Akaike information criterion (AIC) calculation for models.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.glm_regularized_AIC.html#tsdst.metrics.glm_regularized_AIC" title="tsdst.metrics.glm_regularized_AIC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.glm_regularized_AIC</span></code></a></p></td>
+<td><p>Calculate AIC for a generalized linear model estimated with regularization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.js_div.html#tsdst.metrics.js_div" title="tsdst.metrics.js_div"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.js_div</span></code></a></p></td>
+<td><p>Jensen-Shannon Divergence, which is a smoothed version of KL divergence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.kl_div.html#tsdst.metrics.kl_div" title="tsdst.metrics.kl_div"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.kl_div</span></code></a></p></td>
+<td><p>KL divergence.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.HellingerDistanceMVN.html#tsdst.metrics.HellingerDistanceMVN" title="tsdst.metrics.HellingerDistanceMVN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.HellingerDistanceMVN</span></code></a></p></td>
+<td><p>Quantifies the similarity between two multivariate normal distributions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.HellingerDistanceUN.html#tsdst.metrics.HellingerDistanceUN" title="tsdst.metrics.HellingerDistanceUN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.HellingerDistanceUN</span></code></a></p></td>
+<td><p>Quantifies the similarity between two Univariate normal distributions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.metrics.HotellingsTwoSampleMVTtest.html#tsdst.metrics.HotellingsTwoSampleMVTtest" title="tsdst.metrics.HotellingsTwoSampleMVTtest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.HotellingsTwoSampleMVTtest</span></code></a></p></td>
+<td><p>Used for multivariate hypothesis testing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.metrics.accuracy.html#tsdst.metrics.accuracy" title="tsdst.metrics.accuracy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.accuracy</span></code></a></p></td>
+<td><p>Return accuracy for labels, binary scores, or one-hot arrays.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="additional-modeling-tools">
+<h2>Additional modeling tools<a class="headerlink" href="#additional-modeling-tools" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.scoreModel_legacy.html#tsdst.modeling.scoreModel_legacy" title="tsdst.modeling.scoreModel_legacy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.scoreModel_legacy</span></code></a></p></td>
+<td><p>Return the legacy score fields with corrected classification counts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.GenerateRegCov.html#tsdst.modeling.GenerateRegCov" title="tsdst.modeling.GenerateRegCov"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.GenerateRegCov</span></code></a></p></td>
+<td><p>Calculate coefficient covariance for linear or binary logistic regression.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.predict.html#tsdst.modeling.predict" title="tsdst.modeling.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.predict</span></code></a></p></td>
+<td><p>Calculate regression predictions with confidence or prediction intervals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.corrmat_validity_check.html#tsdst.modeling.corrmat_validity_check" title="tsdst.modeling.corrmat_validity_check"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.corrmat_validity_check</span></code></a></p></td>
+<td><p>Check for perfect correlation and/or a singular covariance matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.modeling.BPCA_initmodel.html#tsdst.modeling.BPCA_initmodel" title="tsdst.modeling.BPCA_initmodel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.BPCA_initmodel</span></code></a></p></td>
+<td><p>Initialize the bPCA model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.modeling.BPCA_dostep.html#tsdst.modeling.BPCA_dostep" title="tsdst.modeling.BPCA_dostep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">modeling.BPCA_dostep</span></code></a></p></td>
+<td><p>The workhorse of the bPCA algorithm, the EM-like (or Variational Bayes) step.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="optimization">
+<h2>Optimization<a class="headerlink" href="#optimization" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.optimization.sign.html#tsdst.optimization.sign" title="tsdst.optimization.sign"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimization.sign</span></code></a></p></td>
+<td><p>Return the sign of x, either -1 or 1.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.optimization.signIntervals.html#tsdst.optimization.signIntervals" title="tsdst.optimization.signIntervals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimization.signIntervals</span></code></a></p></td>
+<td><p>Returns the boundaries of all possible roots in a function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.optimization.Brent_1DRoot.html#tsdst.optimization.Brent_1DRoot" title="tsdst.optimization.Brent_1DRoot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimization.Brent_1DRoot</span></code></a></p></td>
+<td><p>Brent Method for Roots</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.optimization.AdaptiveNMorBrent.html#tsdst.optimization.AdaptiveNMorBrent" title="tsdst.optimization.AdaptiveNMorBrent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimization.AdaptiveNMorBrent</span></code></a></p></td>
+<td><p>Nelder-Mead Method and Brent method (if one-dimensional) for finding the minimum of a function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.optimization.max_like.html#tsdst.optimization.max_like" title="tsdst.optimization.max_like"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimization.max_like</span></code></a></p></td>
+<td><p>Compute maximum likelihood estimation of a function and it's parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="parallel-tasks">
+<h2>Parallel tasks<a class="headerlink" href="#parallel-tasks" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.parallel.p_prog_simp.html#tsdst.parallel.p_prog_simp" title="tsdst.parallel.p_prog_simp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parallel.p_prog_simp</span></code></a></p></td>
+<td><p>Run keyword-argument tasks with an optional progress display.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.parallel.p_prog_simp_memorySafe.html#tsdst.parallel.p_prog_simp_memorySafe" title="tsdst.parallel.p_prog_simp_memorySafe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parallel.p_prog_simp_memorySafe</span></code></a></p></td>
+<td><p>Run process tasks in bounded batches to limit queued work.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="quick-analysis">
+<h2>Quick analysis<a class="headerlink" href="#quick-analysis" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.quick_analysis.calcAICsLasso.html#tsdst.quick_analysis.calcAICsLasso" title="tsdst.quick_analysis.calcAICsLasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quick_analysis.calcAICsLasso</span></code></a></p></td>
+<td><p>Utility function for quick_analysis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.quick_analysis.parallel_AIC_data_retriever.html#tsdst.quick_analysis.parallel_AIC_data_retriever" title="tsdst.quick_analysis.parallel_AIC_data_retriever"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quick_analysis.parallel_AIC_data_retriever</span></code></a></p></td>
+<td><p>Utility function for QuickAnalysis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.quick_analysis.QuickAnalysis.html#tsdst.quick_analysis.QuickAnalysis" title="tsdst.quick_analysis.QuickAnalysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quick_analysis.QuickAnalysis</span></code></a></p></td>
+<td><p>A class for performing a quick sweep of the data.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sampling">
+<h2>Sampling<a class="headerlink" href="#sampling" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.sampling.downSample.html#tsdst.sampling.downSample" title="tsdst.sampling.downSample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sampling.downSample</span></code></a></p></td>
+<td><p>In a low base-rate classification problem, it is sometimes advantageous to downsample the majority class until the classes are balanced (or close enough).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.sampling.genRandSampFromDF.html#tsdst.sampling.genRandSampFromDF" title="tsdst.sampling.genRandSampFromDF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sampling.genRandSampFromDF</span></code></a></p></td>
+<td><p>Creates a Random sample of observations (rows) from a Dataframe (data).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.sampling.latinHypercube1D.html#tsdst.sampling.latinHypercube1D" title="tsdst.sampling.latinHypercube1D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sampling.latinHypercube1D</span></code></a></p></td>
+<td><p>Creates a sample from a Dataframe (data).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="mathematical-tools">
+<h2>Mathematical tools<a class="headerlink" href="#mathematical-tools" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.tmath.custom_abs.html#tsdst.tmath.custom_abs" title="tsdst.tmath.custom_abs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.custom_abs</span></code></a></p></td>
+<td><p>Innards of the absolute value function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.tmath.powerset.html#tsdst.tmath.powerset" title="tsdst.tmath.powerset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.powerset</span></code></a></p></td>
+<td><p>Create the powerset (all possible combinations) of a list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.tmath.percentIncrease.html#tsdst.tmath.percentIncrease" title="tsdst.tmath.percentIncrease"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.percentIncrease</span></code></a></p></td>
+<td><p>Calculates the percent increase between two numbers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.tmath.rank.html#tsdst.tmath.rank" title="tsdst.tmath.rank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.rank</span></code></a></p></td>
+<td><p>Rank items in an array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.tmath.cov2cor.html#tsdst.tmath.cov2cor" title="tsdst.tmath.cov2cor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.cov2cor</span></code></a></p></td>
+<td><p>Translation of R's cov2cor function</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.tmath.mann_whitney.html#tsdst.tmath.mann_whitney" title="tsdst.tmath.mann_whitney"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.mann_whitney</span></code></a></p></td>
+<td><p>Mann-Whitney sum-rank test.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.tmath.biserial_rank_corr.html#tsdst.tmath.biserial_rank_corr" title="tsdst.tmath.biserial_rank_corr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.biserial_rank_corr</span></code></a></p></td>
+<td><p>Biserial Rank Correlation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.tmath.corr.html#tsdst.tmath.corr" title="tsdst.tmath.corr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.corr</span></code></a></p></td>
+<td><p>Mimics the R cor function to calculate correlations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.tmath.mode_histogram.html#tsdst.tmath.mode_histogram" title="tsdst.tmath.mode_histogram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.mode_histogram</span></code></a></p></td>
+<td><p>Calculates the mode (from a continuous distribution) using data provided from a histogram.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.tmath.mode_kde.html#tsdst.tmath.mode_kde" title="tsdst.tmath.mode_kde"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.mode_kde</span></code></a></p></td>
+<td><p>Calculate mode from gaussian kernel density estimate (using scipy gaussian_pde).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.tmath.norm.html#tsdst.tmath.norm" title="tsdst.tmath.norm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.norm</span></code></a></p></td>
+<td><p>Calculate a power sum, an Lp norm, or the conventional L0 count.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.tmath.norm_der.html#tsdst.tmath.norm_der" title="tsdst.tmath.norm_der"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.norm_der</span></code></a></p></td>
+<td><p>Calculate LP norm derivative of a vector.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.tmath.mahalanobis.html#tsdst.tmath.mahalanobis" title="tsdst.tmath.mahalanobis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.mahalanobis</span></code></a></p></td>
+<td><p>Calculate mahalanobis distance on a matrix of column vectors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.tmath.scaling.html#tsdst.tmath.scaling" title="tsdst.tmath.scaling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tmath.scaling</span></code></a></p></td>
+<td><p>Common scaling algorithm.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.dsn_getTable.html#tsdst.utils.dsn_getTable" title="tsdst.utils.dsn_getTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.dsn_getTable</span></code></a></p></td>
+<td><p>Load data into python from a SQL database.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.dsn_saveTable.html#tsdst.utils.dsn_saveTable" title="tsdst.utils.dsn_saveTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.dsn_saveTable</span></code></a></p></td>
+<td><p>Save pandas dataframe to database.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.pretty_print_time.html#tsdst.utils.pretty_print_time" title="tsdst.utils.pretty_print_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.pretty_print_time</span></code></a></p></td>
+<td><p>Convert time in seconds to a clock-like time, i.e. 00:00:00.00 format.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.checkDir.html#tsdst.utils.checkDir" title="tsdst.utils.checkDir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.checkDir</span></code></a></p></td>
+<td><p>Check if a directory exists.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.print_message_with_time.html#tsdst.utils.print_message_with_time" title="tsdst.utils.print_message_with_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.print_message_with_time</span></code></a></p></td>
+<td><p>Print a message with a timestamp.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.print_time.html#tsdst.utils.print_time" title="tsdst.utils.print_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.print_time</span></code></a></p></td>
+<td><p>Wrapper for print_message_with_time.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.save_checkpoint.html#tsdst.utils.save_checkpoint" title="tsdst.utils.save_checkpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.save_checkpoint</span></code></a></p></td>
+<td><p>Save a python object to a pickle file as a checkpoint.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.updateProgBar.html#tsdst.utils.updateProgBar" title="tsdst.utils.updateProgBar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.updateProgBar</span></code></a></p></td>
+<td><p>Update progress bar.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.move_columns_to_end.html#tsdst.utils.move_columns_to_end" title="tsdst.utils.move_columns_to_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.move_columns_to_end</span></code></a></p></td>
+<td><p>Rearrange a pandas dataframe by moving a column (or list of columns) to the end of the dataframe.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.keywordSearch.html#tsdst.utils.keywordSearch" title="tsdst.utils.keywordSearch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.keywordSearch</span></code></a></p></td>
+<td><p>Searches a list of text arguments and returns a list that includes/excludes the list elements that contain the keywords.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.toFrame.html#tsdst.utils.toFrame" title="tsdst.utils.toFrame"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.toFrame</span></code></a></p></td>
+<td><p>Convert numpy array to pandas dataframe using past dataframe structure.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.inferFeatureType.html#tsdst.utils.inferFeatureType" title="tsdst.utils.inferFeatureType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.inferFeatureType</span></code></a></p></td>
+<td><p>Infer categorical, numeric, or date from a one-dimensional column's dtype.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.reshape_to_vector.html#tsdst.utils.reshape_to_vector" title="tsdst.utils.reshape_to_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.reshape_to_vector</span></code></a></p></td>
+<td><p>Flatten or reshape an array to be a vector (or transpose an already flat array).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.decision_boundary_1D.html#tsdst.utils.decision_boundary_1D" title="tsdst.utils.decision_boundary_1D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.decision_boundary_1D</span></code></a></p></td>
+<td><p>Divides probabilities <cite>x</cite> into two classes based on threshold value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.decision_boundary.html#tsdst.utils.decision_boundary" title="tsdst.utils.decision_boundary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.decision_boundary</span></code></a></p></td>
+<td><p>Divides probabilities <cite>x</cite> into classes based on the max probability value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.one_hot_encode.html#tsdst.utils.one_hot_encode" title="tsdst.utils.one_hot_encode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.one_hot_encode</span></code></a></p></td>
+<td><p>The first column is the 0th class, 2nd column is the 1st class, etc...</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.utils.one_hot_decode.html#tsdst.utils.one_hot_decode" title="tsdst.utils.one_hot_decode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.one_hot_decode</span></code></a></p></td>
+<td><p>The first column is the 0th class, 2nd column is the 1st class, etc...</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.utils.sample.html#tsdst.utils.sample" title="tsdst.utils.sample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utils.sample</span></code></a></p></td>
+<td><p>Draw a weighted sample through an interface similar to R's sample.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 </section>
 
@@ -683,7 +1145,7 @@ MCMC module.</p>
     </p>
     <p>
         &copy; Copyright 2020 - present, Tom Werner.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
     </p>
   </div>
 </footer>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Automatic exploratory data analysis &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=062ca7a5" />
+    <script src="_static/documentation_options.js?v=20623aea"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Weibull regression" href="weibull_regression.html" />
+    <link rel="prev" title="tsdst.utils.sample" href="generated/tsdst.utils.sample.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Pages</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="weibull_regression.html">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Automatic exploratory data analysis</a><ul>
+<li><a class="reference internal" href="#get-started">Get started</a></li>
+<li><a class="reference internal" href="#types-and-statistics">Types and statistics</a></li>
+<li><a class="reference internal" href="#compare-an-optional-response">Compare an optional response</a></li>
+<li><a class="reference internal" href="#control-work-and-output">Control work and output</a></li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="generated/tsdst.utils.sample.html" title="Previous Chapter: tsdst.utils.sample"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.utils.sample</span>
+    </a>
+  </li>
+  <li>
+    <a href="weibull_regression.html" title="Next Chapter: Weibull regression"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Weibull regression &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/eda.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">Automatic exploratory data analysis</a><ul>
+<li><a class="reference internal" href="#get-started">Get started</a></li>
+<li><a class="reference internal" href="#types-and-statistics">Types and statistics</a></li>
+<li><a class="reference internal" href="#compare-an-optional-response">Compare an optional response</a></li>
+<li><a class="reference internal" href="#control-work-and-output">Control work and output</a></li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="generated/tsdst.utils.sample.html" title="Previous Chapter: tsdst.utils.sample"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.utils.sample</span>
+    </a>
+  </li>
+  <li>
+    <a href="weibull_regression.html" title="Next Chapter: Weibull regression"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Weibull regression &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="_sources/eda.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <section id="automatic-exploratory-data-analysis">
+<h1>Automatic exploratory data analysis<a class="headerlink" href="#automatic-exploratory-data-analysis" title="Link to this heading">¶</a></h1>
+<p>Use <code class="docutils literal notranslate"><span class="pre">tsdst.eda</span></code> to explore a dataset without a response variable.
+This module builds on the type rules, correlation checks, and plots in
+the Kaggle <code class="docutils literal notranslate"><span class="pre">Common_Data_Science_Functions.py</span></code> file. It adds data summaries,
+checks for common data issues, and an HTML report.</p>
+<section id="get-started">
+<h2>Get started<a class="headerlink" href="#get-started" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tsdst.eda</span><span class="w"> </span><span class="kn">import</span> <span class="n">auto_eda</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">"my_data.csv"</span><span class="p">)</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">auto_eda</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="s2">"reports/eda.html"</span><span class="p">)</span>
+
+<span class="n">report</span><span class="o">.</span><span class="n">overview</span>             <span class="c1"># Check row counts, missing values, and duplicates.</span>
+<span class="n">report</span><span class="o">.</span><span class="n">variables</span>            <span class="c1"># Review types, counts, and summary statistics.</span>
+<span class="n">report</span><span class="o">.</span><span class="n">frequencies</span>          <span class="c1"># Get full category counts, including missing values.</span>
+<span class="n">report</span><span class="o">.</span><span class="n">correlations</span>         <span class="c1"># Review numeric correlations.</span>
+<span class="n">report</span><span class="o">.</span><span class="n">high_correlations</span>    <span class="c1"># Get each pair that meets the threshold.</span>
+<span class="n">report</span><span class="o">.</span><span class="n">alerts</span>               <span class="c1"># Check data issues that need review.</span>
+
+<span class="c1"># Save another copy of the report.</span>
+<span class="n">report</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="s2">"reports/another_copy.html"</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Display <code class="docutils literal notranslate"><span class="pre">report</span></code> in a notebook to view the tables and plots.
+Each HTML report includes its styles and plot images.
+You can open the report without an internet connection.</p>
+<p>If you omit the output path, the function returns the report without writing
+a file. The analysis keeps the input unchanged. It does not fit a model,
+fill missing values, or remove features.</p>
+</section>
+<section id="types-and-statistics">
+<h2>Types and statistics<a class="headerlink" href="#types-and-statistics" title="Link to this heading">¶</a></h2>
+<p>The module treats strings, categories, and booleans as categorical variables.
+Datetime and timedelta columns receive date summaries. A numeric column with
+at most five unique nonmissing values is also categorical.
+This rule follows the starter code. Use <code class="docutils literal notranslate"><span class="pre">n_unique=None</span></code> to disable it.</p>
+<p>To set a type for a specific column, use <code class="docutils literal notranslate"><span class="pre">feature_types</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">report</span> <span class="o">=</span> <span class="n">auto_eda</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">feature_types</span><span class="o">=</span><span class="p">{</span><span class="s2">"account_id"</span><span class="p">:</span> <span class="s2">"categorical"</span><span class="p">,</span> <span class="s2">"rating"</span><span class="p">:</span> <span class="s2">"numeric"</span><span class="p">},</span>
+    <span class="n">corr_method</span><span class="o">=</span><span class="s2">"spearman"</span><span class="p">,</span>
+    <span class="n">corr_threshold</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>A type override does not convert the data. If a string represents a date or
+number, convert it in pandas before you run the analysis.
+Each cell must contain one scalar, hashable value.
+Each column must have a unique label. The module does not support complex numbers.</p>
+<p>Missing fractions use the full row or cell count. Unique counts exclude
+missing values. Unique fractions use the count of nonmissing values.
+Numeric statistics exclude missing and infinite values.
+The report counts infinities separately and uses sample standard deviation.</p>
+<p>The outlier count uses the interquartile range (IQR).
+It counts values below the first quartile minus 1.5 times the IQR.
+It also counts values above the third quartile plus 1.5 times the IQR.</p>
+<p>Correlations use numeric features only. Each pair uses rows with valid values
+for both features. Each pair that meets the absolute threshold appears once
+and keeps its correlation sign. Use <code class="docutils literal notranslate"><span class="pre">corr_threshold=None</span></code> to skip correlations.</p>
+<p>Use the alerts to review the data. Constants, unique values, strong
+correlations, and outliers can be useful. The alerts do not remove features.</p>
+</section>
+<section id="compare-an-optional-response">
+<h2>Compare an optional response<a class="headerlink" href="#compare-an-optional-response" title="Link to this heading">¶</a></h2>
+<p>If you have a response variable, supply its column name, a separate Series,
+or a one-dimensional array. A Series must have the same index as the features.
+An array must have one value per row.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">report</span> <span class="o">=</span> <span class="n">auto_eda</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="s2">"outcome"</span><span class="p">,</span> <span class="n">response_type</span><span class="o">=</span><span class="s2">"categorical"</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you supply a column name, the module excludes that column from the feature
+summaries. The response receives a separate profile.</p>
+<p>Plot types depend on the two variables:</p>
+<ul class="simple">
+<li><p>Two categorical variables use grouped bar plots.</p></li>
+<li><p>One numeric and one categorical variable use box plots.</p></li>
+<li><p>Two numeric variables use scatter plots.</p></li>
+</ul>
+<p>Numeric responses also receive feature correlations. Date variables have
+distribution plots. Response comparison plots skip date variables.
+These comparisons do not fit models or select features.</p>
+</section>
+<section id="control-work-and-output">
+<h2>Control work and output<a class="headerlink" href="#control-work-and-output" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compute tables without plots.</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">auto_eda</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">plots</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Add a scatter matrix with row and column limits.</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">auto_eda</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">,</span>
+    <span class="n">plot_pairs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">max_pair_columns</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+    <span class="n">max_plot_rows</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+    <span class="n">max_categories</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Statistics and category counts use the full dataset. Only response plots
+and scatter matrices can use a row sample. The scatter matrix selects numeric
+columns in input order, up to the column limit.</p>
+<p>Correlations use all numeric features. Their computation cost grows with
+the square of the number of numeric features.</p>
+<p>Category distribution bars combine values beyond the display limit.
+Grouped response plots show the most frequent categories only.
+Full category counts remain available in <code class="docutils literal notranslate"><span class="pre">report.frequencies</span></code>.
+The report records plot limits and row sampling in <code class="docutils literal notranslate"><span class="pre">report.notes</span></code> and the HTML.</p>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">tsdst.eda.</span></span><span class="sig-name descname"><span class="pre">auto_eda</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Exploratory</span> <span class="pre">data</span> <span class="pre">analysis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_unique</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pearson'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_pairs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_categories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_plot_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pair_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tsdst/eda.html#auto_eda"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Explore tabular data and return an EDA report.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>features</strong><span class="classifier">pandas.DataFrame or two-dimensional array-like</span></dt><dd><p>Data to explore. Each column must have a unique label.
+Each cell must contain one scalar, hashable value.
+The analysis keeps the input unchanged.</p>
+</dd>
+<dt><strong>response</strong><span class="classifier">str, pandas.Series, or one-dimensional array-like, optional</span></dt><dd><p>A column name or a separate response. If you supply a column name,
+exclude that column from the features. A Series must have the same
+index as the features. Arrays match by row position.
+The response is optional. This function does not fit a model.</p>
+</dd>
+<dt><strong>title</strong><span class="classifier">str</span></dt><dd><p>Report title.</p>
+</dd>
+<dt><strong>n_unique</strong><span class="classifier">int or None</span></dt><dd><p>Treat numeric columns as categorical if their unique count is at
+most this value. Exclude missing values from the count.
+Set None to disable this rule. Booleans are categorical.</p>
+</dd>
+<dt><strong>feature_types</strong><span class="classifier">dict, optional</span></dt><dd><p>Set a column type to ‘numeric’, ‘categorical’, or ‘date’.
+Numeric and date types require a compatible dtype.
+Convert strings to numbers or dates before you call this function.</p>
+</dd>
+<dt><strong>response_type</strong><span class="classifier">str, optional</span></dt><dd><p>Set the response type with the same rules as feature_types.</p>
+</dd>
+<dt><strong>corr_threshold</strong><span class="classifier">float or None</span></dt><dd><p>Absolute threshold from 0 to 1, inclusive. Set None to skip
+correlations. Use numeric features only. Exclude infinite values.</p>
+</dd>
+<dt><strong>corr_method</strong><span class="classifier">{‘pearson’, ‘spearman’, ‘kendall’}</span></dt><dd><p>Correlation method. Each pair uses rows with valid values for
+both variables.</p>
+</dd>
+<dt><strong>plots</strong><span class="classifier">bool</span></dt><dd><p>Create plots for distributions, missing values, and correlations.
+If you supply a response, add comparison plots.
+Set False to compute tables only.</p>
+</dd>
+<dt><strong>plot_pairs</strong><span class="classifier">bool</span></dt><dd><p>Include a scatter matrix for numeric features. Set plots=True
+to use this option.</p>
+</dd>
+<dt><strong>max_categories</strong><span class="classifier">int</span></dt><dd><p>Maximum number of categories to show. Distribution bars combine
+the other categories. Response comparisons show the most frequent
+categories only.</p>
+</dd>
+<dt><strong>max_plot_rows</strong><span class="classifier">int or None</span></dt><dd><p>Row limit for scatter matrices and response comparisons.
+Statistics, frequencies, and distribution plots use all rows.
+Set None to use all rows in every plot.
+Use random_state to repeat the same row sample.</p>
+</dd>
+<dt><strong>max_pair_columns</strong><span class="classifier">int</span></dt><dd><p>Maximum number of numeric columns in the scatter matrix.
+Select columns in input order. Correlations use all numeric features.</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int</span></dt><dd><p>Seed for the row sample in the plots.</p>
+</dd>
+<dt><strong>output_file</strong><span class="classifier">str or pathlib.Path, optional</span></dt><dd><p>Path for the HTML report. If you omit this path, return the report
+without writing a file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>EDAReport</dt><dd><p>Summary tables, alerts, and plots. Export the report to HTML or
+display it in a notebook.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tsdst.eda.</span></span><span class="sig-name descname"><span class="pre">EDAReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overview</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correlations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high_correlations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alerts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_summary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_correlations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_categories</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tsdst/eda.html#EDAReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Store the tables and PNG plots from <a class="reference internal" href="generated/tsdst.eda.auto_eda.html#tsdst.eda.auto_eda" title="tsdst.eda.auto_eda"><code class="xref py py-func docutils literal notranslate"><span class="pre">auto_eda()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>overview</strong><span class="classifier">dict</span></dt><dd><p>Row and column counts, missing values, duplicate rows, and memory use.</p>
+</dd>
+<dt><strong>variables</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>One row per feature. Numeric statistics use finite values only.
+Missing values and infinities have separate counts. Missing fractions
+use the full row count. Unique counts exclude missing values.
+Unique fractions use the count of nonmissing values.</p>
+</dd>
+<dt><strong>frequencies</strong><span class="classifier">dict</span></dt><dd><p>Full value counts for categorical features, including missing values.</p>
+</dd>
+<dt><strong>correlations</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Correlations between numeric features. Each pair uses rows with
+valid values for both features.</p>
+</dd>
+<dt><strong>high_correlations</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>One row per pair that meets the absolute threshold.
+Correlations keep their signs.</p>
+</dd>
+<dt><strong>alerts</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Checks for missing values, constants, unique values, infinities,
+duplicate rows, and correlated features. Use these checks to review
+the data. The checks do not remove features.</p>
+</dd>
+<dt><strong>plots</strong><span class="classifier">dict</span></dt><dd><p>PNG images encoded as base64 text. Keys are
+<code class="docutils literal notranslate"><span class="pre">(section,</span> <span class="pre">variable)</span></code> tuples.</p>
+</dd>
+<dt><strong>response_summary</strong><span class="classifier">pandas.Series or None</span></dt><dd><p>A separate profile of the optional response.</p>
+</dd>
+<dt><strong>response_correlations</strong><span class="classifier">pandas.Series or None</span></dt><dd><p>Correlations with numeric features, if the response is numeric.</p>
+</dd>
+<dt><strong>notes</strong><span class="classifier">list of str</span></dt><dd><p>Row sampling and limits on the plots.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tsdst/eda.html#EDAReport.to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Write an HTML report and return its path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">to_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tsdst/eda.html#EDAReport.to_html"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return an HTML report with its styles and plot images.</p>
+<p>If you supply a path, write the report as a UTF-8 file.
+Create missing parent directories. Replace an existing file at that
+path. Escape dataset labels and values for HTML.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

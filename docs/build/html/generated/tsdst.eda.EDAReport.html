@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>tsdst.eda.EDAReport &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=062ca7a5" />
+    <script src="../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.eda.EDAReport.__init__" href="tsdst.eda.EDAReport.__init__.html" />
+    <link rel="prev" title="tsdst.eda.auto_eda" href="tsdst.eda.auto_eda.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../weibull_regression.html">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.eda.EDAReport</a><ul>
+<li><a class="reference internal" href="#tsdst.eda.EDAReport"><code class="docutils literal notranslate"><span class="pre">EDAReport</span></code></a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.eda.auto_eda.html" title="Previous Chapter: tsdst.eda.auto_eda"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.eda.auto_eda</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.eda.EDAReport.__init__.html" title="Next Chapter: tsdst.eda.EDAReport.__init__"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.eda.EDA... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.eda.EDAReport.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">tsdst.eda.EDAReport</a><ul>
+<li><a class="reference internal" href="#tsdst.eda.EDAReport"><code class="docutils literal notranslate"><span class="pre">EDAReport</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="tsdst.eda.auto_eda.html" title="Previous Chapter: tsdst.eda.auto_eda"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.eda.auto_eda</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.eda.EDAReport.__init__.html" title="Next Chapter: tsdst.eda.EDAReport.__init__"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.eda.EDA... &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.eda.EDAReport.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <section id="tsdst-eda-edareport">
+<h1>tsdst.eda.EDAReport<a class="headerlink" href="#tsdst-eda-edareport" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="tsdst.eda.EDAReport">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tsdst.eda.</span></span><span class="sig-name descname"><span class="pre">EDAReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overview</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correlations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high_correlations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alerts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_summary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response_correlations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_categories</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/eda.html#EDAReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.eda.EDAReport" title="Link to this definition">¶</a></dt>
+<dd><p>Store the tables and PNG plots from <a class="reference internal" href="tsdst.eda.auto_eda.html#tsdst.eda.auto_eda" title="tsdst.eda.auto_eda"><code class="xref py py-func docutils literal notranslate"><span class="pre">auto_eda()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>overview</strong><span class="classifier">dict</span></dt><dd><p>Row and column counts, missing values, duplicate rows, and memory use.</p>
+</dd>
+<dt><strong>variables</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>One row per feature. Numeric statistics use finite values only.
+Missing values and infinities have separate counts. Missing fractions
+use the full row count. Unique counts exclude missing values.
+Unique fractions use the count of nonmissing values.</p>
+</dd>
+<dt><strong>frequencies</strong><span class="classifier">dict</span></dt><dd><p>Full value counts for categorical features, including missing values.</p>
+</dd>
+<dt><strong>correlations</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Correlations between numeric features. Each pair uses rows with
+valid values for both features.</p>
+</dd>
+<dt><strong>high_correlations</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>One row per pair that meets the absolute threshold.
+Correlations keep their signs.</p>
+</dd>
+<dt><strong>alerts</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Checks for missing values, constants, unique values, infinities,
+duplicate rows, and correlated features. Use these checks to review
+the data. The checks do not remove features.</p>
+</dd>
+<dt><strong>plots</strong><span class="classifier">dict</span></dt><dd><p>PNG images encoded as base64 text. Keys are
+<code class="docutils literal notranslate"><span class="pre">(section,</span> <span class="pre">variable)</span></code> tuples.</p>
+</dd>
+<dt><strong>response_summary</strong><span class="classifier">pandas.Series or None</span></dt><dd><p>A separate profile of the optional response.</p>
+</dd>
+<dt><strong>response_correlations</strong><span class="classifier">pandas.Series or None</span></dt><dd><p>Correlations with numeric features, if the response is numeric.</p>
+</dd>
+<dt><strong>notes</strong><span class="classifier">list of str</span></dt><dd><p>Row sampling and limits on the plots.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.eda.EDAReport.__init__.html#tsdst.eda.EDAReport.__init__" title="tsdst.eda.EDAReport.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(title, overview, variables, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.eda.EDAReport.to_file.html#tsdst.eda.EDAReport.to_file" title="tsdst.eda.EDAReport.to_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_file</span></code></a>(path)</p></td>
+<td><p>Write an HTML report and return its path.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.eda.EDAReport.to_html.html#tsdst.eda.EDAReport.to_html" title="tsdst.eda.EDAReport.to_html"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_html</span></code></a>([path])</p></td>
+<td><p>Return an HTML report with its styles and plot images.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

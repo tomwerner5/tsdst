@@ -34,6 +34,12 @@ dependencies = [
 [project.optional-dependencies]
 io = ["pyarrow>=26"]
 test = ["pytest>=9", "pytest-cov>=7.1", "pyarrow>=26"]
+docs = [
+    "sphinx>=8,<10",
+    "numpydoc>=1.9,<2",
+    "sphinx-bootstrap-theme>=0.8.1,<1",
+    "sphinx-copybutton>=0.5.2,<1",
+]
 
 [project.urls]
 Documentation = "https://tomwerner5.github.io/tsdst/"

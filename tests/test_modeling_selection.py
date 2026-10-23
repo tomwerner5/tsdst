@@ -43,6 +43,69 @@ def test_confusion_table_handles_default_and_custom_labels():
     assert table.shape == (2, 2)
 
 
+def test_confusion_table_orientation_counts_and_printed_labels(capsys):
+    truth = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    predicted = np.array([0, 0, 0, 1, 1, 0, 1, 1, 1, 1])
+    labels = {"Negative": 0, "Positive": 1}
+
+    table = m.prettyConfMat(truth, predicted, labels=labels, print_=True)
+
+    expected = pd.DataFrame(
+        [[3, 2, 5], [1, 4, 5], [4, 6, 10]],
+        index=pd.MultiIndex.from_product([["Actual"], ["Negative", "Positive", "Total"]]),
+        columns=pd.MultiIndex.from_product([["Predicted"], ["Negative", "Positive", "Total"]]),
+    )
+    assert_frame_equal(table, expected)
+    printed = capsys.readouterr().out
+    assert "Actual" in printed and "Predicted" in printed
+    assert "Negative" in printed and "Positive" in printed and "Total" in printed
+
+
+def test_confusion_table_multiclass_custom_label_order():
+    truth = np.array(["a", "a", "b", "b", "c", "c"])
+    predicted = np.array(["a", "b", "b", "c", "a", "c"])
+    labels = {"Class C": "c", "Class A": "a", "Class B": "b"}
+
+    table = m.prettyConfMat(truth, predicted, labels=labels, margins=False, print_=False)
+
+    expected = pd.DataFrame(
+        [[1, 1, 0], [0, 1, 1], [1, 0, 1]],
+        index=pd.MultiIndex.from_product([["Actual"], ["Class C", "Class A", "Class B"]]),
+        columns=pd.MultiIndex.from_product([["Predicted"], ["Class C", "Class A", "Class B"]]),
+    )
+    assert_frame_equal(table, expected)
+
+
+def test_score_model_confusion_matrix_and_metrics_share_one_orientation():
+    truth = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    predicted = np.array([0, 0, 0, 1, 1, 0, 1, 1, 1, 1])
+
+    class FixedClassifier:
+        def predict(self, x):
+            return predicted
+
+        def predict_proba(self, x):
+            return np.column_stack([1 - predicted, predicted])
+
+    x = np.arange(len(truth)).reshape(-1, 1)
+    result = m.scoreModel(
+        x,
+        truth,
+        FixedClassifier(),
+        metrics=["Accuracy", "F1", "Sens/Recall", "Specificity", "PPV", "NPV", "Confusion Matrix"],
+        print_=False,
+    )
+
+    assert result["Accuracy"] == pytest.approx(.7)
+    # scoreModel uses sklearn's binary positive-class F1.
+    assert result["F1"] == pytest.approx(8 / 11)
+    assert result["Sens/Recall"] == pytest.approx(4 / 5)
+    assert result["Specificity"] == pytest.approx(3 / 5)
+    assert result["PPV"] == pytest.approx(2 / 3)
+    assert result["NPV"] == pytest.approx(3 / 4)
+    np.testing.assert_array_equal(result["Confusion Matrix"], [[3, 2], [1, 4]])
+
+
 @pytest.mark.parametrize("logit", [False, True])
 def test_regression_covariance_and_intervals(logit, classification, regression):
     x, y = classification if logit else regression

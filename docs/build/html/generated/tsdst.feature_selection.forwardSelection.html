@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>tsdst.feature_selection.forwardSelection &#8212; tsdst 1.0.11 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
+    <title>tsdst.feature_selection.forwardSelection &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=062ca7a5" />
+    <script src="../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=4ea706d9"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="tsdst.feature_selection.getHighCorrs" href="tsdst.feature_selection.getHighCorrs.html" />
-    <link rel="prev" title="tsdst.estimators.BayesWeibullRegressor.set_params" href="tsdst.estimators.BayesWeibullRegressor.set_params.html" />
+    <link rel="next" title="tsdst.feature_selection.permutation_importance" href="tsdst.feature_selection.permutation_importance.html" />
+    <link rel="prev" title="tsdst.feature_selection.vifDrop" href="tsdst.feature_selection.vifDrop.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
-<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
-<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
-<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
 
   </head><body>
 
@@ -42,7 +41,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           tsdst</a>
-        <span class="navbar-text navbar-version pull-left"><b></b></span>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -60,6 +59,8 @@
       aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -73,7 +74,10 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">tsdst.feature_selection.forwardSelection</a></li>
+<li><a class="reference internal" href="#">tsdst.feature_selection.forwardSelection</a><ul>
+<li><a class="reference internal" href="#tsdst.feature_selection.forwardSelection"><code class="docutils literal notranslate"><span class="pre">forwardSelection()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </ul>
 </li>
@@ -83,11 +87,11 @@
               
                 
   <li>
-    <a href="tsdst.estimators.BayesWeibullRegressor.set_params.html" title="Previous Chapter: tsdst.estimators.BayesWeibullRegressor.set_params"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.estimat...</span>
+    <a href="tsdst.feature_selection.vifDrop.html" title="Previous Chapter: tsdst.feature_selection.vifDrop"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.feature...</span>
     </a>
   </li>
   <li>
-    <a href="tsdst.feature_selection.getHighCorrs.html" title="Next Chapter: tsdst.feature_selection.getHighCorrs"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.feature... &raquo;</span>
+    <a href="tsdst.feature_selection.permutation_importance.html" title="Next Chapter: tsdst.feature_selection.permutation_importance"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.feature... &raquo;</span>
     </a>
   </li>
               
@@ -119,73 +123,108 @@
 
 <div class="container">
   <div class="row">
-    <div class="body col-md-12 content" role="main">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">tsdst.feature_selection.forwardSelection</a><ul>
+<li><a class="reference internal" href="#tsdst.feature_selection.forwardSelection"><code class="docutils literal notranslate"><span class="pre">forwardSelection()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="tsdst.feature_selection.vifDrop.html" title="Previous Chapter: tsdst.feature_selection.vifDrop"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.feature...</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.feature_selection.permutation_importance.html" title="Next Chapter: tsdst.feature_selection.permutation_importance"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.feature... &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.feature_selection.forwardSelection.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
       
-  </div>
-<div class=col-md-9 content><section id="tsdst-feature-selection-forwardselection">
-<h1>tsdst.feature_selection.forwardSelection<a class="headerlink" href="#tsdst-feature-selection-forwardselection" title="Permalink to this headline">¶</a></h1>
+  <section id="tsdst-feature-selection-forwardselection">
+<h1>tsdst.feature_selection.forwardSelection<a class="headerlink" href="#tsdst-feature-selection-forwardselection" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="tsdst.feature_selection.forwardSelection">
-<span class="sig-prename descclassname"><span class="pre">tsdst.feature_selection.</span></span><span class="sig-name descname"><span class="pre">forwardSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">XY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gaussian'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perc_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_at_p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_when</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_probabilities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serialze_flavor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'feather'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/feature_selection.html#forwardSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.feature_selection.forwardSelection" title="Permalink to this definition">¶</a></dt>
-<dd><p>A forward selection algorithm for classification only right now. Still 
-needs some work.</p>
-<p>Note: it is a known bug for this function to fail when n_jobs &gt; 1 while
-using sypder. This is because of an issue with spyder and the p_prog_simp
-function. I have not been able to discover why, or provide a fix.
-If you run a script with this function from the console, it should run
-just fine.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl>
-<dt><strong>XY</strong><span class="classifier">pandas dataframe</span></dt><dd><p>The combined independent variables/features and reponse/target
-variable.</p>
+<span class="sig-prename descclassname"><span class="pre">tsdst.feature_selection.</span></span><span class="sig-name descname"><span class="pre">forwardSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">XY</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gaussian'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perc_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_at_p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_when</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_probabilities</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serialize_flavor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'feather'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/feature_selection.html#forwardSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.feature_selection.forwardSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Select predictors greedily by an information criterion.</p>
+<p>Each step fits every remaining candidate with the previously selected
+predictors and chooses the lowest criterion. The first step selects the
+best single predictor. Later steps stop when the criterion does not improve.
+This is a greedy search; an exhaustive search would consider the powerset
+of predictors and has exponential cost.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>XY</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Combined predictors and response, with named columns.</p>
 </dd>
-<dt><strong>target_var</strong><span class="classifier">str</span></dt><dd><p>The column containing the target (or response) variable.</p>
+<dt><strong>target_var</strong><span class="classifier">str</span></dt><dd><p>Response column.</p>
 </dd>
-<dt><strong>model</strong><span class="classifier">sklearn, or similar</span></dt><dd><p>An unfitted model. Any model that has a fit and predict method.</p>
+<dt><strong>model</strong><span class="classifier">estimator</span></dt><dd><p>An unfitted estimator with fit and predict, plus predict_proba for a
+binomial family. Candidate fits and the returned fit use separate clones.</p>
 </dd>
-<dt><strong>metric</strong><span class="classifier">str</span></dt><dd><p>The AIC metric to be used, for example, aic, aicc, bic, ebic, hastie, 
-or kwano.</p>
+<dt><strong>metric</strong><span class="classifier">{‘aic’, ‘aicc’, ‘bic’, ‘ebic’}, optional</span></dt><dd><p>Information criterion; lower is better. The default is ‘bic’.</p>
 </dd>
-<dt><strong>family</strong><span class="classifier">str</span></dt><dd><p>The family of distributions to calculate log-likelihood from.</p>
+<dt><strong>family</strong><span class="classifier">{‘gaussian’, ‘binomial’, ‘poisson’}, optional</span></dt><dd><p>Likelihood family. The default is ‘gaussian’.</p>
 </dd>
-<dt><strong>verbose</strong><span class="classifier">bool, optional</span></dt><dd><p>Output the steps and progress as it completes. The default is True.</p>
+<dt><strong>verbose</strong><span class="classifier">bool, optional</span></dt><dd><p>Print selected predictors and progress. The default is True.</p>
 </dd>
-<dt><strong>n_jobs</strong><span class="classifier">int, optional</span></dt><dd><p>If greater than 1, perform operation in parallel. The default is 1.</p>
+<dt><strong>n_jobs</strong><span class="classifier">int, optional</span></dt><dd><p>Positive worker count. One runs serially. The default is 1.</p>
 </dd>
-<dt><strong>perc_min</strong><span class="classifier">float, optional</span></dt><dd><p>–NOT IMPLEMENTED–. The percent change minimum for breaking early,
-if no meanigful change in metric is detected. The default is 0.01.</p>
+<dt><strong>early_stop</strong><span class="classifier">bool, optional</span></dt><dd><p>Also apply stop_at_p and consecutive-small-improvement stopping.
+The default is False.</p>
 </dd>
-<dt><strong>stop_at_p</strong><span class="classifier">int, optional</span></dt><dd><p>The number of selections to stop at. In other words, it selects up to
-<cite>p</cite> predictors, even if the optimal model is not yet found and more
-tests could be done. The default is 1000.</p>
+<dt><strong>perc_min</strong><span class="classifier">float, optional</span></dt><dd><p>Minimum relative criterion improvement before a step counts as small.
+Improvement is (previous-current)/max(abs(previous), 1).
+Used with early_stop=True. The default is 0.01.</p>
 </dd>
-<dt><strong>stop_when</strong><span class="classifier">int, optional</span></dt><dd><p>Stop the operations when the metric no longer continues to decrease,
-after evaluating the next stop_when columns. The default is 5.</p>
+<dt><strong>stop_at_p</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum selected feature count with early stopping. The default is 1000.</p>
 </dd>
-<dt><strong>use_probabilities</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether or not to use predicted probabilities as the only other feature
-in the set, or to use the actual features in performing the forward 
-selection. The default is False.</p>
+<dt><strong>stop_when</strong><span class="classifier">int, optional</span></dt><dd><p>Consecutive small improvements allowed with early stopping.
+The default is 5.</p>
 </dd>
-<dt><strong>return_type</strong><span class="classifier">str, optional</span></dt><dd><p>Which object to return, can be either list, model, data, or all.
-The default is ‘all’.</p>
+<dt><strong>use_probabilities</strong><span class="classifier">bool, optional</span></dt><dd><p>For binomial selection, compress the previous selected model to its
+second-class probability column when at least two predictors have
+already been selected. The final returned model is fitted to the
+selected original predictors. The default is False.</p>
 </dd>
-<dt><strong>serialize_flavor</strong><span class="classifier">str</span></dt><dd><p>Which mode of downsaving data to use, currently supports ‘feather’ and
-‘msgpack’. Unfortunately, as of pandas 0.25.0, msgpack is no longer 
-supported.</p>
+<dt><strong>return_type</strong><span class="classifier">{‘list’, ‘model’, ‘data’, ‘all’}, optional</span></dt><dd><p>Return selected names, the fitted model, selected predictor data, or all
+three as a tuple. The default is ‘all’.</p>
 </dd>
-<dt><strong>use_threads</strong><span class="classifier">bool, optional</span></dt><dd><p>Use threads instead of processes for parallel operation.f</p>
-<p>Note: using feather requires pyarrow</p>
+<dt><strong>serialize_flavor</strong><span class="classifier">{‘feather’, ‘parquet’}, optional</span></dt><dd><p>Temporary worker table format. PyArrow is required for parallel work.
+The default is ‘feather’.</p>
+</dd>
+<dt><strong>use_threads</strong><span class="classifier">bool, optional</span></dt><dd><p>Use threads when True or processes when False. Process callables and
+estimators must be pickleable. The default is True.</p>
 </dd>
 </dl>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>list, model, data, or tuple of objects</dt><dd><p>Either return as list, model, data, or all. The default is ‘all’.</p>
+<dt><strong>result</strong><span class="classifier">list, estimator, pandas.DataFrame, or tuple</span></dt><dd><p>Objects selected by return_type. The input estimator and dataframe are
+not mutated. A tie in criterion improvement stops the search.</p>
 </dd>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Information criteria use unpenalized likelihoods and include an estimated
+intercept and Gaussian noise variance in the parameter count. AICc is
+undefined when n &lt;= k+1 and then returns infinity. Relative stopping is an
+optional computational choice and does not replace the information criterion.
+Temporary worker tables are removed in the search cleanup path.</p>
 </dd></dl>
 
 </section>
@@ -203,7 +242,7 @@ supported.</p>
     </p>
     <p>
         &copy; Copyright 2020 - present, Tom Werner.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.1.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
     </p>
   </div>
 </footer>

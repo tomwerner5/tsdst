@@ -10,14 +10,63 @@ from timeit import default_timer as dt
 
 import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine, URL
+from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 
 
 def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args=None, read_sql_args=None):
-    """Read one query or a list of queries through a local DSN connection."""
+    r"""Load data into python from a SQL database.
+
+    Requires a DSN or connection string. Uses SQLAlchemy to make the
+    connection, and closes the connection on completion.
+    See https://docs.sqlalchemy.org/en/20/core/engines.html for
+    help building connection strings.
+
+    Parameters
+    ----------
+    sql : str, or list
+        A string containing the SQL query to run (It should be something
+        that returns a table), or a list of sql statements to return multiple
+        tables (tables are returned as a list of pandas dataframes, in this
+        case).
+    user : str
+        The username for the database application, if applicable.
+    dialect : str
+        The database flavor (oracle, mysql, etc.)
+    dsn : str
+        Can either be a saved DSN from your computer, or a string that
+        represents all the relevant information provided in a DSN.
+        It can also be a host:port combination. See sqlalchemy
+        documentation for more details.
+    pw : str, optional
+        The password for the database application that matches the user
+        specified, if applicable. If None or '', getpass will ask for a
+        password. If there is no password, just leave it blank.
+        The default is None.
+    create_engine_args : dict, optional
+        A dictionary containing arguments to be passed to SQLAlchemy's
+        create_engine function.
+    read_sql_args : dict, optional
+        A dictionary containing arguments to be passed to pandas'
+        read_sql function.
+
+    Returns
+    -------
+    data : pandas dataframe or list
+        A dataframe (or list of dataframes) containing the returned data.
+
+    Notes
+    -----
+    The DSN may contain a host, port, database path, and query parameters.
+    Those components are parsed before credentials are assigned, so characters
+    such as @, /, and : in passwords are escaped correctly. The engine is
+    disposed even when a query or write raises an exception. These helpers
+    build credentialed DSN URLs; SQLite uses a different URL form and can be
+    used directly through a SQLAlchemy engine and pandas' SQL functions.
+    """
     if not pw:
         pw = getpass(prompt='Password: ')
-    url = URL.create(dialect, username=user, password=pw, host=dsn)
+    url = make_url(dialect + "://" + dsn).set(username=user, password=pw)
     engine = create_engine(url, **(create_engine_args or {}))
     try:
         if isinstance(sql, str):
@@ -28,10 +77,51 @@ def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args=None, read
 
 
 def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None, create_engine_args=None, to_sql_args=None):
-    """Write a dataframe through a DSN connection and release the engine."""
+    r"""Save pandas dataframe to database.
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        The data to save to a table.
+    tableName : str
+        The name of the table in the database.
+    user : str
+        The username for the database application, if applicable.
+    dialect : str
+        The database flavor (oracle, mysql, etc.)
+    dsn : str
+        Can either be a saved DSN from your computer, or a string that
+        represents all the relevant information provided in a DSN.
+        It can also be a host:port combination. See sqlalchemy
+        documentation for more details.
+    pw : str, optional
+        The password for the database application that matches the user
+        specified, if applicable. If None or '', getpass will ask for a
+        password. If there is no password, just leave it blank.
+        The default is None.
+    create_engine_args : dict, optional
+        A dictionary containing arguments to be passed to SQLAlchemy's
+        create_engine function. The default is None.
+    to_sql_args : dict, optional
+        A dictionary containing arguments to be passed to pandas'
+        to_sql function. The default is None.
+
+    Returns
+    -------
+    None.
+
+    Notes
+    -----
+    The DSN may contain a host, port, database path, and query parameters.
+    Those components are parsed before credentials are assigned, so characters
+    such as @, /, and : in passwords are escaped correctly. The engine is
+    disposed even when a query or write raises an exception. These helpers
+    build credentialed DSN URLs; SQLite uses a different URL form and can be
+    used directly through a SQLAlchemy engine and pandas' SQL functions.
+    """
     if not pw:
         pw = getpass(prompt='Password: ')
-    url = URL.create(dialect, username=user, password=pw, host=dsn)
+    url = make_url(dialect + "://" + dsn).set(username=user, password=pw)
     engine = create_engine(url, **(create_engine_args or {}))
     try:
         data.to_sql(tableName, engine, **(to_sql_args or {}))
@@ -414,10 +504,37 @@ def toFrame(todf, fromdf):
 
 
 def inferFeatureType(X, n_unique=None):
-    """Return categorical, numeric, or date for a Series or a one-dimensional array.
+    r"""Infer categorical, numeric, or date from a one-dimensional column's dtype.
 
-    Numeric columns can use a maximum category count. Missing values do not
-    contribute to that count. Booleans are categorical.
+    Parameters
+    ----------
+    X : pandas.Series or one-dimensional array-like
+        Column whose feature type is required. Public pandas dtype checks also
+        handle nullable extension dtypes.
+    n_unique : int, optional
+        Maximum distinct nonmissing count for treating a numeric column as
+        categorical. A larger count remains numeric. If None, no numeric
+        category cutoff is applied. The default is None.
+
+    Returns
+    -------
+    d_type : {'categorical', 'numeric', 'date'}
+        Inferred feature type. Booleans and nonnumeric columns are categorical.
+        Datetime and timedelta columns use date.
+
+    Notes
+    -----
+    Missing values are excluded from the unique-count cutoff. For example,
+    [1, 1, NaN] has one distinct nonmissing value. This rule is independent of
+    whether a caller separately reports missingness.
+
+    For inspecting raw NumPy arrays, dtype.kind codes include b for boolean,
+    i for signed integer, u for unsigned integer, f for floating point, c for
+    complex, m for timedelta, M for datetime, O for object, S for bytes, U for
+    Unicode, and V for void data. These kind codes differ from dtype.char:
+    for example, the character code for boolean is ?, while b can describe a
+    signed byte. Feature inference uses pandas dtype checks rather than these
+    character-code shortcuts.
     """
     from pandas.api.types import is_bool_dtype, is_datetime64_any_dtype, is_timedelta64_dtype, is_numeric_dtype
     series = X if isinstance(X, pd.Series) else pd.Series(X)
@@ -494,7 +611,43 @@ def one_hot_decode(x):
 
 
 def sample(array, nsamples, prob=None, replace=False, random_state=None):
-    """Draw a weighted sample without changing the weights or global random state."""
+    r"""Draw a weighted sample through an interface similar to R's sample.
+
+    Parameters
+    ----------
+    array : list or list-like
+        Population to sample from.
+    nsamples : int
+        Number of values to draw.
+    prob : list or list-like, optional
+        Finite, nonnegative relative weights, one per population value. Weights
+        need not sum to one. If None, all values have equal weight.
+    replace : bool, optional
+        Draw with replacement when True. The default is False.
+    random_state : int, optional
+        Seed a local Python Random instance for repeatable results. None uses
+        a fresh local generator. The default is None.
+
+    Returns
+    -------
+    samp : list
+        Sampled population values, in draw order.
+
+    Raises
+    ------
+    ValueError
+        If weight count or values are invalid, total weight is not positive,
+        the requested sample size is negative, or too few positive-weight
+        population values are available without replacement.
+
+    Notes
+    -----
+    Caller weights are copied. Each draw uses cumulative remaining weights;
+    without replacement, the selected value's weight is set to zero. Zero-weight
+    values are never selected. Calls do not change the module-level random
+    state, and random.seed does not control an unseeded call. Python and R use
+    different random-number streams, so equal seeds do not imply equal samples.
+    """
     weights = np.ones(len(array), dtype=float) if prob is None else np.array(prob, dtype=float, copy=True)
     if weights.shape != (len(array),) or not np.isfinite(weights).all() or (weights < 0).any():
         raise ValueError('Supply one finite, nonnegative weight per value')

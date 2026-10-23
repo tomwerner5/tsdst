@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tsdst.metrics &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=062ca7a5" />
+    <script src="../../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../weibull_regression.html">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary">
+<form action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <h1>Source code for tsdst.metrics</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">rel_entr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">f</span> <span class="k">as</span> <span class="n">f_distribution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">confusion_matrix</span><span class="p">,</span> <span class="n">roc_auc_score</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.distributions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">glm_likelihood_bernoulli</span><span class="p">,</span> <span class="n">glm_likelihood_poisson</span><span class="p">,</span>
+                            <span class="n">glm_likelihood_gaussian</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">one_hot_decode</span>
+
+
+<div class="viewcode-block" id="top_20p">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.top_20p.html#tsdst.metrics.top_20p">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">top_20p</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_score</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Measures the percent of true positives that are captured in the top 20%</span>
+<span class="sd">    of the population (sorted by predicted probabilities).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : numpy array</span>
+<span class="sd">        True values (observed response).</span>
+<span class="sd">    y_score : numpy array</span>
+<span class="sd">        Predicted probabilities.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    top_20 : float</span>
+<span class="sd">        Percent of true positives that are captured in the top 20% </span>
+<span class="sd">        of the population.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">y_true</span> <span class="o">=</span> <span class="n">y_true</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.2</span><span class="o">*</span><span class="n">y_true</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">prob_sort</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">y_score</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">top_20</span> <span class="o">=</span> <span class="n">y_true</span><span class="p">[</span><span class="n">prob_sort</span><span class="p">][:</span><span class="n">cutoff</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">y_true</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">top_20</span></div>
+
+
+
+<span class="c1"># For use with custom scorers in sklearn, otherwise, use top_20p</span>
+<div class="viewcode-block" id="top_20p_score">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.top_20p_score.html#tsdst.metrics.top_20p_score">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">top_20p_score</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yprob</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Measures the percent of true positives that are captured in the top 20%</span>
+<span class="sd">    of the population (sorted by predicted probabilities).</span>
+<span class="sd">    </span>
+<span class="sd">    For use with custom scorers in sklearn, otherwise, use top_20p.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    estimator : sklearn model, or similar</span>
+<span class="sd">        The model. Needs to have a predict_proba method.</span>
+<span class="sd">    X : numpy array or pandas dataframe</span>
+<span class="sd">        The design or feature matrix.</span>
+<span class="sd">    y : numpy array or pandas series</span>
+<span class="sd">        The target or response variable.</span>
+<span class="sd">    yprob : None</span>
+<span class="sd">        For compatibility with sklearn custom scorers. Default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    top_20 : float</span>
+<span class="sd">        Percent of true positives that are captured in the top 20% </span>
+<span class="sd">        of the population.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">y_true</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">y_true</span> <span class="o">=</span> <span class="n">y</span>
+    <span class="n">y_score</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.2</span><span class="o">*</span><span class="n">y_true</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">prob_sort</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">y_score</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">top_20</span> <span class="o">=</span> <span class="n">y_true</span><span class="p">[</span><span class="n">prob_sort</span><span class="p">][:</span><span class="n">cutoff</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">y_true</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">top_20</span></div>
+
+
+
+<div class="viewcode-block" id="auc_score">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.auc_score.html#tsdst.metrics.auc_score">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">auc_score</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Area under the ROC curve. Wrapper for compatibility with sklearn</span>
+<span class="sd">    custom scorers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    estimator : sklearn model, or similar</span>
+<span class="sd">        The model. Needs to have a predict_proba method.</span>
+<span class="sd">    X : numpy array or pandas dataframe</span>
+<span class="sd">        The design or feature matrix.</span>
+<span class="sd">    y : numpy array or pandas series</span>
+<span class="sd">        The target or response variable.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    auc : float</span>
+<span class="sd">        The area under the roc curve.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="n">y_true</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">y_true</span> <span class="o">=</span> <span class="n">y</span>
+    <span class="n">y_score</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">auc</span> <span class="o">=</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_score</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">'weighted'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">auc</span></div>
+
+
+
+<div class="viewcode-block" id="cox_snell_r2">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.cox_snell_r2.html#tsdst.metrics.cox_snell_r2">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cox_snell_r2</span><span class="p">(</span><span class="n">ll_est</span><span class="p">,</span> <span class="n">ll_null</span><span class="p">,</span> <span class="n">n_obs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Cox-Snell Pseudo R-squared.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ll_est : numpy array</span>
+<span class="sd">        Estimated Log likelihood.</span>
+<span class="sd">    ll_null : numpy array</span>
+<span class="sd">        Null-model log-likelihood.</span>
+<span class="sd">    n_obs : int</span>
+<span class="sd">        Number of observations.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cs_r2 : float</span>
+<span class="sd">        Cox-Snell Pseudo R-squared.</span>
+
+<span class="sd">    """</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="mi">2</span><span class="o">/</span><span class="n">n_obs</span>
+    <span class="n">cs_r2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">ratio</span><span class="o">*</span><span class="p">(</span><span class="n">ll_null</span> <span class="o">-</span> <span class="n">ll_est</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">cs_r2</span></div>
+
+
+
+<div class="viewcode-block" id="nagelkerke_r2">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.nagelkerke_r2.html#tsdst.metrics.nagelkerke_r2">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nagelkerke_r2</span><span class="p">(</span><span class="n">ll_null</span><span class="p">,</span> <span class="n">n_obs</span><span class="p">,</span> <span class="n">cs_r2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ll_est</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Nagelkerke Pseudo R-squared. Provides a correction to Cox-Snell Pseudo</span>
+<span class="sd">    R-squared to bound between 0, 1.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ll_null : numpy array</span>
+<span class="sd">        Null-model log-likelihood.</span>
+<span class="sd">    n_obs : int</span>
+<span class="sd">        Number of observations.</span>
+<span class="sd">    cs_r2 : float</span>
+<span class="sd">        Cox-Snell Pseudo R-squared. Default is None.</span>
+<span class="sd">    ll_est : numpy array</span>
+<span class="sd">        Only needed if cs_r2 not provided. Estimated Log likelihood.</span>
+<span class="sd">        Default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cs_r2 : float</span>
+<span class="sd">        Nagelkerke Pseudo R-squared.</span>
+
+<span class="sd">    """</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="mi">2</span><span class="o">/</span><span class="n">n_obs</span>
+    <span class="n">r2_max</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">ratio</span><span class="o">*</span><span class="n">ll_null</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cs_r2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cs_r2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">ratio</span><span class="o">*</span><span class="p">(</span><span class="n">ll_null</span> <span class="o">-</span> <span class="n">ll_est</span><span class="p">))</span>
+    <span class="c1"># Correction to CS R2 to bound between 0, 1</span>
+    <span class="n">n_r2</span> <span class="o">=</span> <span class="n">cs_r2</span><span class="o">/</span><span class="n">r2_max</span>
+    <span class="k">return</span> <span class="n">n_r2</span></div>
+
+
+
+<div class="viewcode-block" id="tjur_r2">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.tjur_r2.html#tsdst.metrics.tjur_r2">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tjur_r2</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_score</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Tjur Pseudo R-squared</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : numpy array</span>
+<span class="sd">        True values (observed response).</span>
+<span class="sd">    y_score : numpy array</span>
+<span class="sd">        Predicted probabilities.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    t_r2 : float</span>
+<span class="sd">        Tjur Pseudo R-squared.</span>
+
+<span class="sd">    """</span>
+    <span class="n">y_mu1</span> <span class="o">=</span> <span class="n">y_score</span><span class="p">[</span><span class="n">y_true</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">y_mu0</span> <span class="o">=</span> <span class="n">y_score</span><span class="p">[</span><span class="n">y_true</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">t_r2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_mu1</span> <span class="o">-</span> <span class="n">y_mu0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">t_r2</span></div>
+
+
+
+<div class="viewcode-block" id="mcfadden_r2">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.mcfadden_r2.html#tsdst.metrics.mcfadden_r2">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mcfadden_r2</span><span class="p">(</span><span class="n">ll_est</span><span class="p">,</span> <span class="n">ll_null</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    McFadden's Pseudo R-squared when the saturated model is not available.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ll_est : numpy array</span>
+<span class="sd">        Estimated Log likelihood.</span>
+<span class="sd">    ll_null : numpy array</span>
+<span class="sd">        Null-model log-likelihood.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    m_r2 : float</span>
+<span class="sd">        McFadden Pseudo R-squared.</span>
+
+<span class="sd">    """</span>
+    <span class="n">m_r2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">ll_est</span><span class="o">/</span><span class="n">ll_null</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m_r2</span></div>
+
+
+
+<div class="viewcode-block" id="number_of_nonzero_coef">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.number_of_nonzero_coef.html#tsdst.metrics.number_of_nonzero_coef">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">number_of_nonzero_coef</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Calculates the number of non-zero coefficients in a model. Useful for</span>
+<span class="sd">    evaluating models with an L1 penalty.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : numpy array or pandas dataframe</span>
+<span class="sd">        The design or feature matrix.</span>
+<span class="sd">    model : sklearn object, or similar</span>
+<span class="sd">        The model, which needs to have a ``coef_`` attribute.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    num_coef : int</span>
+<span class="sd">        Number of non-zero coefficients.</span>
+<span class="sd">    """</span>
+    <span class="n">num_coef</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">num_coef</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="kc">True</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">coef_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)))</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">num_coef</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">num_coef</span></div>
+
+
+
+<div class="viewcode-block" id="conf_mat_metrics">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.conf_mat_metrics.html#tsdst.metrics.conf_mat_metrics">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">conf_mat_metrics</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">conf_metric</span><span class="o">=</span><span class="s1">'all'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Confusion Matrix metrics for 0/1 class classification. Assumes 1 is the</span>
+<span class="sd">    positive class (i.e. 1 == true positive, 0 == true negative).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : numpy array</span>
+<span class="sd">        True values (observed response).</span>
+<span class="sd">    y_pred : numpy array</span>
+<span class="sd">        Predicted 0/1 values.</span>
+<span class="sd">    conf_metric : str, optional</span>
+<span class="sd">        The metrics to return, can be `Sens/Recall`, `Specificity`, `ppv`,</span>
+<span class="sd">        `npv`, `conf_mat`, or `all`. The default is 'all'.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict, or float</span>
+<span class="sd">        Returns dictionary for `all`, otherwise, float for the metric of</span>
+<span class="sd">        interest.</span>
+
+<span class="sd">    """</span>
+    <span class="n">confMat</span> <span class="o">=</span> <span class="n">confusion_matrix</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Sens/Recall'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+               <span class="s1">'Specificity'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+               <span class="s1">'ppv'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+               <span class="s1">'npv'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+               <span class="s1">'Conf_Mat'</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="n">tn</span> <span class="o">=</span> <span class="n">confMat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">tp</span> <span class="o">=</span> <span class="n">confMat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="n">confMat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">confMat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">tnfp</span> <span class="o">=</span> <span class="n">tn</span> <span class="o">+</span> <span class="n">fp</span>
+    <span class="n">tpfn</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span>
+    <span class="n">tpfp</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span>
+    <span class="n">tnfn</span> <span class="o">=</span> <span class="n">tn</span> <span class="o">+</span> <span class="n">fn</span>
+    <span class="k">if</span> <span class="n">tnfp</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">'Specificity'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tn</span><span class="o">/</span><span class="n">tnfp</span>
+    <span class="k">if</span> <span class="n">tpfn</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">'Sens/Recall'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tp</span><span class="o">/</span><span class="n">tpfn</span>
+    <span class="k">if</span> <span class="n">tpfp</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">'ppv'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tp</span><span class="o">/</span><span class="n">tpfp</span>
+    <span class="k">if</span> <span class="n">tnfn</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">'npv'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tn</span><span class="o">/</span><span class="n">tnfn</span>
+    <span class="k">if</span> <span class="n">tpfp</span><span class="o">*</span><span class="n">tpfn</span><span class="o">*</span><span class="n">tnfp</span><span class="o">*</span><span class="n">tnfn</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Note matthews correlation is actually equivalent to a pearson</span>
+        <span class="c1"># correlation between y_true and y_pred</span>
+        <span class="n">metrics</span><span class="p">[</span><span class="s1">'matthews_coef'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">tp</span><span class="o">*</span><span class="n">tn</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">fp</span><span class="o">*</span><span class="n">fn</span><span class="p">))</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tpfp</span><span class="o">*</span><span class="n">tpfn</span><span class="o">*</span><span class="n">tnfp</span><span class="o">*</span><span class="n">tnfn</span><span class="p">)</span>
+    <span class="n">metrics</span><span class="p">[</span><span class="s1">'Conf_Mat'</span><span class="p">]</span> <span class="o">=</span> <span class="n">confMat</span>
+    
+    <span class="k">if</span> <span class="n">conf_metric</span> <span class="o">==</span> <span class="s1">'all'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">metrics</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">metrics</span><span class="p">[{</span><span class="s1">'PPV'</span><span class="p">:</span> <span class="s1">'ppv'</span><span class="p">,</span> <span class="s1">'NPV'</span><span class="p">:</span> <span class="s1">'npv'</span><span class="p">,</span> <span class="s1">'Confusion Matrix'</span><span class="p">:</span> <span class="s1">'Conf_Mat'</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">conf_metric</span><span class="p">,</span> <span class="n">conf_metric</span><span class="p">)]</span></div>
+
+
+    
+<div class="viewcode-block" id="bias">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.bias.html#tsdst.metrics.bias">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">bias</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate model bias (systemic errors in estimation) in Linear Regression.</span>
+<span class="sd">    </span>
+<span class="sd">    Defined as The average distance (and direction) the predictions are from</span>
+<span class="sd">    the true values (mean(y_pred - y_true)). If bias &lt; 0, predictions are too</span>
+<span class="sd">    low, and if bias &gt; 0, then predictions are too high. Bias is measured in </span>
+<span class="sd">    the same units as the response.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : numpy array</span>
+<span class="sd">        True values (observed response).</span>
+<span class="sd">    y_pred : numpy array</span>
+<span class="sd">        Predicted values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bias : float</span>
+<span class="sd">        Model bias.</span>
+
+<span class="sd">    """</span>
+    <span class="n">ydiff</span> <span class="o">=</span> <span class="n">y_pred</span> <span class="o">-</span> <span class="n">y_true</span>
+    <span class="n">bias</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ydiff</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bias</span></div>
+
+
+
+<div class="viewcode-block" id="rpmse">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.rpmse.html#tsdst.metrics.rpmse">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rpmse</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculate model PMSE/RPMSE (root predictive mean squared error) in</span>
+<span class="sd">    Linear Regression.</span>
+<span class="sd">    </span>
+<span class="sd">    PMSE or MSE is defined as the average squared distance the predictions</span>
+<span class="sd">    are from the true values (mean((y_pred - y_true)^2)), and measure how far </span>
+<span class="sd">    off the predictions are on average (i.e. how variable the predictions are).</span>
+<span class="sd">    The root MSE is convenient because it is measured in the same units as the</span>
+<span class="sd">    response.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : numpy array</span>
+<span class="sd">        True values (observed response).</span>
+<span class="sd">    y_pred : numpy array</span>
+<span class="sd">        Predicted values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bias : float</span>
+<span class="sd">        Model bias.</span>
+
+<span class="sd">    """</span>
+    <span class="n">ydiff</span> <span class="o">=</span> <span class="n">y_pred</span> <span class="o">-</span> <span class="n">y_true</span>
+    <span class="k">if</span> <span class="n">root</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ydiff</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ydiff</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="r2">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.r2.html#tsdst.metrics.r2">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">r2</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    R-squared for a linear regression model. The percent of the variance in </span>
+<span class="sd">    the response that can be explained by the predictors.</span>
+<span class="sd">    </span>
+<span class="sd">    SSE : Sum of Squares Errors (Residuals)</span>
+<span class="sd">    SSR : Sum of Squares Regression</span>
+<span class="sd">    SST : Sum of Squares Total</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : numpy array</span>
+<span class="sd">        True values (observed response).</span>
+<span class="sd">    y_pred : numpy array</span>
+<span class="sd">        Predicted values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rsquared : float</span>
+<span class="sd">        R-squared.</span>
+
+<span class="sd">    """</span>
+    <span class="n">y_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y_true</span><span class="p">)</span>
+    <span class="n">SST</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_true</span> <span class="o">-</span> <span class="n">y_bar</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># sum of squares total</span>
+    <span class="n">SSE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_true</span> <span class="o">-</span> <span class="n">y_pred</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># sum of squares error</span>
+    <span class="c1">#SSR = np.sum((y_pred - y_bar)**2) # sum of squares regression</span>
+    <span class="n">rsquared</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">SSE</span><span class="o">/</span><span class="n">SST</span>
+    <span class="c1"># Note: the following deifinitions are only equal to the above when the</span>
+    <span class="c1"># model is linear, and will only be equivalent for the training data (i.e.</span>
+    <span class="c1"># the test data is not guarenteed to have equivalent definitions of R2)</span>
+    <span class="c1"># The equivalence of these definitions will hold for some non-linear</span>
+    <span class="c1"># models, but not for others. Therefore,</span>
+    <span class="c1"># Kvalseth TO. Cautionary Note About R2. Am. Statistic. 1985;39:279–285.</span>
+    <span class="c1"># recommends using 1 - SSE/SST for the general cases because by it's </span>
+    <span class="c1"># definition, it is the most robust to a general suite of problems</span>
+    
+    <span class="c1"># alternative R2: np.corrcoef((ypred, ytrue))**2</span>
+    <span class="c1"># rsquared = SSR/SST</span>
+    <span class="k">return</span> <span class="n">rsquared</span></div>
+
+
+
+<div class="viewcode-block" id="lr_sd_fromModel">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.lr_sd_fromModel.html#tsdst.metrics.lr_sd_fromModel">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lr_sd_fromModel</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Linear Regression Model Standard deviation (error) estimate, or,</span>
+<span class="sd">    the estimate of the true standard deviation of the underlying distribution</span>
+<span class="sd">    for y_true. This is the maximum likelihood estimate for sigma, where</span>
+<span class="sd">    y_true ~ N(y_pred, sigma^2), or equivalently, error ~ N(0, sigma^2).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    estimator : sklearn model, or similar</span>
+<span class="sd">        The model needs to have a predict method.</span>
+<span class="sd">    X : numpy array or pandas dataframe</span>
+<span class="sd">        The design or feature matrix.</span>
+<span class="sd">    y : numpy array or pandas series</span>
+<span class="sd">        The target or response variable.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Model error estimate.</span>
+
+<span class="sd">    """</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">y_pred</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">sigma</span></div>
+
+
+
+<div class="viewcode-block" id="lr_sd_fromPrediction">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.lr_sd_fromPrediction.html#tsdst.metrics.lr_sd_fromPrediction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lr_sd_fromPrediction</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">num_params</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Linear Regression Model Standard deviation (error) estimate, or,</span>
+<span class="sd">    the estimate of the true standard deviation of the underlying distribution</span>
+<span class="sd">    for y_true. This is the maximum likelihood estimate for sigma, where</span>
+<span class="sd">    y_true ~ N(y_pred, sigma^2), or equivalently, error ~ N(0, sigma^2).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : numpy array</span>
+<span class="sd">        True values (observed response).</span>
+<span class="sd">    y_pred : numpy array</span>
+<span class="sd">        Predicted values.</span>
+<span class="sd">    num_params : int</span>
+<span class="sd">        Number of Model Parameters</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sigma : float</span>
+<span class="sd">        Model error estimate.</span>
+
+<span class="sd">    """</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y_true</span> <span class="o">-</span> <span class="n">y_pred</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">y_true</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">num_params</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">sigma</span></div>
+
+
+
+<div class="viewcode-block" id="adj_r2">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.adj_r2.html#tsdst.metrics.adj_r2">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">adj_r2</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">rsquared</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Adjusted R-squared for a linear regression model. The percent of the</span>
+<span class="sd">    variance in the response that can be explained by the predictors. The </span>
+<span class="sd">    adjustment is for the ratio or predictors to observations.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_true : numpy array</span>
+<span class="sd">        True values (observed response).</span>
+<span class="sd">    y_pred : numpy array</span>
+<span class="sd">        Predicted values.</span>
+<span class="sd">    X : numpy array</span>
+<span class="sd">        The design or feature matrix.</span>
+<span class="sd">    rsquared : float</span>
+<span class="sd">        The Unadjusted R-squared for the model, if available. Otherwise,</span>
+<span class="sd">        it's calculated from `r2`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rsquared : float</span>
+<span class="sd">        R-squared.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">rsquared</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rsquared</span> <span class="o">=</span> <span class="n">r2</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+    <span class="n">adj_r2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">rsquared</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">adj_r2</span></div>
+
+    
+
+<div class="viewcode-block" id="aicCalc">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.aicCalc.html#tsdst.metrics.aicCalc">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">aicCalc</span><span class="p">(</span><span class="n">loglike</span><span class="p">,</span> <span class="n">num_model_params</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">"aicc"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Generic Akaike information criterion (AIC) calculation for models.</span>
+<span class="sd">    Includes metrics for AIC: `aic`, Corrected AIC: `aicc`, Bayesian</span>
+<span class="sd">    Information Criterion (BIC): `bic`, or extended BIC: `ebic`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    loglike : float</span>
+<span class="sd">        The loglikelihood of the model.</span>
+<span class="sd">    num_model_params : int</span>
+<span class="sd">        Number of parameters in the model.</span>
+<span class="sd">    sample_size : int</span>
+<span class="sd">        Number of observations.</span>
+<span class="sd">    c : int or float, optional</span>
+<span class="sd">        correction parameter for ebic. The default is 2.</span>
+<span class="sd">    metric : str, optional</span>
+<span class="sd">        The metric to evaluate (see main description). The default is "aicc".</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Raised if no valid metric is selected.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ic : float</span>
+<span class="sd">        The IC value.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"aicc"</span> <span class="ow">and</span> <span class="n">sample_size</span> <span class="o">&lt;=</span> <span class="n">num_model_params</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">ic</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"aic"</span> <span class="ow">or</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"aicc"</span><span class="p">:</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">num_model_params</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">loglike</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"aicc"</span><span class="p">:</span>
+            <span class="n">ic</span> <span class="o">=</span> <span class="p">(</span><span class="n">ic</span> <span class="o">+</span> <span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">num_model_params</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
+                    <span class="mi">2</span><span class="o">*</span><span class="n">num_model_params</span><span class="p">)</span> <span class="o">/</span>
+                   <span class="p">(</span><span class="n">sample_size</span> <span class="o">-</span> <span class="n">num_model_params</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">sample_size</span> <span class="o">-</span> <span class="n">num_model_params</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">ic</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"bic"</span><span class="p">:</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sample_size</span><span class="p">)</span><span class="o">*</span><span class="n">num_model_params</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">loglike</span>
+    <span class="k">elif</span> <span class="n">metric</span> <span class="o">==</span> <span class="s2">"ebic"</span><span class="p">:</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sample_size</span><span class="p">)</span><span class="o">*</span><span class="n">num_model_params</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">loglike</span>
+    <span class="k">if</span> <span class="n">ic</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ic</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Not a valid method. No criteria was calculated"</span><span class="p">)</span></div>
+
+        
+
+<div class="viewcode-block" id="glm_regularized_AIC">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.glm_regularized_AIC.html#tsdst.metrics.glm_regularized_AIC">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">glm_regularized_AIC</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">reg_mod</span><span class="p">,</span> <span class="n">unreg_mod</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
+                        <span class="n">method</span><span class="o">=</span><span class="s1">'kawano'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">'binomial'</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Calculate AIC for a generalized linear model estimated with regularization.</span>
+
+<span class="sd">    The binomial and Poisson Kawano correction follows Ninomiya and Kawano's</span>
+<span class="sd">    2016 paper, AIC for the Lasso in generalized linear models, and the authors'</span>
+<span class="sd">    sAIC R package. The alternative active-coefficient correction follows the</span>
+<span class="sd">    Gaussian Lasso degrees-of-freedom argument of Zou, Hastie, and Tibshirani.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : array-like</span>
+<span class="sd">        Feature matrix without an intercept column.</span>
+<span class="sd">    Y : array-like</span>
+<span class="sd">        Response values. Binomial responses are zero or one; Poisson responses</span>
+<span class="sd">        are nonnegative integers; Gaussian responses are real values.</span>
+<span class="sd">    reg_mod : fitted estimator</span>
+<span class="sd">        Regularized model with ``coef_``, ``intercept_``, and the appropriate prediction</span>
+<span class="sd">        method. Binomial uses predict_proba; Poisson predictions are count means</span>
+<span class="sd">        after the inverse log link.</span>
+<span class="sd">    unreg_mod : fitted estimator</span>
+<span class="sd">        Corresponding unregularized model used for the binomial or Poisson</span>
+<span class="sd">        information comparison. The Gaussian branch ignores this argument.</span>
+<span class="sd">    tol : float, optional</span>
+<span class="sd">        Nonnegative cutoff for active coefficients, abs(coefficient) &gt; tol.</span>
+<span class="sd">        The same cutoff applies to the intercept. The default is 1e-6.</span>
+<span class="sd">    method : {'kawano', 'hastie'}, optional</span>
+<span class="sd">        Kawano uses the information-matrix correction. Hastie counts active</span>
+<span class="sd">        coefficients. Names are case-insensitive. The default is 'kawano'.</span>
+<span class="sd">    family : {'binomial', 'poisson', 'gaussian'}, optional</span>
+<span class="sd">        Response family. The default is 'binomial'.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    aic : float</span>
+<span class="sd">        Minus twice the unpenalized log likelihood plus the selected correction.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the family, method, tolerance, response, or coefficient layout is invalid.</span>
+<span class="sd">    numpy.linalg.LinAlgError</span>
+<span class="sd">        If the active information matrix is singular.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For binomial and Poisson Kawano AIC, let X_A contain active columns of the</span>
+<span class="sd">    intercept-augmented design. J=X_A.T @ W_fit @ X_A and I=X_A.T @ W_unreg @ X_A.</span>
+<span class="sd">    The correction is 2*trace(solve(J, I)). The ordinary solve follows the named</span>
+<span class="sd">    criterion; replacing it with a pseudoinverse would define a different rule.</span>
+<span class="sd">    For the active-coefficient alternative, the correction is twice the active</span>
+<span class="sd">    count. Gaussian regression uses this active count plus one estimated noise</span>
+<span class="sd">    variance parameter, with maximum-likelihood variance RSS/n, for both names.</span>
+<span class="sd">    """</span>
+    <span class="n">original_X</span> <span class="o">=</span> <span class="n">X</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Supply a finite design matrix and one finite response per row'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span> <span class="ow">or</span> <span class="n">tol</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The active-coefficient tolerance must be finite and nonnegative'</span><span class="p">)</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'kawano'</span><span class="p">,</span> <span class="s1">'hastie'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Method must be kawano or hastie'</span><span class="p">)</span>
+    <span class="n">design</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="n">X</span><span class="p">])</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">reg_mod</span><span class="o">.</span><span class="n">intercept_</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">reg_mod</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">beta</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">design</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The model must have one coefficient per feature and one intercept'</span><span class="p">)</span>
+    <span class="n">active</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">tol</span>
+    <span class="n">eta</span> <span class="o">=</span> <span class="n">design</span> <span class="o">@</span> <span class="n">beta</span>
+    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">'binomial'</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Binomial responses must be zero or one'</span><span class="p">)</span>
+        <span class="c1"># logaddexp keeps the Bernoulli likelihood finite for extreme logits.</span>
+        <span class="n">nll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logaddexp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">eta</span><span class="p">)</span> <span class="o">-</span> <span class="n">Y</span><span class="o">*</span><span class="n">eta</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">reg_mod</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">original_X</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">p0</span> <span class="o">=</span> <span class="n">unreg_mod</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">original_X</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">weights</span><span class="p">,</span> <span class="n">weights0</span> <span class="o">=</span> <span class="n">p</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">),</span> <span class="n">p0</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">'poisson'</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">Y</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">Y</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">Y</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Poisson responses must be nonnegative integers'</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">gammaln</span>
+        <span class="n">nll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">eta</span><span class="p">)</span> <span class="o">-</span> <span class="n">Y</span><span class="o">*</span><span class="n">eta</span> <span class="o">+</span> <span class="n">gammaln</span><span class="p">(</span><span class="n">Y</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">weights</span><span class="p">,</span> <span class="n">weights0</span> <span class="o">=</span> <span class="n">reg_mod</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">original_X</span><span class="p">),</span> <span class="n">unreg_mod</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">original_X</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">family</span> <span class="o">==</span> <span class="s1">'gaussian'</span><span class="p">:</span>
+        <span class="n">variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">Y</span><span class="o">-</span><span class="n">eta</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">variance</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Gaussian AIC requires a positive residual variance'</span><span class="p">)</span>
+        <span class="n">nll</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">variance</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">nll</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">active</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Family must be binomial, poisson, or gaussian'</span><span class="p">)</span>
+    <span class="c1"># Both information matrices use the same active design columns.</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">'kawano'</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">active</span><span class="p">):</span>
+        <span class="n">selected</span> <span class="o">=</span> <span class="n">design</span><span class="p">[:,</span> <span class="n">active</span><span class="p">]</span>
+        <span class="n">fisher</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">selected</span><span class="p">)</span>
+        <span class="n">fisher0</span> <span class="o">=</span> <span class="n">selected</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights0</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">selected</span><span class="p">)</span>
+        <span class="n">degrees</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">fisher</span><span class="p">,</span> <span class="n">fisher0</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># The alternative correction counts active coefficients, not their average.</span>
+        <span class="n">degrees</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">active</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">nll</span> <span class="o">+</span> <span class="n">degrees</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="js_div">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.js_div.html#tsdst.metrics.js_div">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">js_div</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Jensen-Shannon Divergence, which is a smoothed version of KL divergence.</span>
+<span class="sd">    </span>
+<span class="sd">    px: Probability of x (float or array of floats)</span>
+<span class="sd">    py: Probability of y (float or array of floats)</span>
+<span class="sd">    """</span>
+    <span class="n">midpoint</span> <span class="o">=</span> <span class="p">(</span><span class="n">px</span> <span class="o">+</span> <span class="n">py</span><span class="p">)</span><span class="o">*</span><span class="mf">0.5</span>
+    <span class="n">js</span> <span class="o">=</span> <span class="n">rel_entr</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">midpoint</span><span class="p">)</span><span class="o">*</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">rel_entr</span><span class="p">(</span><span class="n">py</span><span class="p">,</span> <span class="n">midpoint</span><span class="p">)</span><span class="o">*</span><span class="mf">0.5</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">js</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="kl_div">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.kl_div.html#tsdst.metrics.kl_div">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">kl_div</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    KL divergence.</span>
+<span class="sd">    </span>
+<span class="sd">    Note: scipy has a KL divergence function of the same name, but it adds</span>
+<span class="sd">    extra terms. </span>
+<span class="sd">    </span>
+<span class="sd">    px: Probability of x (float or array of floats)</span>
+<span class="sd">    py: Probability of y (float or array of floats)</span>
+<span class="sd">    """</span>
+    <span class="n">kl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">px</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">px</span><span class="o">/</span><span class="n">py</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">kl</span></div>
+
+
+
+<div class="viewcode-block" id="HellingerDistanceMVN">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.HellingerDistanceMVN.html#tsdst.metrics.HellingerDistanceMVN">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">HellingerDistanceMVN</span><span class="p">(</span><span class="n">mu1</span><span class="p">,</span> <span class="n">mu2</span><span class="p">,</span> <span class="n">cov1</span><span class="p">,</span> <span class="n">cov2</span><span class="p">,</span> <span class="n">squared</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Quantifies the similarity between two multivariate normal distributions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mu1 : numpy array</span>
+<span class="sd">        Mean of the first distribution.</span>
+<span class="sd">    mu2 : numpy array</span>
+<span class="sd">        Mean of the second distribution.</span>
+<span class="sd">    cov1 : numpy array</span>
+<span class="sd">        Covariance of the first distribution.</span>
+<span class="sd">    cov2 : numpy array</span>
+<span class="sd">        Covariance of the second distribution.</span>
+<span class="sd">    squared : bool, optional</span>
+<span class="sd">        Return the squared distance. The default is False.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Hellinger Distance.</span>
+
+<span class="sd">    """</span>
+    <span class="n">mu_diff</span> <span class="o">=</span> <span class="n">mu1</span> <span class="o">-</span> <span class="n">mu2</span>
+    <span class="n">det_cov1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">cov1</span><span class="p">)</span>
+    <span class="n">det_cov2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">cov2</span><span class="p">)</span>
+    <span class="n">cov_sum</span> <span class="o">=</span> <span class="p">(</span><span class="n">cov1</span> <span class="o">+</span> <span class="n">cov2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">det_cov_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">cov_sum</span><span class="p">)</span>
+    <span class="n">inv_cov_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">cov_sum</span><span class="p">)</span>
+    
+    <span class="n">dets</span> <span class="o">=</span> <span class="p">(((</span><span class="n">det_cov1</span><span class="o">**</span><span class="mf">0.25</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">det_cov2</span><span class="o">**</span><span class="mf">0.25</span><span class="p">))</span><span class="o">/</span><span class="n">det_cov_sum</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">expon</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.125</span><span class="o">*</span><span class="n">mu_diff</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">inv_cov_sum</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">mu_diff</span><span class="p">)</span>
+
+    <span class="n">H2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dets</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">expon</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">squared</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">H2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">H2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HellingerDistanceUN">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.HellingerDistanceUN.html#tsdst.metrics.HellingerDistanceUN">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">HellingerDistanceUN</span><span class="p">(</span><span class="n">mu1</span><span class="p">,</span> <span class="n">mu2</span><span class="p">,</span> <span class="n">sd1</span><span class="p">,</span> <span class="n">sd2</span><span class="p">,</span> <span class="n">squared</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Quantifies the similarity between two Univariate normal distributions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mu1 : float</span>
+<span class="sd">        Mean of the first distribution.</span>
+<span class="sd">    mu2 : float</span>
+<span class="sd">        Mean of the second distribution.</span>
+<span class="sd">    sd1 : float</span>
+<span class="sd">        Standard Deviation of the first distribution.</span>
+<span class="sd">    sd2 : float</span>
+<span class="sd">        Standard Deviation of the second distribution.</span>
+<span class="sd">    squared : bool, optional</span>
+<span class="sd">        Return the squared distance. The default is False.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Hellinger Distance.</span>
+
+<span class="sd">    """</span>
+    <span class="n">mu_diff2</span> <span class="o">=</span> <span class="p">(</span><span class="n">mu1</span> <span class="o">-</span> <span class="n">mu2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">sd_sum</span> <span class="o">=</span> <span class="p">(</span><span class="n">sd1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">sd2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">H2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mi">2</span><span class="o">*</span><span class="n">sd1</span><span class="o">*</span><span class="n">sd2</span><span class="p">)</span><span class="o">/</span><span class="n">sd_sum</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.25</span><span class="o">*</span><span class="p">(</span><span class="n">mu_diff2</span><span class="o">/</span><span class="n">sd_sum</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">squared</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">H2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">H2</span><span class="p">)</span></div>
+
+    
+
+<div class="viewcode-block" id="HotellingsTwoSampleMVTtest">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.HotellingsTwoSampleMVTtest.html#tsdst.metrics.HotellingsTwoSampleMVTtest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">HotellingsTwoSampleMVTtest</span><span class="p">(</span><span class="n">mu1</span><span class="p">,</span> <span class="n">mu2</span><span class="p">,</span> <span class="n">cov1</span><span class="p">,</span> <span class="n">cov2</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">pval</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Used for multivariate hypothesis testing. Can test the similarity of two</span>
+<span class="sd">    Multivariate samples assumed to follow a normal distribution.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mu1 : numpy array</span>
+<span class="sd">        Mean of the first distribution.</span>
+<span class="sd">    mu2 : numpy array</span>
+<span class="sd">        Mean of the second distribution.</span>
+<span class="sd">    cov1 : numpy array</span>
+<span class="sd">        Covariance of the first distribution.</span>
+<span class="sd">    cov2 : numpy array</span>
+<span class="sd">        Covariance of the second distribution.</span>
+<span class="sd">    n1 : int</span>
+<span class="sd">        Number of observations in the first sample.</span>
+<span class="sd">    n2 : int</span>
+<span class="sd">        Number of observations in the first sample.</span>
+<span class="sd">    pval : bool, optional</span>
+<span class="sd">        Calculate the p-value of the statistic. The default is True.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Either p-value or t-statistic.</span>
+
+<span class="sd">    """</span>
+    <span class="n">mu_diff</span> <span class="o">=</span> <span class="n">mu1</span> <span class="o">-</span> <span class="n">mu2</span>
+    <span class="n">pooled_cov</span> <span class="o">=</span> <span class="p">(((</span><span class="n">n1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">cov1</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">n2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">cov2</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="n">n1</span> <span class="o">+</span> <span class="n">n2</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">inv_pooled_cov</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">pooled_cov</span><span class="p">)</span>
+    
+    <span class="n">t2</span> <span class="o">=</span> <span class="p">((</span><span class="n">n1</span><span class="o">*</span><span class="n">n2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">n1</span> <span class="o">+</span> <span class="n">n2</span><span class="p">))</span><span class="o">*</span><span class="n">mu_diff</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">inv_pooled_cov</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">mu_diff</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pval</span><span class="p">:</span>
+        <span class="c1"># the T2 dist is proportional to an F-dist. For simplicity...</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">cov1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">n1</span> <span class="o">+</span> <span class="n">n2</span> <span class="o">-</span> <span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span><span class="o">/</span><span class="p">((</span><span class="n">n1</span> <span class="o">+</span> <span class="n">n2</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">p</span><span class="p">))</span><span class="o">*</span><span class="n">t2</span>
+        <span class="n">pv</span> <span class="o">=</span> <span class="n">f_distribution</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">dfn</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">dfd</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pv</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t2</span></div>
+
+    
+
+<div class="viewcode-block" id="accuracy">
+<a class="viewcode-back" href="../../generated/tsdst.metrics.accuracy.html#tsdst.metrics.accuracy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">accuracy</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return accuracy for labels, binary scores, or one-hot arrays."""</span>
+    <span class="n">truth</span><span class="p">,</span> <span class="n">prediction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_true</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_pred</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">truth</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">truth</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">one_hot_decode</span><span class="p">(</span><span class="n">truth</span><span class="p">)</span> <span class="o">==</span> <span class="n">one_hot_decode</span><span class="p">(</span><span class="n">prediction</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">truth</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="o">==</span> <span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">))</span></div>
+
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -13,7 +13,7 @@ from . import tmath
 from . import utils
 from . import nn
 
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 
 __all__ = ['distributions',
            'eda',

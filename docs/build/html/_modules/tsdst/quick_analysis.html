@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tsdst.quick_analysis &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=062ca7a5" />
+    <script src="../../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../weibull_regression.html">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary">
+<form action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <h1>Source code for tsdst.quick_analysis</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.linear_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogisticRegression</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">f1_score</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">timeit</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">dt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.feature_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">dropHighCorrs</span><span class="p">,</span> <span class="n">getHighCorrs</span><span class="p">,</span> <span class="n">naiveVarDrop</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">aicCalc</span><span class="p">,</span> <span class="n">glm_regularized_AIC</span> <span class="k">as</span> <span class="n">glmAIC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.modeling</span><span class="w"> </span><span class="kn">import</span> <span class="n">crossVal</span><span class="p">,</span> <span class="n">prettyConfMat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.parallel</span><span class="w"> </span><span class="kn">import</span> <span class="n">p_prog_simp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_time</span><span class="p">,</span> <span class="n">updateProgBar</span>
+
+
+<div class="viewcode-block" id="calcAICsLasso">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.calcAICsLasso.html#tsdst.quick_analysis.calcAICsLasso">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calcAICsLasso</span><span class="p">(</span><span class="n">penalty</span><span class="p">,</span> <span class="n">Xtrain</span><span class="p">,</span> <span class="n">Ytrain</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span> <span class="n">unreg_full_mod</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Utility function for quick_analysis. Need to update this to include more</span>
+<span class="sd">    GLM models.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    penalty : flost</span>
+<span class="sd">        The strength of the L1 penalty.</span>
+<span class="sd">    Xtrain : numpy array or pandas dataframe</span>
+<span class="sd">        The design or feature matrix.</span>
+<span class="sd">    Ytrain : numpy array or pandas series</span>
+<span class="sd">        The target or response variable.</span>
+<span class="sd">    sample_size : int</span>
+<span class="sd">        The number of observations.</span>
+<span class="sd">    unreg_full_mod : sklearn object, or similar, optional</span>
+<span class="sd">        The unregularized full model. The default is None.</span>
+<span class="sd">    random_state : int, optional</span>
+<span class="sd">        Random seed for the process. The default is 123.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    nzc : list</span>
+<span class="sd">        A list indicating the non-zero coefficients.</span>
+<span class="sd">    aics : list</span>
+<span class="sd">        A list containing the AIC values.</span>
+
+<span class="sd">    """</span>
+    <span class="n">cur_mod_reg</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">C</span><span class="o">=</span><span class="n">penalty</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">l1_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                     <span class="n">solver</span><span class="o">=</span><span class="s1">'liblinear'</span><span class="p">,</span>
+                                     <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                                     <span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">Ytrain</span><span class="p">)</span>
+    <span class="n">Yprob</span> <span class="o">=</span> <span class="n">cur_mod_reg</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">Ypred</span> <span class="o">=</span> <span class="n">cur_mod_reg</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">)</span>
+    <span class="n">mod_coef</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">cur_mod_reg</span><span class="o">.</span><span class="n">intercept_</span><span class="p">,</span>
+                               <span class="n">cur_mod_reg</span><span class="o">.</span><span class="n">coef_</span><span class="o">.</span><span class="n">ravel</span><span class="p">()))</span>
+    <span class="n">nzc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="mi">1</span> <span class="k">if</span> <span class="n">coef</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">coef</span> <span class="ow">in</span> <span class="n">mod_coef</span><span class="p">))</span>
+    <span class="n">loglike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Ytrain</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Yprob</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Ytrain</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Yprob</span><span class="p">))</span>
+    
+    <span class="n">aics</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">aics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aicCalc</span><span class="p">(</span><span class="n">loglike</span><span class="p">,</span> <span class="n">nzc</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">"aic"</span><span class="p">))</span>
+    <span class="n">aics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aicCalc</span><span class="p">(</span><span class="n">loglike</span><span class="p">,</span> <span class="n">nzc</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">"aicc"</span><span class="p">))</span>
+    <span class="n">aics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aicCalc</span><span class="p">(</span><span class="n">loglike</span><span class="p">,</span> <span class="n">nzc</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">"bic"</span><span class="p">))</span>
+    <span class="n">aics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">aicCalc</span><span class="p">(</span><span class="n">loglike</span><span class="p">,</span> <span class="n">nzc</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">"ebic"</span><span class="p">))</span>
+    <span class="n">aics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Ypred</span> <span class="o">!=</span> <span class="n">Ytrain</span><span class="p">))</span>
+    <span class="n">aics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f1_score</span><span class="p">(</span><span class="n">Ytrain</span><span class="p">,</span> <span class="n">Ypred</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">unreg_full_mod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">aics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">glmAIC</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">Ytrain</span><span class="p">,</span> <span class="n">cur_mod_reg</span><span class="p">,</span> <span class="n">unreg_full_mod</span><span class="p">,</span>
+                             <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"kawano"</span><span class="p">))</span>
+        <span class="n">aics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">glmAIC</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">Ytrain</span><span class="p">,</span> <span class="n">cur_mod_reg</span><span class="p">,</span> <span class="n">unreg_full_mod</span><span class="p">,</span>
+                             <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"hastie"</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">nzc</span><span class="p">,</span> <span class="n">aics</span></div>
+
+
+
+<div class="viewcode-block" id="parallel_AIC_data_retriever">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.parallel_AIC_data_retriever.html#tsdst.quick_analysis.parallel_AIC_data_retriever">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parallel_AIC_data_retriever</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">save_name</span><span class="p">,</span> <span class="n">num_chunks</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span>
+                                <span class="n">unreg_full_mod</span><span class="p">,</span> <span class="n">random_state</span><span class="p">,</span> <span class="n">target_var</span><span class="p">,</span>
+                                <span class="n">cur_pred_list</span><span class="p">,</span> <span class="n">penalty</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Utility function for QuickAnalysis. Not to be used externally.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    save_path : str</span>
+<span class="sd">        Directory containing the temporary Feather file.</span>
+<span class="sd">    save_name : str</span>
+<span class="sd">        File stem used with the .fth extension.</span>
+<span class="sd">    num_chunks : int or None</span>
+<span class="sd">        Retained argument. The reader loads one complete Feather table.</span>
+<span class="sd">    sample_size : int</span>
+<span class="sd">        The number of observations.</span>
+<span class="sd">    unreg_full_mod : sklearn object, or similar</span>
+<span class="sd">        Unregularized full model.</span>
+<span class="sd">    random_state : int</span>
+<span class="sd">        Random seed for the process.</span>
+<span class="sd">    target_var : str</span>
+<span class="sd">        The name of the target variable.</span>
+<span class="sd">    cur_pred_list : list</span>
+<span class="sd">        The list of current predictors in the model.</span>
+<span class="sd">    penalty : float</span>
+<span class="sd">        Inverse regularization strength C for the L1 logistic fit.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    res : tuple</span>
+<span class="sd">        Tuple of results (non-zero coefficients and aic values).</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This worker reads the shared table and selects predictors and response in</span>
+<span class="sd">    their original row order. It returns the nonzero coefficient count and the</span>
+<span class="sd">    information-criterion array from calcAICsLasso. Parallel execution passes a</span>
+<span class="sd">    file path rather than another pickled dataframe copy.</span>
+<span class="sd">    """</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_feather</span><span class="p">(</span><span class="n">save_path</span> <span class="o">+</span> <span class="n">save_name</span> <span class="o">+</span> <span class="s1">'.fth'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">calcAICsLasso</span><span class="p">(</span><span class="n">penalty</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">cur_pred_list</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="n">target_var</span><span class="p">],</span> <span class="n">sample_size</span><span class="p">,</span>
+                         <span class="n">unreg_full_mod</span><span class="p">,</span> <span class="n">random_state</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QuickAnalysis">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.html#tsdst.quick_analysis.QuickAnalysis">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QuickAnalysis</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    A class for performing a quick sweep of the data. Helps establish a</span>
+<span class="sd">    baseline model to get started with, as well as quickly identify potentially</span>
+<span class="sd">    useful features.</span>
+<span class="sd">    """</span>
+<div class="viewcode-block" id="QuickAnalysis.__init__">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.__init__.html#tsdst.quick_analysis.QuickAnalysis.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train</span><span class="p">,</span> <span class="n">holdout</span><span class="p">,</span> <span class="n">target_var</span><span class="p">,</span> <span class="n">low_memory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">name</span><span class="o">=</span><span class="s2">"QuickAnalysis"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Constructor for QuickAnalysis</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train : pandas dataframe</span>
+<span class="sd">            The training dataset.</span>
+<span class="sd">        holdout : pandas dataframe</span>
+<span class="sd">            The holdout set (for evaluation of the final model).</span>
+<span class="sd">        target_var : str</span>
+<span class="sd">            The target or response variable.</span>
+<span class="sd">        low_memory : bool, optional</span>
+<span class="sd">            For instances where it applies, attempts to use less memory.</span>
+<span class="sd">            The default is False.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            A name for the modeling object. The default is "QuickAnalysis".</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_analysis_arglist</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_analysis_arglist</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fsa_analysis_arglist</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_raw</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">holdout_raw</span> <span class="o">=</span> <span class="n">holdout</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">low_memory</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train_raw</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">holdout_raw</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">low_memory</span> <span class="o">=</span> <span class="n">low_memory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">holdout</span> <span class="o">=</span> <span class="n">holdout</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_var</span> <span class="o">=</span> <span class="n">target_var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step_num</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predictors_raw</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">target_var</span> <span class="o">!=</span> <span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">target_var</span> <span class="o">!=</span> <span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HCdropList</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_corr</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corr_mat</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">highCorr</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">varDropList</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aics</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonzero_coefs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opt_c</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimal_num_params</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coef_ord_red_final</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_dropped_cols</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+        
+    
+<div class="viewcode-block" id="QuickAnalysis.GenCorrStats">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.GenCorrStats.html#tsdst.quick_analysis.QuickAnalysis.GenCorrStats">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">GenCorrStats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Generate Correlation Statistics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        is_raw : bool, optional</span>
+<span class="sd">            Is the raw data (vs. scaled data). The default is False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        <span class="n">corr_mat</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">is_raw</span><span class="p">:</span>
+            <span class="n">corr_mat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_raw</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                                <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                                    <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_raw</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                                    <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_raw</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">corr_mat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                                <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                                    <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                                    <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_corr</span> <span class="o">=</span> <span class="n">corr_mat</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corr_mat</span> <span class="o">=</span> <span class="n">corr_mat</span></div>
+
+    
+<div class="viewcode-block" id="QuickAnalysis.sort_y_corr">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.sort_y_corr.html#tsdst.quick_analysis.QuickAnalysis.sort_y_corr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sort_y_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Sort columns by their correlation with the target variable.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas series</span>
+<span class="sd">            Sorted Correlations.</span>
+
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_corr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"No y_corr recorded. Run GenCorrMat"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_corr</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="QuickAnalysis.plot_y_corr">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.plot_y_corr.html#tsdst.quick_analysis.QuickAnalysis.plot_y_corr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_y_corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Plot variable correlations with the target variable.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        <span class="n">sorted_corrs_with_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_corr</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sorted_corrs_with_y</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Correlation"</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"Sorted Features"</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Correlation of Each Feature with "</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">sorted_corrs_with_y</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+    
+<div class="viewcode-block" id="QuickAnalysis.genHighCorrs">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.genHighCorrs.html#tsdst.quick_analysis.QuickAnalysis.genHighCorrs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">genHighCorrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">corr_cutoff</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">"""Generate a list of variables that are highly correlated with one</span>
+<span class="sd">        another.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        corr_cutoff : float</span>
+<span class="sd">            Cutoff value to determine high correlations.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Only current predictor columns are considered. Correlation with the response</span>
+<span class="sd">        is reported separately and does not make the response a removal candidate.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">highCorr</span> <span class="o">=</span> <span class="n">getHighCorrs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corr_mat</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">],</span> <span class="n">corr_cutoff</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="QuickAnalysis.calcAICs">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.calcAICs.html#tsdst.quick_analysis.QuickAnalysis.calcAICs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calcAICs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cs</span><span class="p">,</span> <span class="n">try_parallel</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">random_state</span><span class="p">,</span> <span class="n">remove_msg</span><span class="p">,</span> <span class="n">chunk</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">"""Calculate AIC values for the models to prepare for comparison.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_cs : int, optional</span>
+<span class="sd">            number of penalty values to test (i.e. number of models to evaluate</span>
+<span class="sd">            during AIC calculations).</span>
+<span class="sd">        try_parallel : bool</span>
+<span class="sd">            Whether to try running the operation in parallel.</span>
+<span class="sd">        n_jobs : int</span>
+<span class="sd">            Number of parallel processes to run.</span>
+<span class="sd">        random_state : int</span>
+<span class="sd">            Random seed for the process.</span>
+<span class="sd">        remove_msg : bool</span>
+<span class="sd">            Remove the temporary Feather file and its directory after</span>
+<span class="sd">            calculation, including error cleanup.</span>
+<span class="sd">        chunk : bool</span>
+<span class="sd">            Evaluate at most n_jobs penalties per submitted batch when True.</span>
+<span class="sd">            Every batch contributes to the stored results.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The penalty count must match self.reduction. Results populate nonzero_coefs</span>
+<span class="sd">        and aics in penalty order. A worker exception is raised rather than treated</span>
+<span class="sd">        as a completed score. Parallel workers share a short-lived Feather table.</span>
+<span class="sd">        """</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+        <span class="k">if</span> <span class="n">num_cs</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">)</span> <span class="ow">or</span> <span class="n">n_jobs</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The penalty count must match reduction and n_jobs must be positive'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">try_parallel</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">'tsdst-quick-'</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">'/data'</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">'.fth'</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">to_feather</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">save_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">num_chunks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">sample_size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">),</span> <span class="n">unreg_full_mod</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                             <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span> <span class="n">target_var</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">,</span>
+                             <span class="n">cur_pred_list</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">))</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="n">n_jobs</span> <span class="k">if</span> <span class="n">chunk</span> <span class="k">else</span> <span class="n">num_cs</span>
+                <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_cs</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+                    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">'penalty'</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span><span class="o">+</span><span class="n">size</span><span class="p">]]</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">p_prog_simp</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">parallel_AIC_data_retriever</span><span class="p">,</span>
+                                               <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">remove_msg</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">calcAICsLasso</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">],</span>
+                                     <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">),</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">result</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonzero_coefs</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span></div>
+
+    
+<div class="viewcode-block" id="QuickAnalysis.plotAICs">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.plotAICs.html#tsdst.quick_analysis.QuickAnalysis.plotAICs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plotAICs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Plot the AIC calculations.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nonzero_coefs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aics</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nonzero_coefs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aics</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"AIC/BIC Value"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Number of Model Parameters"</span><span class="p">)</span>
+        <span class="n">ax2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nonzero_coefs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aics</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"purple"</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nonzero_coefs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aics</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"green"</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"F1 Score and Misclassification Rate"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s2">"aicc"</span><span class="p">,</span> <span class="s2">"bic"</span><span class="p">])</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s2">"misclass"</span><span class="p">,</span> <span class="s2">"f1"</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Number of Non-zero Parameters by Change in L1 Penalty"</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+        
+<div class="viewcode-block" id="QuickAnalysis.forwardElimMetricCalc">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.forwardElimMetricCalc.html#tsdst.quick_analysis.QuickAnalysis.forwardElimMetricCalc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forwardElimMetricCalc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coef_ord_red</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">random_state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Run a very basic forward elimination procedure, and calculate model </span>
+<span class="sd">        metrics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        coef_ord_red : list</span>
+<span class="sd">            A list of model coefficients, ordered by importance.</span>
+<span class="sd">        stride : int</span>
+<span class="sd">            Window size of the coefficients to test in the forward selection</span>
+<span class="sd">            procedure. For example, stride=1 is 1,2,3,4,..., stride=2 is</span>
+<span class="sd">            1,3,5,7,...</span>
+<span class="sd">        random_state : int</span>
+<span class="sd">            Random seed for procedure.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        <span class="n">num_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="p">)</span>
+        <span class="c1"># f1, acc, sens, spec, auc</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">num_params</span><span class="p">),</span> <span class="mi">10</span><span class="p">))</span>
+        
+        <span class="n">t0</span> <span class="o">=</span> <span class="n">dt</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">num_params</span><span class="p">):</span>
+            <span class="n">cur_mod_reg</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">C</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">opt_c</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                                             <span class="n">l1_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="s1">'liblinear'</span><span class="p">,</span>
+                                             <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+            <span class="c1"># Cross-Val fully reduced model</span>
+            <span class="n">cols_to_include</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">coef_ord_red</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">parm</span><span class="p">])</span>
+            <span class="n">cur_mod_cv_results</span> <span class="o">=</span> <span class="n">crossVal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">cols_to_include</span><span class="p">],</span>
+                                          <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">],</span>
+                                          <span class="mi">5</span><span class="p">,</span> <span class="n">cur_mod_reg</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">metrics</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"Accuracy"</span><span class="p">]),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"Accuracy"</span><span class="p">],</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">metrics</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"F1"</span><span class="p">]),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"F1"</span><span class="p">],</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">metrics</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"Sens/Recall"</span><span class="p">]),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"Sens/Recall"</span><span class="p">],</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">metrics</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"Specificity"</span><span class="p">]),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"Specificity"</span><span class="p">],</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">metrics</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"AUC"</span><span class="p">]),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">cur_mod_cv_results</span><span class="p">[</span><span class="s1">'Out of Sample'</span><span class="p">][</span><span class="s2">"AUC"</span><span class="p">],</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            
+            <span class="n">updateProgBar</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">num_params</span><span class="p">),</span> <span class="n">t0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span> <span class="o">=</span> <span class="n">metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span> <span class="o">=</span> <span class="n">num_params</span></div>
+
+        
+<div class="viewcode-block" id="QuickAnalysis.plotForwardMetrics">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.plotForwardMetrics.html#tsdst.quick_analysis.QuickAnalysis.plotForwardMetrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plotForwardMetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Plot forward elimination metric results.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">7</span><span class="p">))</span>
+        
+        <span class="n">acc_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">f1_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">sens_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">spec_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">auc_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="n">acc_bnds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="n">acc_mean</span>
+        <span class="n">f1_bnds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="n">f1_mean</span>
+        <span class="n">sens_bnds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="n">sens_mean</span>
+        <span class="n">spec_bnds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="n">spec_mean</span>
+        <span class="n">auc_bnds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetrics</span><span class="p">[:,</span> <span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="n">auc_mean</span>
+       
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span> <span class="n">acc_mean</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span>
+                         <span class="n">acc_bnds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">acc_bnds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span> <span class="n">f1_mean</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span>
+                         <span class="n">f1_bnds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">f1_bnds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span> <span class="n">sens_mean</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span>
+                         <span class="n">sens_bnds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">sens_bnds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span> <span class="n">spec_mean</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span>
+                         <span class="n">spec_bnds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">spec_bnds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span> <span class="n">auc_mean</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params_forward</span><span class="p">,</span>
+                         <span class="n">auc_bnds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">auc_bnds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"Number of Model Features"</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Metric Values"</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Change in Model Metrics as Features Increase"</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s2">"acc"</span><span class="p">,</span> <span class="s2">"f1"</span><span class="p">,</span> <span class="s2">"sens"</span><span class="p">,</span> <span class="s2">"spec"</span><span class="p">,</span> <span class="s2">"auc"</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="QuickAnalysis.confusion_matrix">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.confusion_matrix.html#tsdst.quick_analysis.QuickAnalysis.confusion_matrix">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">confusion_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Generate a confusion matrix (for classification data).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        print_ : bool, optional</span>
+<span class="sd">            Print the confusion matrix to the console. The default is True.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        confmat : pandas dataframe</span>
+<span class="sd">            A dataframe containing the confusion matrix.</span>
+
+<span class="sd">        """</span>
+        <span class="n">confmat</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ytest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">"Run QuickAnalysis first"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">confmat</span> <span class="o">=</span> <span class="n">prettyConfMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ytest</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ypred_test</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="n">print_</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">print_</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">confmat</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">confmat</span></div>
+
+    
+<div class="viewcode-block" id="QuickAnalysis.build_model">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.build_model.html#tsdst.quick_analysis.QuickAnalysis.build_model">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cv_iterations</span><span class="p">,</span> <span class="n">penalty</span><span class="p">,</span> <span class="n">random_state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        A utility function for building the model at different steps of the </span>
+<span class="sd">        QuickAnalysis process.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The step where the model is being built.</span>
+<span class="sd">        cv_iterations : int</span>
+<span class="sd">            Number of cross validation steps.</span>
+<span class="sd">        penalty : float</span>
+<span class="sd">            The strength of the L1 penalty.</span>
+<span class="sd">        random_state : int</span>
+<span class="sd">            Random seed of the process.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        <span class="n">mod_crossval</span> <span class="o">=</span> <span class="n">crossVal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">],</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">],</span>
+                                <span class="n">cv_iterations</span><span class="o">=</span><span class="n">cv_iterations</span><span class="p">,</span>
+                                <span class="n">model</span><span class="o">=</span><span class="n">LogisticRegression</span><span class="p">(</span><span class="n">C</span><span class="o">=</span><span class="n">penalty</span><span class="p">,</span>
+                                                         <span class="n">l1_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                                         <span class="n">solver</span><span class="o">=</span><span class="s2">"liblinear"</span><span class="p">,</span>
+                                                         <span class="n">max_iter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                                                         <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">),</span>
+                                <span class="n">print_</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">'crossval'</span><span class="p">:</span> <span class="n">mod_crossval</span><span class="p">,</span>
+                <span class="s1">'model'</span><span class="p">:</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">C</span><span class="o">=</span><span class="n">penalty</span><span class="p">,</span>
+                                            <span class="n">l1_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                            <span class="n">solver</span><span class="o">=</span><span class="s2">"liblinear"</span><span class="p">,</span>
+                                            <span class="n">max_iter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                                            <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">],</span>
+                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">]),</span>
+                <span class="s1">'predictors'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">)</span>
+            <span class="p">}</span></div>
+
+        
+    
+<div class="viewcode-block" id="QuickAnalysis.BaselineDropProcedures">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.BaselineDropProcedures.html#tsdst.quick_analysis.QuickAnalysis.BaselineDropProcedures">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">BaselineDropProcedures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freshStart</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">dropCols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dropCor</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">corr_cutoff</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                               <span class="n">dropVar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dropVarTol</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                               <span class="n">cv_iterations</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                               <span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span> <span class="n">default_penalty</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                               <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">t0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Create Baseline model and begin dropping features from the model </span>
+<span class="sd">        based on given criteria.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        freshStart : bool, optional</span>
+<span class="sd">            Whether to use a previous result, or start from scrath.</span>
+<span class="sd">            The default is True.</span>
+<span class="sd">        downsample : bool, optional</span>
+<span class="sd">            Whether or not to downsample the majority class.</span>
+<span class="sd">            The default is False.</span>
+<span class="sd">        dropCols : list, optional</span>
+<span class="sd">            List of columns to initially drop. The default is None.</span>
+<span class="sd">        dropCor : bool, optional</span>
+<span class="sd">            Drop variables with high correlations. The default is True.</span>
+<span class="sd">        corr_cutoff : float, optional</span>
+<span class="sd">            Cutoff for removing high correlation variables. Anything below the</span>
+<span class="sd">            cutoff is kept. The default is 0.9.</span>
+<span class="sd">        dropVar : bool, optional</span>
+<span class="sd">            Drop variables with very low variance.</span>
+<span class="sd">            Does nothing if data is standardized. The default is True.</span>
+<span class="sd">        dropVarTol : float, optional</span>
+<span class="sd">            Cutoff value for low variance. The default is 0.001.</span>
+<span class="sd">        cv_iterations : int, optional</span>
+<span class="sd">            The number of cross validation steps. The default is 5.</span>
+<span class="sd">        random_state : int, optional</span>
+<span class="sd">            The random seed for the process. The default is 123.</span>
+<span class="sd">        default_penalty : float, optional</span>
+<span class="sd">            The penalty term to be applied to models where the penalty is</span>
+<span class="sd">            otherwise unspecified. The default is 0.01.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            Print steps as they complete. The default is True.</span>
+<span class="sd">        t0 : float, optional</span>
+<span class="sd">            The start time of the process. For internal use.</span>
+<span class="sd">            The default is None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_analysis_arglist</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'freshStart'</span><span class="p">:</span> <span class="n">freshStart</span><span class="p">,</span>
+                                 <span class="s1">'downsample'</span><span class="p">:</span> <span class="n">downsample</span><span class="p">,</span>
+                                 <span class="s1">'dropCols'</span><span class="p">:</span> <span class="n">dropCols</span><span class="p">,</span>
+                                 <span class="s1">'dropCor'</span><span class="p">:</span> <span class="n">dropCor</span><span class="p">,</span>
+                                 <span class="s1">'corr_cutoff'</span><span class="p">:</span> <span class="n">corr_cutoff</span><span class="p">,</span>
+                                 <span class="s1">'dropVar'</span><span class="p">:</span> <span class="n">dropVar</span><span class="p">,</span>
+                                 <span class="s1">'dropVarTol'</span><span class="p">:</span> <span class="n">dropVarTol</span><span class="p">,</span>
+                                 <span class="s1">'cv_iterations'</span><span class="p">:</span> <span class="n">cv_iterations</span><span class="p">,</span>
+                                 <span class="s1">'random_state'</span><span class="p">:</span> <span class="n">random_state</span><span class="p">,</span>
+                                 <span class="s1">'default_penalty'</span><span class="p">:</span> <span class="n">default_penalty</span><span class="p">,</span>
+                                 <span class="s1">'verbose'</span><span class="p">:</span> <span class="n">verbose</span><span class="p">,</span>
+                                 <span class="s1">'t0'</span><span class="p">:</span> <span class="n">t0</span>
+                                 <span class="p">}</span>
+        
+        <span class="k">if</span> <span class="n">t0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">dt</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">freshStart</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">low_memory</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_raw</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">holdout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">holdout_raw</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Can't run fresh start in low memory mode."</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Creating Baseline Model..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="s1">'baseline_mod'</span><span class="p">,</span> <span class="n">cv_iterations</span><span class="p">,</span> <span class="n">default_penalty</span><span class="p">,</span>
+                         <span class="n">random_state</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Executing Column Drop Procedures..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">dropCols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Dropping Pre-Determined Columns..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+
+            <span class="n">cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+            <span class="c1"># what I used to do... </span>
+            <span class="c1">#idx = list(np.where([True if sum((True if reject in col else False for reject in dropCols))&gt;0 else False for col in cols])[0])</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)),</span>
+                                       <span class="n">cols</span><span class="p">)</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">dropCols</span><span class="p">]</span>
+            <span class="n">label_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">label_idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_var</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_dropped_cols</span><span class="p">[</span><span class="s1">'dropCol_list'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dropCols</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Dropped "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dropCols</span><span class="p">))</span> <span class="o">+</span> <span class="s2">" Predefined Columns..."</span><span class="p">,</span>
+                           <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        
+        <span class="k">if</span> <span class="n">dropVar</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Dropping Low Variance Columns..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+
+            <span class="n">varDropList</span> <span class="o">=</span> <span class="n">naiveVarDrop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">,</span>
+                                       <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_var</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]),</span>
+                                       <span class="n">tol</span><span class="o">=</span><span class="n">dropVarTol</span><span class="p">,</span>
+                                       <span class="n">asList</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">varDropList</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">varDropList</span> <span class="o">=</span> <span class="n">varDropList</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_var</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_dropped_cols</span><span class="p">[</span><span class="s1">'varDropList'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">varDropList</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Dropped "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">varDropList</span><span class="p">))</span> <span class="o">+</span> <span class="s2">" Low-Variance Columns..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+            <span class="n">varDropList</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">if</span> <span class="n">dropCor</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Generating/Recovering Correlation Matrix..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span>
+                           <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">corr_mat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_corr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GenCorrStats</span><span class="p">(</span><span class="n">is_raw</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">highCorr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">genHighCorrs</span><span class="p">(</span><span class="n">corr_cutoff</span><span class="p">)</span>
+        
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Dropping High Correlations..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+
+            <span class="n">HCdropList</span> <span class="o">=</span> <span class="n">dropHighCorrs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">highCorr</span><span class="p">,</span> <span class="n">asList</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                       <span class="n">print_</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">HCdropList</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">HCdropList</span> <span class="o">=</span> <span class="n">HCdropList</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_dropped_cols</span><span class="p">[</span><span class="s1">'HCdropList'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">HCdropList</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Dropped "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">HCdropList</span><span class="p">))</span> <span class="o">+</span> <span class="s2">" Correlated Columns..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+            <span class="n">HCdropList</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_var</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_y_corr</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">total_dropped</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dropped_cols</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">total_dropped</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dropped_cols</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Dropped "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">total_dropped</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" Columns..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span>
+                       <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Creating Post-Drop Baseline Model..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="s1">'postdrop_baseline_mod'</span><span class="p">,</span> <span class="n">cv_iterations</span><span class="p">,</span>
+                         <span class="n">default_penalty</span><span class="p">,</span> <span class="n">random_state</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Finished Baseline Drop..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span></div>
+
+    
+<div class="viewcode-block" id="QuickAnalysis.ForwardSelectionAnalysis">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.ForwardSelectionAnalysis.html#tsdst.quick_analysis.QuickAnalysis.ForwardSelectionAnalysis">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ForwardSelectionAnalysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cv_iterations</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span>
+                                 <span class="n">default_penalty</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">for_stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                 <span class="n">reduce_features_by</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">red_metric</span><span class="o">=</span><span class="s1">'bic'</span><span class="p">,</span>
+                                 <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">t0</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Run very basic forward selection procedure on the model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        default_penalty : float, optional</span>
+<span class="sd">            The penalty term to be applied to models where the penalty is</span>
+<span class="sd">            otherwise unspecified. The default is 0.01.</span>
+<span class="sd">        for_stride : int</span>
+<span class="sd">            Window size of the coefficients to test in the forward selection</span>
+<span class="sd">            procedure. For example, stride=1 is 1,2,3,4,..., stride=2 is</span>
+<span class="sd">            1,3,5,7,... The default is 2.</span>
+<span class="sd">        reduce_features_by : int, optional</span>
+<span class="sd">            Number of features to evaluate in the final model.</span>
+<span class="sd">            The default is 30.</span>
+<span class="sd">        red_metric : str, optional</span>
+<span class="sd">            Metric to use for finding optimal penalty value.</span>
+<span class="sd">            The default is 'bic'.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            Print results of the process. The default is True.</span>
+<span class="sd">        t0 : float, optional</span>
+<span class="sd">            Initial start time for the process. The default is None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+
+<span class="sd">        """</span>
+        <span class="c1"># TODO: make final feature selection automatic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fsa_analysis_arglist</span> <span class="o">=</span> <span class="p">{</span>
+                                      <span class="s1">'cv_iterations'</span><span class="p">:</span> <span class="n">cv_iterations</span><span class="p">,</span>
+                                      <span class="s1">'random_state'</span><span class="p">:</span> <span class="n">random_state</span><span class="p">,</span>
+                                      <span class="s1">'default_penalty'</span><span class="p">:</span> <span class="n">default_penalty</span><span class="p">,</span>
+                                      <span class="s1">'for_stride'</span><span class="p">:</span> <span class="n">for_stride</span><span class="p">,</span>
+                                      <span class="s1">'reduce_features_by'</span><span class="p">:</span> <span class="n">reduce_features_by</span><span class="p">,</span>
+                                      <span class="s1">'red_metric'</span><span class="p">:</span> <span class="n">red_metric</span><span class="p">,</span>
+                                      <span class="s1">'verbose'</span><span class="p">:</span> <span class="n">verbose</span><span class="p">,</span>
+                                      <span class="s1">'t0'</span><span class="p">:</span> <span class="n">t0</span>
+        <span class="p">}</span>
+        
+        <span class="k">if</span> <span class="n">t0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">dt</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotAICs</span><span class="p">()</span>
+        <span class="n">aic_type</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">'aic'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">'aicc'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s1">'bic'</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s1">'ebic'</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s1">'misclass'</span><span class="p">:</span> <span class="mi">4</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opt_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aics</span><span class="p">[:,</span> <span class="n">aic_type</span><span class="p">[</span><span class="n">red_metric</span><span class="p">]]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aics</span><span class="p">[:,</span> <span class="n">aic_type</span><span class="p">[</span><span class="n">red_metric</span><span class="p">]]))][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimal_num_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nonzero_coefs</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aics</span><span class="p">[:,</span> <span class="n">aic_type</span><span class="p">[</span><span class="n">red_metric</span><span class="p">]]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aics</span><span class="p">[:,</span> <span class="n">aic_type</span><span class="p">[</span><span class="n">red_metric</span><span class="p">]]))][</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Creating Model with Optimal Penalty Value..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span>
+                       <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="s1">'lasso_reduction_mod'</span><span class="p">,</span> <span class="n">cv_iterations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt_c</span><span class="p">,</span>
+                         <span class="n">random_state</span><span class="p">)</span>
+        
+        <span class="n">coef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'lasso_reduction_mod'</span><span class="p">][</span><span class="s1">'model'</span><span class="p">]</span><span class="o">.</span><span class="n">coef_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+        <span class="n">coef_ord</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coef</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Importance"</span><span class="p">])</span>
+        <span class="n">coef_ord</span> <span class="o">=</span> <span class="n">coef_ord</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Importance'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        
+        <span class="n">keep_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">coef_ord</span><span class="p">[</span><span class="n">coef_ord</span><span class="p">[</span><span class="s2">"Importance"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">keep_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">keep_cols</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_var</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'lasso_reduction_mod'</span><span class="p">][</span><span class="s1">'keep_cols'</span><span class="p">]</span> <span class="o">=</span> <span class="n">keep_cols</span>
+        <span class="n">keep_cols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">coef_ord</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">coef</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Creating Model with Optimal Penalty Value After Removing Zeroed Parameters...</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+                       <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="s1">'lasso_reduction_mod_reduced'</span><span class="p">,</span> <span class="n">cv_iterations</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+                         <span class="n">random_state</span><span class="p">)</span>
+        
+        <span class="n">coef_red</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'lasso_reduction_mod_reduced'</span><span class="p">][</span><span class="s1">'model'</span><span class="p">]</span><span class="o">.</span><span class="n">coef_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">coef_ord_red</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coef_red</span><span class="p">),</span> <span class="n">coef_red</span><span class="p">,</span>
+                                                    <span class="mf">100.0</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">coef_red</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span>
+                                                   <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                                    <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                                    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Importance"</span><span class="p">,</span>
+                                             <span class="s2">"Coefficiants"</span><span class="p">,</span>
+                                             <span class="s2">"</span><span class="si">% i</span><span class="s2">ncrease in Prob"</span><span class="p">])</span>
+        <span class="n">coef_ord_red</span> <span class="o">=</span> <span class="n">coef_ord_red</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Importance'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'lasso_reduction_mod_reduced'</span><span class="p">][</span><span class="s1">'coef_ord_red'</span><span class="p">]</span> <span class="o">=</span> <span class="n">coef_ord_red</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">forwardElimMetricCalc</span><span class="p">(</span><span class="n">coef_ord_red</span><span class="p">,</span> <span class="n">for_stride</span><span class="p">,</span> <span class="n">random_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotForwardMetrics</span><span class="p">()</span>
+        
+        <span class="n">cols_to_include</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">coef_ord_red</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="n">reduce_features_by</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_pred_list</span> <span class="o">=</span> <span class="n">cols_to_include</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Creating Final Model..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="s1">'final_mod'</span><span class="p">,</span> <span class="n">cv_iterations</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="p">)</span>
+        
+        <span class="n">coef_red_final</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'final_mod'</span><span class="p">][</span><span class="s1">'model'</span><span class="p">]</span><span class="o">.</span><span class="n">coef_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">coef_ord_red_final</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coef_red_final</span><span class="p">),</span> <span class="n">coef_red_final</span><span class="p">,</span>
+                                                          <span class="mf">100.0</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">coef_red_final</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                                    <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">cols_to_include</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+                                          <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"Importance"</span><span class="p">,</span> <span class="s2">"Coefficiants"</span><span class="p">,</span> <span class="s2">"</span><span class="si">% i</span><span class="s2">ncrease in Prob"</span><span class="p">])</span>
+        <span class="n">coef_ord_red_final</span> <span class="o">=</span> <span class="n">coef_ord_red_final</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'Importance'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coef_ord_red_final</span> <span class="o">=</span> <span class="n">coef_ord_red_final</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">Xtrain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">cols_to_include</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ytrain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ypred_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'final_mod'</span><span class="p">][</span><span class="s1">'model'</span><span class="p">]</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Xtrain</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Yprob_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'final_mod'</span><span class="p">][</span><span class="s1">'model'</span><span class="p">]</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Xtrain</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Xtest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">holdout</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">cols_to_include</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ytest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">holdout</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_var</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ypred_test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'final_mod'</span><span class="p">][</span><span class="s1">'model'</span><span class="p">]</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Xtest</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Yprob_test</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="s1">'final_mod'</span><span class="p">][</span><span class="s1">'model'</span><span class="p">]</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Xtest</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Finished..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span></div>
+
+        
+        
+<div class="viewcode-block" id="QuickAnalysis.RunFullAnalysis">
+<a class="viewcode-back" href="../../generated/tsdst.quick_analysis.QuickAnalysis.RunFullAnalysis.html#tsdst.quick_analysis.QuickAnalysis.RunFullAnalysis">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">RunFullAnalysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freshStart</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dropCols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">dropCor</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">corr_cutoff</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">dropVar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">dropVarTol</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">cv_iterations</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                        <span class="n">random_state</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span> <span class="n">default_penalty</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">try_parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">for_stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">reduce_features_by</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                        <span class="n">num_cs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">red_metric</span><span class="o">=</span><span class="s1">'bic'</span><span class="p">,</span> <span class="n">red_log_low</span><span class="o">=-</span><span class="mi">5</span><span class="p">,</span>
+                        <span class="n">red_log_high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">remove_msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">chunk</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">"""Performs a quick analysis by first considering which features/variables</span>
+<span class="sd">        may be uninformative predictors based on preliminary models. Then,</span>
+<span class="sd">        it performs a very basic forward selection procedure to limit</span>
+<span class="sd">        predictors in the final model. Currently, this only supports</span>
+<span class="sd">        Logistic Regression.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        freshStart : bool, optional</span>
+<span class="sd">            Whether to use a previous result, or start from scratch.</span>
+<span class="sd">            The default is True.</span>
+<span class="sd">        downsample : bool, optional</span>
+<span class="sd">            Whether or not to downsample the majority class.</span>
+<span class="sd">            The default is False.</span>
+<span class="sd">        dropCols : list, optional</span>
+<span class="sd">            List of columns to initially drop. The default is None.</span>
+<span class="sd">        dropCor : bool, optional</span>
+<span class="sd">            Drop variables with high correlations. The default is True.</span>
+<span class="sd">        corr_cutoff : float, optional</span>
+<span class="sd">            Cutoff for removing high correlation variables. Anything below the</span>
+<span class="sd">            cutoff is kept. The default is 0.9.</span>
+<span class="sd">        dropVar : bool, optional</span>
+<span class="sd">            Drop variables with very low variance.</span>
+<span class="sd">            Does nothing if data is standardized. The default is True.</span>
+<span class="sd">        dropVarTol : float, optional</span>
+<span class="sd">            Cutoff value for low variance. The default is 0.001.</span>
+<span class="sd">        cv_iterations : int, optional</span>
+<span class="sd">            The number of cross validation steps. The default is 5.</span>
+<span class="sd">        random_state : int, optional</span>
+<span class="sd">            The random seed for the process. The default is 123.</span>
+<span class="sd">        default_penalty : float, optional</span>
+<span class="sd">            The penalty term to be applied to models where the penalty is</span>
+<span class="sd">            otherwise unspecified. The default is 0.01.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            Print steps as they complete. The default is True.</span>
+<span class="sd">        try_parallel : bool, optional</span>
+<span class="sd">            Try to perform the operation in parallel. If it fails, it will</span>
+<span class="sd">            continue without parallel operations. The default is True.</span>
+<span class="sd">        for_stride : int, optional</span>
+<span class="sd">            The gap between variables evaluated for the forward selection</span>
+<span class="sd">            metric. The default is 2.</span>
+<span class="sd">        reduce_features_by : int, optional</span>
+<span class="sd">            The size of the final model. The default is 30.</span>
+<span class="sd">        num_cs : int, optional</span>
+<span class="sd">            number of penalty values to test (i.e. number of models to evaluate</span>
+<span class="sd">            during AIC calculations). The default is 100.</span>
+<span class="sd">        red_metric : str, optional</span>
+<span class="sd">            The metric used to optimize model reductions. The default is 'bic'.</span>
+<span class="sd">        red_log_low : float, optional</span>
+<span class="sd">            The logspace minimum value for evaluating the L1 penalty.</span>
+<span class="sd">            The default is -5.</span>
+<span class="sd">        red_log_high : float, optional</span>
+<span class="sd">            The logspace maximum value for evaluating the L1 penalty.. The default is 1.</span>
+<span class="sd">        n_jobs : int, optional</span>
+<span class="sd">            The number of processes to attempt. The default is 1.</span>
+<span class="sd">        remove_msg : bool, optional</span>
+<span class="sd">            Remove the temporary Feather table and directory. The default is True.</span>
+<span class="sd">        chunk : bool, optional</span>
+<span class="sd">            Evaluate penalties in batches of at most n_jobs? The default is False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+<span class="sd">        """</span>
+        <span class="n">t0</span> <span class="o">=</span> <span class="n">dt</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_full_analysis_arglist</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'freshStart'</span><span class="p">:</span> <span class="n">freshStart</span><span class="p">,</span>
+                                 <span class="s1">'downsample'</span><span class="p">:</span> <span class="n">downsample</span><span class="p">,</span>
+                                 <span class="s1">'dropCols'</span><span class="p">:</span> <span class="n">dropCols</span><span class="p">,</span>
+                                 <span class="s1">'dropCor'</span><span class="p">:</span> <span class="n">dropCor</span><span class="p">,</span>
+                                 <span class="s1">'corr_cutoff'</span><span class="p">:</span> <span class="n">corr_cutoff</span><span class="p">,</span>
+                                 <span class="s1">'dropVar'</span><span class="p">:</span> <span class="n">dropVar</span><span class="p">,</span>
+                                 <span class="s1">'dropVarTol'</span><span class="p">:</span> <span class="n">dropVarTol</span><span class="p">,</span>
+                                 <span class="s1">'cv_iterations'</span><span class="p">:</span> <span class="n">cv_iterations</span><span class="p">,</span>
+                                 <span class="s1">'random_state'</span><span class="p">:</span> <span class="n">random_state</span><span class="p">,</span>
+                                 <span class="s1">'default_penalty'</span><span class="p">:</span> <span class="n">default_penalty</span><span class="p">,</span>
+                                 <span class="s1">'try_parallel'</span><span class="p">:</span> <span class="n">try_parallel</span><span class="p">,</span>
+                                 <span class="s1">'for_stride'</span><span class="p">:</span> <span class="n">for_stride</span><span class="p">,</span>
+                                 <span class="s1">'reduce_features_by'</span><span class="p">:</span> <span class="n">reduce_features_by</span><span class="p">,</span>
+                                 <span class="s1">'num_cs'</span><span class="p">:</span> <span class="n">num_cs</span><span class="p">,</span>
+                                 <span class="s1">'red_metric'</span><span class="p">:</span> <span class="n">red_metric</span><span class="p">,</span>
+                                 <span class="s1">'red_log_low'</span><span class="p">:</span> <span class="n">red_log_low</span><span class="p">,</span>
+                                 <span class="s1">'red_log_high'</span><span class="p">:</span> <span class="n">red_log_high</span><span class="p">,</span>
+                                 <span class="s1">'n_jobs'</span><span class="p">:</span> <span class="n">n_jobs</span><span class="p">,</span>
+                                 <span class="s1">'verbose'</span><span class="p">:</span> <span class="n">verbose</span><span class="p">,</span>
+                                 <span class="s1">'remove_msg'</span><span class="p">:</span> <span class="n">remove_msg</span><span class="p">}</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">BaselineDropProcedures</span><span class="p">(</span><span class="n">freshStart</span><span class="o">=</span><span class="n">freshStart</span><span class="p">,</span>
+                                    <span class="n">downsample</span><span class="o">=</span><span class="n">downsample</span><span class="p">,</span>
+                                    <span class="n">dropCols</span><span class="o">=</span><span class="n">dropCols</span><span class="p">,</span>
+                                    <span class="n">dropCor</span><span class="o">=</span><span class="n">dropCor</span><span class="p">,</span>
+                                    <span class="n">corr_cutoff</span><span class="o">=</span><span class="n">corr_cutoff</span><span class="p">,</span>
+                                    <span class="n">dropVar</span><span class="o">=</span><span class="n">dropVar</span><span class="p">,</span>
+                                    <span class="n">dropVarTol</span><span class="o">=</span><span class="n">dropVarTol</span><span class="p">,</span>
+                                    <span class="n">cv_iterations</span><span class="o">=</span><span class="n">cv_iterations</span><span class="p">,</span>
+                                    <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                                    <span class="n">default_penalty</span><span class="o">=</span><span class="n">default_penalty</span><span class="p">,</span>
+                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                                    <span class="n">t0</span><span class="o">=</span><span class="n">t0</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Creating Lasso Reduction Models..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="n">red_log_low</span><span class="p">,</span> <span class="n">red_log_high</span><span class="p">,</span> <span class="n">num_cs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">try_parallel</span><span class="p">:</span>
+            <span class="n">try_again</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">while</span><span class="p">(</span><span class="n">try_again</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">calcAICs</span><span class="p">(</span><span class="n">num_cs</span><span class="p">,</span> <span class="n">try_parallel</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span>
+                                  <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                                  <span class="n">remove_msg</span><span class="o">=</span><span class="n">remove_msg</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">)</span>
+                    <span class="n">try_again</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">MemoryError</span><span class="p">):</span>
+                    <span class="n">n_jobs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_jobs</span> <span class="o">-</span> <span class="p">(</span><span class="n">n_jobs</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n\t</span><span class="s1">Reduced n_jobs to '</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">try_again</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">try_again</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">calcAICs</span><span class="p">(</span><span class="n">num_cs</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                      <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                                      <span class="n">remove_msg</span><span class="o">=</span><span class="n">remove_msg</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calcAICs</span><span class="p">(</span><span class="n">num_cs</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                          <span class="n">remove_msg</span><span class="o">=</span><span class="n">remove_msg</span><span class="p">,</span> <span class="n">chunk</span><span class="o">=</span><span class="n">chunk</span><span class="p">)</span>
+                
+        <span class="bp">self</span><span class="o">.</span><span class="n">ForwardSelectionAnalysis</span><span class="p">(</span><span class="n">cv_iterations</span><span class="o">=</span><span class="n">cv_iterations</span><span class="p">,</span>
+                                      <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span>
+                                      <span class="n">default_penalty</span><span class="o">=</span><span class="n">default_penalty</span><span class="p">,</span>
+                                      <span class="n">for_stride</span><span class="o">=</span><span class="n">for_stride</span><span class="p">,</span>
+                                      <span class="n">reduce_features_by</span><span class="o">=</span><span class="n">reduce_features_by</span><span class="p">,</span>
+                                      <span class="n">red_metric</span><span class="o">=</span><span class="n">red_metric</span><span class="p">,</span>
+                                      <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">t0</span><span class="o">=</span><span class="n">t0</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

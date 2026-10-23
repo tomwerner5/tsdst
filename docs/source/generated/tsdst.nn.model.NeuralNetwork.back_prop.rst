@@ -1,0 +1,6 @@
+tsdst.nn.model.NeuralNetwork.back\_prop
+=======================================
+
+.. currentmodule:: tsdst.nn.model
+
+.. automethod:: NeuralNetwork.back_prop

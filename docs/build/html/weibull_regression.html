@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Weibull regression &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=062ca7a5" />
+    <script src="_static/documentation_options.js?v=20623aea"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=4ea706d9"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Automatic exploratory data analysis" href="eda.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="eda.html">Automatic EDA</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Weibull regression</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Weibull regression</a><ul>
+<li><a class="reference internal" href="#choose-the-regression-parameter">Choose the regression parameter</a></li>
+<li><a class="reference internal" href="#scale-regression">Scale regression</a></li>
+<li><a class="reference internal" href="#shape-regression">Shape regression</a></li>
+<li><a class="reference internal" href="#fit-and-predict">Fit and predict</a></li>
+<li><a class="reference internal" href="#priors-and-sampled-parameters">Priors and sampled parameters</a></li>
+<li><a class="reference internal" href="#comparison-with-r">Comparison with R</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="eda.html" title="Previous Chapter: Automatic exploratory data analysis"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Automatic exp...</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="_sources/weibull_regression.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">Weibull regression</a><ul>
+<li><a class="reference internal" href="#choose-the-regression-parameter">Choose the regression parameter</a></li>
+<li><a class="reference internal" href="#scale-regression">Scale regression</a></li>
+<li><a class="reference internal" href="#shape-regression">Shape regression</a></li>
+<li><a class="reference internal" href="#fit-and-predict">Fit and predict</a></li>
+<li><a class="reference internal" href="#priors-and-sampled-parameters">Priors and sampled parameters</a></li>
+<li><a class="reference internal" href="#comparison-with-r">Comparison with R</a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="eda.html" title="Previous Chapter: Automatic exploratory data analysis"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Automatic exp...</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="_sources/weibull_regression.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <section id="weibull-regression">
+<h1>Weibull regression<a class="headerlink" href="#weibull-regression" title="Link to this heading">¶</a></h1>
+<section id="choose-the-regression-parameter">
+<h2>Choose the regression parameter<a class="headerlink" href="#choose-the-regression-parameter" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">BayesWeibullRegressor</span></code> supports two models. In both, the selected parameter
+is <code class="docutils literal notranslate"><span class="pre">exp(intercept</span> <span class="pre">+</span> <span class="pre">X</span> <span class="pre">&#64;</span> <span class="pre">coefficients)</span></code>. The other parameter is shared across
+observations and sampled in MCMC. Here, “shared” means the same value for all
+observations; it does not mean a known value held fixed during fitting.</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Model choices</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Covariates determine</p></th>
+<th class="head"><p>Shared parameter</p></th>
+<th class="head"><p>Coefficient interpretation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regression_parameter=&quot;scale&quot;</span></code></p></td>
+<td><p>Weibull scale</p></td>
+<td><p>Weibull shape</p></td>
+<td><p>AFT time ratios and constant hazard ratios</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regression_parameter=&quot;shape&quot;</span></code></p></td>
+<td><p>Weibull shape</p></td>
+<td><p>Weibull scale</p></td>
+<td><p>Changes in the time pattern of risk</p></td>
+</tr>
+</tbody>
+</table>
+<p>Shape regression remains the default to preserve the existing model. Choose
+scale regression explicitly when the AFT interpretation fits the application.
+The choice changes the statistical model, rather than only its notation.</p>
+</section>
+<section id="scale-regression">
+<h2>Scale regression<a class="headerlink" href="#scale-regression" title="Link to this heading">¶</a></h2>
+<p>With shared shape <code class="docutils literal notranslate"><span class="pre">k</span></code> and scale <code class="docutils literal notranslate"><span class="pre">lambda(x)=exp(intercept</span> <span class="pre">+</span> <span class="pre">x</span> <span class="pre">&#64;</span> <span class="pre">beta)</span></code>,
+the survival function is</p>
+<div class="math notranslate nohighlight">
+\[S(t\mid x) = \exp\left[-\left(t/\lambda(x)\right)^k\right].\]</div>
+<p>Increasing one predictor by one unit multiplies every conditional lifetime
+quantile by <code class="docutils literal notranslate"><span class="pre">exp(beta_j)</span></code>. It also multiplies the mean by that factor. For
+example, <code class="docutils literal notranslate"><span class="pre">beta_j=log(1.3)</span></code> gives a 30% increase in median lifetime, with the
+other predictors held constant. This is an accelerated failure time model.</p>
+<p>The hazard ratio is <code class="docutils literal notranslate"><span class="pre">exp(-k*beta_j)</span></code> and is constant over time. The Weibull
+model therefore also has a proportional-hazards interpretation. Its PH
+coefficient is <code class="docutils literal notranslate"><span class="pre">-k*beta_j</span></code>, not the AFT coefficient <code class="docutils literal notranslate"><span class="pre">beta_j</span></code>.</p>
+<p>All observations share the same increasing, decreasing, or constant hazard
+direction, according to whether <code class="docutils literal notranslate"><span class="pre">k</span></code> is above, below, or equal to one.
+Scale regression is a common starting point when covariates act on lifetime.
+It does not guarantee convergence or precise estimates under heavy censoring.</p>
+</section>
+<section id="shape-regression">
+<h2>Shape regression<a class="headerlink" href="#shape-regression" title="Link to this heading">¶</a></h2>
+<p>With shared scale <code class="docutils literal notranslate"><span class="pre">lambda</span></code> and shape <code class="docutils literal notranslate"><span class="pre">k(x)=exp(intercept</span> <span class="pre">+</span> <span class="pre">x</span> <span class="pre">&#64;</span> <span class="pre">beta)</span></code>,
+covariates change how risk evolves over time. Shapes below one give decreasing
+hazards; shapes above one give increasing hazards.</p>
+<p>All observations have <code class="docutils literal notranslate"><span class="pre">F(lambda)=1-exp(-1)</span></code>: approximately 63.2% have failed
+at the shared scale. Survival curves with different shapes cross at that time.
+Their hazards also cross, though generally at another time. These effects
+do not have constant time-ratio or hazard-ratio interpretations.</p>
+<p>This model can be useful when the scientific hypothesis concerns a change in
+failure mechanism or wearout pattern. Censoring can make shape effects hard
+to identify. Estimation also depends on observed failures, covariate support,
+and priors. Neither model is guaranteed to fail or converge solely because of
+its parameter choice. This implementation supports right censoring; it does
+not add left- or interval-censoring support.</p>
+</section>
+<section id="fit-and-predict">
+<h2>Fit and predict<a class="headerlink" href="#fit-and-predict" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tsdst.estimators</span><span class="w"> </span><span class="kn">import</span> <span class="n">BayesWeibullRegressor</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">true_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.3</span><span class="o">*</span><span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+<span class="n">lifetime</span> <span class="o">=</span> <span class="n">true_scale</span><span class="o">*</span><span class="n">rng</span><span class="o">.</span><span class="n">weibull</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+<span class="n">censoring_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="mf">4.0</span><span class="p">)</span>
+<span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">lifetime</span><span class="p">,</span> <span class="n">censoring_time</span><span class="p">)</span>
+<span class="n">status</span> <span class="o">=</span> <span class="p">(</span><span class="n">lifetime</span> <span class="o">&lt;=</span> <span class="n">censoring_time</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">BayesWeibullRegressor</span><span class="p">(</span>
+    <span class="n">regression_parameter</span><span class="o">=</span><span class="s2">"scale"</span><span class="p">,</span>
+    <span class="n">shared_prior</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">niter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+    <span class="n">algo_options</span><span class="o">=</span><span class="p">{</span><span class="s2">"progress"</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+<span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">)</span>
+
+<span class="n">mean</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="n">shape</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_shape</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="n">scale</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_scale</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="n">variance</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_variance</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="n">score</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">scorer</span><span class="o">=</span><span class="s2">"log_likelihood"</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Shape and scale predictions contain one value per feature row. Mean predictions
+use the selected coefficient summary and shared parameter; they do not average
+conditional means over all posterior draws. Use log-likelihood or D2 scoring
+for censored times. R2 remains the default for complete times.</p>
+<p>The example illustrates the interface. Choose a sufficient chain length and
+check the actual chain diagnostics for the application.</p>
+</section>
+<section id="priors-and-sampled-parameters">
+<h2>Priors and sampled parameters<a class="headerlink" href="#priors-and-sampled-parameters" title="Link to this heading">¶</a></h2>
+<p>The intercept has a normal prior with mean zero and standard deviation 10.
+Slopes have Laplace priors with scale <code class="docutils literal notranslate"><span class="pre">2*C</span></code>. With <code class="docutils literal notranslate"><span class="pre">C=None</span></code>, the existing
+Weibull implementation uses a fixed slope-prior scale of one.</p>
+<p><code class="docutils literal notranslate"><span class="pre">shared_prior</span></code> supplies Gamma <strong>shape and scale</strong>, in that order:</p>
+<ul class="simple">
+<li><p>Scale regression defaults to Gamma(2, 1) for the shared Weibull shape.</p></li>
+<li><p>Shape regression keeps Gamma(0.01, 100) for the shared Weibull scale.</p></li>
+</ul>
+<p>Both hyperparameters must be positive and finite. Their interpretation differs
+between modes. Weibull scale has time units, while Weibull shape is dimensionless.
+Changing time units can therefore require changing a prior on shared scale.
+Review prior sensitivity, particularly when censoring limits the information.</p>
+<p>Each sampled parameter vector contains the intercept and slopes, followed by
+the log shared parameter. The posterior includes the corresponding log-scale
+Jacobian. Priors on the coefficients themselves require no additional Jacobian
+for the regression link.</p>
+<p><code class="docutils literal notranslate"><span class="pre">shared_parameter_</span></code> contains the exponentiated summary of the final log
+parameter. <code class="docutils literal notranslate"><span class="pre">scale_</span></code> is present for shape regression and <code class="docutils literal notranslate"><span class="pre">shape_</span></code> is present
+for scale regression. Use <code class="docutils literal notranslate"><span class="pre">predict_scale</span></code> and <code class="docutils literal notranslate"><span class="pre">predict_shape</span></code> for row-wise
+values in either mode. Changing <code class="docutils literal notranslate"><span class="pre">regression_parameter</span></code> after fitting requires
+a new fit; it does not reinterpret the existing chain.</p>
+</section>
+<section id="comparison-with-r">
+<h2>Comparison with R<a class="headerlink" href="#comparison-with-r" title="Link to this heading">¶</a></h2>
+<p>For scale regression, R’s <code class="docutils literal notranslate"><span class="pre">survival::survreg(...,</span> <span class="pre">dist=&quot;weibull&quot;)</span></code> uses the
+same AFT coefficients. Its reported <code class="docutils literal notranslate"><span class="pre">scale</span></code> is <code class="docutils literal notranslate"><span class="pre">1/k</span></code>, the inverse Weibull
+shape. Its linear predictor is log Weibull scale. This naming difference must
+be accounted for when comparing estimates and likelihoods.</p>
+<p>See the <a class="reference external" href="https://stat.ethz.ch/R-manual/R-devel/library/survival/html/survreg.html">R survreg documentation</a>
+and the <a class="reference external" href="https://www.itl.nist.gov/div898/handbook/eda/section3/eda3668.htm">NIST Weibull formulas</a>.</p>
+</section>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
