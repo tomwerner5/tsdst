@@ -1,0 +1,4 @@
+include CHANGELOG.md
+include scripts/check_function_coverage.py
+include docs/source/eda.rst
+prune .story

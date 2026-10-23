@@ -19,6 +19,10 @@ Some of the more useful code here extends functionality of sklearn and other lib
 
 ## Installation
 
+Version 2 requires Python 3.12 or newer. It supports current scientific packages,
+including pandas 3.1, NumPy 2.5, and scikit-learn 1.9.
+See [the change notes](CHANGELOG.md) for changes that affect existing code.
+
 To Install:
 
 ```{python}
@@ -55,6 +59,20 @@ only. Use `plot_pairs=True` to add a scatter matrix with row and column limits.
 If you have a response variable, use `response="column_name"` to compare it
 with the features. The analysis keeps the input unchanged and does not fit
 a model. See [the EDA guide](docs/source/eda.rst) for types and output options.
+
+## Development
+
+Install the test dependencies and run the suite:
+
+```bash
+python -m pip install -e '.[test]'
+python -m pytest --cov=tsdst --cov-report=term-missing --cov-report=json:coverage.json
+python scripts/check_function_coverage.py coverage.json
+```
+
+The suite checks each package function and method. Line coverage has a separate
+85% minimum. The test workflow covers Python 3.12, 3.13, and 3.14.
+Install `tsdst[io]` to use the Feather and Parquet helpers without the test tools.
 
 ## Licensing
 

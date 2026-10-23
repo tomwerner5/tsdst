@@ -13,7 +13,7 @@ from timeit import default_timer as dt
 from .metrics import (cox_snell_r2, nagelkerke_r2, tjur_r2, mcfadden_r2,
                       conf_mat_metrics, bias, rpmse, r2, adj_r2, top_20p,
                       number_of_nonzero_coef)
-from .nn.activations import sigmoid, sigmoid_der
+from .nn.activations import sigmoid
 from .utils import reshape_to_vector
 
 
@@ -167,7 +167,8 @@ def scoreModel(X, Y, model, metrics=None,
             }
         }
     
-    y_temp = Y.values.ravel()
+    y_temp = np.asarray(Y).ravel()
+    args['y_true'] = y_temp
     if mtype == "classification":
         
         args['n_obs'] = Y.shape[0]
@@ -204,126 +205,9 @@ def scoreModel(X, Y, model, metrics=None,
 
 
 # Currently, this takes just as long as scoreModel and the logic is simpler... keeping for legacy reasons
-def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=True, avg="weighted"):
-    res = None
-    if mtype == "classification":
-        nobs = Y.shape[0]
-        Yprob = model.predict_proba(X)[:, 1]
-        Yprob_nullmod = np.repeat(np.mean(Y.values), nobs)
-        
-        if thres is None:
-            Ypred = model.predict(X)
-        else:
-            Ypred = np.sum([Yprob >= thres], axis=0)
-        
-        accs = accuracy_score(Y, Ypred)
-        f1s = f1_score(Y, Ypred)
-        aucs = roc_auc_score(Y, Yprob, average=avg)
-        
-        ll_est = np.sum(Y.values*np.log(Yprob) + (1 - Y.values)*np.log(1 - Yprob))
-        ll_null = np.sum(Y.values*np.log(Yprob_nullmod) + (1 - Y.values)*np.log(1 - Yprob_nullmod))
-        
-        # Cox Snell R2
-        ratio = 2/nobs
-        cs_r2 = 1 - np.exp(ratio*(ll_null - ll_est))
-        r2_max = 1 - np.exp(ratio*ll_null)
-
-        # Correction to CS R2 to bound between 0, 1
-        n_r2 = cs_r2/r2_max
-        
-        # When the saturated model is not available (common), then
-        # Mcfaddens R2 is equivalent to the likelihood ratio r2
-        m_r2 = 1 - (ll_est/ll_null)
-        
-        #Tjur R2
-        y_mu1 = Yprob[Y == 1].mean()
-        y_mu0 = Yprob[Y == 0].mean()
-        t_r2 = np.abs(y_mu1 - y_mu0)
-
-        # Assumes 1 as the positive class
-        confmat = confusion_matrix(Y, Ypred)
-        tn = confmat[0, 0]
-        tp = confmat[1, 1]
-        fn = confmat[0, 1]
-        fp = confmat[1, 0]
-        tnfp = tn + fp
-        tpfn = tp + fn
-        tpfp = tp + fp
-        tnfn = tn + fn
-        if tnfp != 0:
-            spec = tn/tnfp
-        else:
-            spec = 0
-        if tpfn != 0:
-            sens = tp/tpfn
-        else:
-            sens = 0
-        if tpfp != 0:
-            ppv = tp/tpfp
-        else:
-            ppv = 0
-        if tnfn != 0:
-            npv = tn/tnfn
-        else:
-            npv = 0
-            
-        if print_:
-            print("Accuracy       : ", accs)
-            print("F1             : ", f1s)
-            print("Sens/Recall    : ", sens)
-            print("Specificity     : ", spec)
-            print("Pos Prev Val   : ", ppv)
-            print("Neg Prev Val   : ", npv)
-            print("AUC            : ", aucs)
-            print("R2 (McFadden)  : ", m_r2)
-            print("R2 (Tjur)      : ", t_r2)
-            print("R2 (Nagelkerke): ", n_r2)
-            print("R2 (Cox/Snell) : ", cs_r2)
-    
-        res = {
-            'Accuracy': accs,
-            'F1': f1s,
-            'Sens/Recall': sens,
-            'Specificity': spec,
-            'ppv': ppv,
-            'npv': npv,
-            'Conf_Mat': confmat,
-            'AUC': aucs,
-            'McFadden R2': m_r2,
-            'Tjur R2': t_r2,
-            'Nagelkerke R2': n_r2,
-            'Cox/Snell R2': cs_r2
-        }
-                  
-    else:
-        Ypred = model.predict(X)
-        Ydiff = Ypred - Y.values
-        Ybar = np.mean(Y.values)
-        
-        bias = np.mean(Ydiff)
-        rpmse = np.sqrt(np.mean(Ydiff**2))
-        SST = np.sum((Y.values - Ybar)**2)
-        # SSE = np.sum((Y.values - Ypred)**2)
-        SSR = np.sum((Ypred - Ybar)**2)
-        # also equal to 1 - SSE/SST
-        # alternative R2: np.corrcoef((ypred, ytrue))**2
-        r2 = SSR/SST
-        adj_r2 = 1 - (1 - r2)*((X.shape[0] - 1)/(X.shape[0] - X.shape[1] - 1))
-        
-        if print_:
-            print("Bias       : ", bias)
-            print("RPMSE      : ", rpmse)
-            print("R2         : ", r2)
-            print("Adj. R2    : ", adj_r2)
-    
-        res = {
-            'Bias': bias,
-            'RPMSE': rpmse,
-            'R2': r2,
-            'Adj. R2': adj_r2
-        }
-        
-    return res
+def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=True, avg='weighted'):
+    """Score a model with the current metric definitions."""
+    return scoreModel(X, Y, model, thres=thres, mtype=mtype, print_=print_, avg=avg)
 
 
 def runScorers(X, Y, splits, model, mtype, metrics=None,
@@ -388,7 +272,7 @@ def runScorers(X, Y, splits, model, mtype, metrics=None,
         A dictionary containing the results.
     """
     if metrics is None:
-        metrics = DEFAULT_METRICS
+        metrics = DEFAULT_CLASSIFICATION_METRICS if mtype == 'classification' else DEFAULT_REGRESSION_METRICS
     if calculate is None:
         calculate = ['Out of Sample']
     if mox_args is None:
@@ -609,7 +493,7 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
     if mox_args is None:
         mox_args = {}
     if metrics is None:
-        metrics = DEFAULT_METRICS
+        metrics = DEFAULT_CLASSIFICATION_METRICS if mtype == 'classification' else DEFAULT_REGRESSION_METRICS
     if calculate is None:
         calculate = ['Out of Sample']
 
@@ -647,153 +531,49 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
 # labels is a dictionary identifying what the label values should be,
 # where the dictionary key is the new label, and the dictionary value
 # is the current class value
-def prettyConfMat(Ytrue, Ypred,
-                  print_=True, margins=True, labels=None):
-    """
-    Print a pretty confusion matrix.
-
-    Parameters
-    ----------
-    Ytrue : numpy array or pandas series
-        The true class values.
-    Ypred : numpy array or pandas series
-        The predicted class values.
-    print_ : bool, optional
-        Print the confusion matrix at the end. The default is True.
-    margins : bool, optional
-        Include the summed margins in the matrix. The default is True.
-    labels : dict, optional
-        A dictionary of key-value pairs, where the keys are the labels,
-        and the values are the class values in Ytrue. class labels for the
-        confusion matrix. The default is None.
-
-    Raises
-    ------
-    KeyError
-        If labels are provided, an error is raised if the size of the array
-        containing the labels does not match the number of possible classes.
-
-    Returns
-    -------
-    confmat : pandas dataframe
-        A dataframe containing the confusion matrix.
-
-    """
-    if labels is not None:
-        if isinstance(Ytrue, pd.DataFrame) or isinstance(Ytrue, pd.Series):
-            Ytrue = Ytrue.copy().values
-        if isinstance(Ypred, pd.DataFrame) or isinstance(Ypred, pd.Series):
-            Ypred = Ypred.copy().values
-        maxlen = np.unique(Ytrue).shape[0]
-        if len(labels) != maxlen:
-            raise KeyError('Incorrect number of labels compared to truth label values')
-        else:
-            idx = np.arange(0, Ytrue.shape[0])
-            Ytrue_label = pd.Series(index=idx, dtype=object)
-            Ypred_label = pd.Series(index=idx, dtype=object)
-            for lab in labels.keys():
-                Ytrue_label.loc[Ytrue == labels[lab]] = lab
-                Ypred_label.loc[Ypred == labels[lab]] = lab
+def prettyConfMat(Ytrue, Ypred, print_=True, margins=True, labels=None):
+    """Return a confusion table with Actual and Predicted column groups."""
+    truth, prediction = np.asarray(Ytrue).ravel(), np.asarray(Ypred).ravel()
+    if labels is None:
+        values = list(np.unique(np.r_[truth, prediction]))
+        names = values
     else:
-        Ytrue_label = Ytrue.copy()
-        Ypred_label = Ypred.copy()
-    
-    cm_vals = pd.crosstab(Ytrue_label, Ypred_label, margins=margins, margins_name='Total')
-
-    rowcolkeys = [lab for lab in labels.keys()] + ['Total']
-    cm_vals = cm_vals.reindex(rowcolkeys, axis=0)
-    cm_vals = cm_vals.reindex(rowcolkeys, axis=1)
-    
-    rownames = pd.MultiIndex.from_product([['Actual'], rowcolkeys])
-    colnames = pd.MultiIndex.from_product([['Predicted'], rowcolkeys])
-    #confmat = cm_vals.reindex(pd.MultiIndex.from_product([['Actual'], [lab for lab in labels.keys()] + ['All']]))
-    confmat = pd.DataFrame(cm_vals.values, index=rownames, columns=colnames)
-
+        names, values = list(labels), list(labels.values())
+        if not set(np.unique(np.r_[truth, prediction])).issubset(values):
+            raise ValueError('Labels must include every observed class')
+    matrix = confusion_matrix(truth, prediction, labels=values)
+    if margins:
+        matrix = np.column_stack([matrix, matrix.sum(axis=1)])
+        matrix = np.vstack([matrix, matrix.sum(axis=0)])
+        names = names + ['Total']
+    result = pd.DataFrame(matrix,
+              index=pd.MultiIndex.from_product([['Actual'], names]),
+              columns=pd.MultiIndex.from_product([['Predicted'], names]))
     if print_:
-        print(confmat)
-    return confmat
+        print(result)
+    return result
 
   
 def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, lamda=0):
-    """Generate the covariance matrix for regression parameters.
+    """Return covariance, inverse design information, variance, and coefficients.
 
-    Parameters
-    ----------
-    X : pandas dataframe
-        The feature or design matrix.
-    Y : pandas series or numpy array
-        The response or target variable.
-    fit_mod : sklearn model, or similar
-        The fitted model (Logistic or linear Regression).
-    logit : bool, optional
-        If True, calculate Logistic Regression SE, otherwise, Linear. Default is True
-    low_memory : bool, optional
-        Sometimes this process uses a lot of memory. If True, calculate using less memory.
-        The default is False.
-    lamda : float, optional
-        If performing ridge regression, this is the penalty term, lambda.
-
-    Returns
-    -------
-    cov : numpy array
-        The covariance matrix for regression parameters.
+    Logistic information uses weighted matrix multiplication in both memory
+    modes. This avoids a diagonal matrix with one entry per observation.
     """
-    Xc = np.hstack([np.ones((X.shape[0], 1)), X])
-    sigma2 = None
-    XtX_inv = None
+    X, Y = np.asarray(X, dtype=float), np.asarray(Y).ravel()
+    design = np.column_stack([np.ones(len(X)), X])
+    beta = np.r_[np.asarray(fit_mod.intercept_).ravel(), np.asarray(fit_mod.coef_).ravel()][:, None]
+    penalty = lamda * np.diag(np.r_[0., np.ones(X.shape[1])])
     if logit:
-        Yprob = fit_mod.predict_proba(X)
-        # p*(1-p), or pq (also V)
-        Yprob_prod = np.product(Yprob, axis=1)
-        if low_memory:
-            XV = np.zeros(shape=Xc.T.shape)
-            for j in range(X.T.shape[1]):
-                XV[:, j] = Xc.T[:, j] * Yprob_prod[j]
-            XVXt = np.zeros((XV.shape[0], XV.shape[0]))
-            try:
-                XVXt = XV.dot(Xc)
-            except MemoryError:
-                for i in range(XV.shape[0]):
-                    for k in range(XV.shape[1]):
-                        sumprod = np.sum(np.product(XV[i, :], Xc[:, k]))
-                        XVXt[i, k] = sumprod
-        else:
-            # cov of logit
-            XVXt = np.dot(np.dot(Xc.T, np.diagflat(Yprob_prod)), Xc)
-            # Note: The above is only correct if assumptions are true. If assumptions 
-            # are violated (i.e. Y does not follow bernoulli, not monotonic probability,
-            # etc., then another robust formulation we could use is:
-            #     XVXt = np.dot(np.dot(Xc.T, np.diagflat(V)), Xc)
-            #     XVXt_inv = np.linalg.inv(XVXt)
-            #     cov = XVXt_inv.dot(XVXt).dot(XVXt_inv)
-            # where V is not Yprob_prob, but:
-            #     V = np.diagflat(Y - Yprob[:, 1])
-        cov = np.linalg.inv(XVXt)
-    else:
-        # could use model.predict instead of Xc.dot(betas), but it's a good
-        # reminder of the math
-        betas = np.concatenate((fit_mod.intercept_.reshape(-1,),
-                                fit_mod.coef_.reshape(-1,))).reshape(-1, 1)
-        # This is mean squared error with a specified number of standard
-        # deviations, i.e. the standard deviation of the residuals for n-p
-        # degrees of freedom rather than n-1 (the typical unbiased estimator)
-        # or n (the biased MLE esimator)
-        #
-        # This unbiased estimate for sigma is called the 'squared residual standard error'
-        # In matrix notation (where p includes intercept), sigma2 = (1/(n-p))*((y-XB)^T *dot* (y-XB))
-        # and sigma2_mle = (1/n)*((y-XB)^T *dot* (y-XB))
-        sigma2 = np.sum((Y.reshape(-1, 1) - Xc.dot(betas))**2)/(Xc.shape[0] - betas.shape[0])
-        if lamda != 0:
-            # ridge regression case
-            Xt_X = np.dot(Xc.T, Xc)
-            xt_inv = np.linalg.inv(Xt_X + lamda*np.eye(Xt_X.shape[0]))
-            # example of a "sandwich" estimator
-            XtX_inv = xt_inv.dot(Xt_X).dot(xt_inv)
-        else:
-            XtX_inv = np.linalg.inv(np.dot(Xc.T, Xc))
-        # var(beta_hat) = diag(cov)
-        cov = sigma2*XtX_inv
-    return cov, XtX_inv, sigma2, betas
+        weights = np.prod(fit_mod.predict_proba(X), axis=1)
+        covariance = np.linalg.inv(design.T @ (weights[:, None] * design) + penalty)
+        return covariance, None, None, beta
+    residuals = Y[:, None] - design @ beta
+    variance = np.sum(residuals ** 2) / (len(X) - design.shape[1])
+    information = design.T @ design
+    inverse = np.linalg.inv(information + penalty)
+    covariance_base = inverse @ information @ inverse if lamda else inverse
+    return variance * covariance_base, covariance_base, variance, beta
   
 
 def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, lamda=0):
@@ -831,90 +611,30 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, lamda=0):
 def predict(X_test, X_train, Y_train, fit_mod, logit=True, interval='prediction',
             low_memory=False, lamda=0, level=0.95, logit_transform=False,
             logit_se_method='wald'):
-    """Mimics predict function in R.
+    """Return predictions with confidence or prediction intervals.
 
-    Parameters
-    ----------
-    X_test : pandas dataframe
-        The new values to predict.
-    X_train : pandas dataframe
-        The feature or design matrix (what the model was trained on).
-    Y_train : pandas series or numpy array
-        The response or target variable.
-    fit_mod : sklearn model, or similar
-        The fitted model (Logistic or linear Regression).
-    logit : bool, optional
-        If True, calculate Logistic Regression SE, otherwise, Linear. Default is True
-    low_memory : bool, optional
-        Sometimes this process uses a lot of memory. If True, calculate using less memory.
-        The default is False.
-    lamda : float, optional
-        If performing ridge regression, this is the penalty term, lambda.
-    level : float
-        The confidence level for the prediction interval.
-    interval : str
-        The type of prediction, either "confidence" for prediction on the mean value, or
-        "prediction" for interval around newly sampled values.
-    logit_transform : bool, optional
-        If True, perform logit transform on output. Does nothing if logit=False or
-        method='delta'. Default is False.
-    logit_se_method : str, optional
-        Which SE calculation method to use for logistic regression. Does nothing if
-        logit=False. Options are wald or delta. Default is wald.
-
-    Returns
-    -------
-    prediction : pandas dataframe
-        The predictions and assosiated intervals.
+    Logistic intervals use the Wald method. A logistic prediction interval
+    uses the confidence interval for the response probability.
     """
-    cov, XtX_inv, sigma2 = GenerateRegCov(X=X_train, Y=Y_train, fit_mod=fit_mod,
-                            logit=logit, low_memory=low_memory,
-                            lamda=lamda)
-    
-    #Xc_train = np.hstack([np.ones((X_train.shape[0], 1)), X_train])
-    Xc_test = np.hstack([np.ones((X_test.shape[0], 1)), X_test])
-    betas = np.concatenate((fit_mod.intercept_, fit_mod.coef_)).reshape(-1, 1)
-    tstat = t.ppf(1-(1-level)/2, df=X_train.shape[0] - betas.shape[0])
-    yhat = Xc_test.dot(betas)
-    
+    if interval not in ('prediction', 'confidence') or not 0 < level < 1:
+        raise ValueError('Supply a valid interval type and a level between 0 and 1')
+    covariance, _, variance, beta = GenerateRegCov(X_train, Y_train, fit_mod, logit, low_memory, lamda)
+    design = np.column_stack([np.ones(len(X_test)), np.asarray(X_test)])
+    estimate = (design @ beta).ravel()
+    prediction_variance = np.einsum('ij,jk,ik->i', design, covariance, design)
     if logit:
+        if logit_se_method != 'wald':
+            raise NotImplementedError('Only the Wald method is available')
         if interval == 'prediction':
-            warnings.warn("There's generally not a meaningful definition for "
-                          "a prediction interval in this case. Instead, using "
-                          "the confidence interval for the mean value.")
-        
-        if logit_se_method == 'wald':
-            # Using Wald Endpoint transformations
-            var = Xc_test.dot(cov).dot(Xc_test.T)
-            se = np.sqrt(np.diag(var))
-            upper_int = yhat + tstat*se
-            lower_int = yhat - tstat*se
-            
-            if logit_transform:
-                yhat = sigmoid(yhat)
-                upper_int = sigmoid(upper_int)
-                lower_int = sigmoid(lower_int)
-        else:
-            # TODO: fill in delta method
-            # Using delta method
-            raise NotImplementedError("Delta method has not been included in this"
-                                      "version")
-            #sigmoid_der(yhat).T.dot(Xc_test.T).dot(
-    else: 
-        xtXt_Xx = Xc_test.T.dot(XtX_inv).dot(Xc_test)
-    
-        if interval == 'prediction':
-            xtXt_Xx += 1
-        
-        upper_int = yhat + tstat*np.sqrt(sigma2)*np.sqrt(xtXt_Xx)
-        lower_int = yhat - tstat*np.sqrt(sigma2)*np.sqrt(xtXt_Xx)
-    
-    prediction = pd.DataFrame(np.array([yhat.reshape(-1, ),
-                                        lower_int.reshape(-1, ),
-                                        upper_int.reshape(-1, )]).T,
-                              columns=['yhat', 'lower_int', 'upper_int'])
-    
-    return prediction
+            warnings.warn('Using a confidence interval for a binary response', UserWarning)
+    elif interval == 'prediction':
+        prediction_variance += variance
+    critical = t.ppf((1 + level) / 2, df=len(X_train) - beta.size)
+    margin = critical * np.sqrt(prediction_variance)
+    result = np.column_stack([estimate, estimate - margin, estimate + margin])
+    if logit and logit_transform:
+        result = sigmoid(result)
+    return pd.DataFrame(result, columns=['yhat', 'lower_int', 'upper_int'])
 
 
 def corrmat_validity_check(corr_mat, corr_tol=1e-8):
@@ -1014,7 +734,7 @@ def beta_trans(coef, type_="percent"):
     val = np.exp(coef)
     if type_ == "odds":
         return val
-    elif type == "decimal":
+    elif type_ == "decimal":
         return val - 1
     elif type_ == "percent":
         return 100.0*(val - 1)
@@ -1045,7 +765,7 @@ def getPriors(data, Ycol):
     alltab = None
     #numeric = False
     sub = data
-    for k, i in enumerate(sub.columns[:-1]):
+    for k, i in enumerate([column for column in sub.columns if column != Ycol]):
         if len(sub.loc[:, i].unique()) > 7:
             arr = np.array([[sub[sub[Ycol] == 0][i].mean(),
                              sub[sub[Ycol] == 1][i].mean(),
@@ -1409,12 +1129,12 @@ def bPCA(data, k=None, maxepoch=200, stepsize=10, dtau_tol=1e-8):
     Returns
     -------
     M : dict
-        A dictionary of the results, containing\:
+        A dictionary of the results, containing:
 
-            - yest \: The original data matrix with missing values imputed
-            - mu \: The estimated mean row vector
-            - W \: The estimated principal axis matrix
-            - tau \: The estimated precision (inverse variance) of the residual \
+            - yest : The original data matrix with missing values imputed
+            - mu : The estimated mean row vector
+            - W : The estimated principal axis matrix
+            - tau : The estimated precision (inverse variance) of the residual \
                  error
 
     Examples

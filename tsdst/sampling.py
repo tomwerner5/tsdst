@@ -174,7 +174,7 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
     
     rows = sortedData.shape[0]
     cols = sortedData.shape[1]
-    LHC = np.zeros(shape=(sampleSize, cols), dtype=sortedData.dtypes)
+    LHC = np.zeros(shape=(sampleSize, cols), dtype=sortedData.dtype)
     splits = sampleSize
     
     if verbose:
@@ -195,14 +195,14 @@ def latinHypercube1D(data, sampleSize, random_state=None, shuffle_after=True,
                     start = 1
                     end = rem + 1
                     a1 = np.arange(start, end, np.floor(rem / rem2),
-                                   dtype=np.int)[:rem2]
+                                   dtype=int)[:rem2]
                     f_array = np.insert(r1, a1, low)
                 else:
                     r1 = np.repeat(low, rem2)
                     start = 1
                     end = rem2 + 1
                     a1 = np.arange(start, end, np.floor(rem2 / rem),
-                                   dtype=np.int)[:rem]
+                                   dtype=int)[:rem]
                     f_array = np.insert(r1, a1, high)
             else:
                 raise ValueError("Not a valid bin placement. Change to 'spaced' or "

@@ -13,8 +13,7 @@
 import os
 import sphinx_bootstrap_theme
 import sys
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, r'C:\Users\tomwe\PycharmProjects\tsdst')
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
@@ -23,7 +22,8 @@ copyright = '2020 - present, Tom Werner'
 author = 'Tom Werner'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.11'
+from tsdst import __version__
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------

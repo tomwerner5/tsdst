@@ -2,23 +2,18 @@ import numpy as np
 
 from scipy.optimize import minimize
 from scipy.special import xlogy
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 from sklearn.linear_model import LogisticRegression as glm_lr
 ### keeping in case using an older version of sklearn
-from statsmodels.genmod.generalized_linear_model import GLM as glm_pois
-from statsmodels.genmod.families.family import Poisson
 ###
-from sklearn.linear_model._base import LinearClassifierMixin
+from sklearn.linear_model import PoissonRegressor
+from scipy.special import expit, gamma
 from sklearn.metrics import get_scorer
-from sklearn.utils import check_array
-from sklearn.utils.extmath import softmax
-from sklearn.utils.validation import check_is_fitted, _check_sample_weight
-from statsmodels.tools import add_constant
-from timeit import default_timer as dt
+from sklearn.utils.validation import check_is_fitted, validate_data
 
 from .distributions import (ap_logreg_lasso,
                                  posterior_logreg_lasso,
-                                 likelihood_bernoulli,
+                                 glm_likelihood_bernoulli,
                                  posterior_poisson_lasso,
                                  ap_poisson_lasso,
                                  posterior_poisson_lasso_od,
@@ -26,10 +21,84 @@ from .distributions import (ap_logreg_lasso,
                                  weibull_regression_post)
 from .mcmc import adaptive_mcmc, rwm_with_lap, rwm, applyMCMC
 from .tmath import mode_histogram, mode_kde
-from .utils import print_time
 
 
-class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
+def _fit_bayesian(estimator, X, y, family):
+    """Validate data and fit a Bayesian model with the selected sampler."""
+    original_X = X
+    X, y = validate_data(estimator, X, y, dtype=float)
+    if estimator.niter < 2:
+        raise ValueError('niter must be at least 2')
+    if family == 'binomial':
+        estimator.classes_, target = np.unique(y, return_inverse=True)
+        if len(estimator.classes_) != 2:
+            raise ValueError('The classifier requires exactly two classes')
+        posterior, extra = ((ap_logreg_lasso, 1) if estimator.C is None
+                            else (posterior_logreg_lasso, 0))
+    elif family == 'poisson':
+        if np.any(y < 0):
+            raise ValueError('Poisson responses must be nonnegative')
+        target = y
+        if estimator.C is None:
+            posterior, extra = ((ap_poisson_lasso_od, 2) if estimator.over_dispersion else (ap_poisson_lasso, 1))
+        else:
+            posterior, extra = ((posterior_poisson_lasso_od, 1) if estimator.over_dispersion else (posterior_poisson_lasso, 0))
+    else:
+        if np.any(y <= 0):
+            raise ValueError('Weibull responses must be positive')
+        target, posterior, extra = y, weibull_regression_post, 1
+    estimator.extra_params = extra
+    design = X if estimator.has_constant else np.column_stack([np.ones(len(X)), X])
+    size = design.shape[1] + extra
+    if estimator.start is not None:
+        initial = np.asarray(estimator.start, dtype=float).copy()
+    elif estimator.initialize_weights == 'ones':
+        initial = np.ones(size)
+    elif estimator.initialize_weights == 'random':
+        initial = np.random.normal(size=size)
+    elif estimator.initialize_weights == 'sklearn' and family != 'weibull':
+        strength = 1 if estimator.C is None else estimator.C
+        model = (glm_lr(C=strength, solver='liblinear', l1_ratio=1, fit_intercept=False)
+                 if family == 'binomial' else PoissonRegressor(alpha=1/strength, fit_intercept=False))
+        initial = np.r_[model.fit(design, target).coef_.ravel(), np.zeros(extra)]
+    else:
+        initial = np.zeros(size)
+        if family == 'weibull':
+            initial[-1] = np.log(np.mean(target))
+    if initial.shape != (size,):
+        raise ValueError('The starting parameter count does not match the model')
+    estimator.start_ = initial
+    algorithms = {'rosenthal': adaptive_mcmc, 'lap': rwm_with_lap, 'rwm': rwm}
+    algorithm = estimator.algo if callable(estimator.algo) else algorithms[estimator.algo]
+    def log_posterior(parameters, **arguments):
+        # Reject proposals outside numeric support without overflow warnings.
+        with np.errstate(over='ignore', under='ignore', invalid='ignore', divide='ignore'):
+            value = posterior(parameters, **arguments)
+        return value if np.isfinite(value) else -np.inf
+
+    result = applyMCMC(initial, estimator.niter, log_posterior, algorithm,
+                      algoOpts=dict(estimator.algo_options or {}),
+                      postArgs={'X': design, 'Y': target, 'l_scale': 1 if estimator.C is None else 2*estimator.C},
+                      sd=estimator.retry_sd, max_tries=estimator.retry_max_tries)
+    estimator.mcmc_params, estimator.prev_vals = result['parameters'], result['prev_vals']
+    estimator.coef_, estimator.intercept_, estimator.extra_params_sum_ = estimator._create_coefs(
+        estimator.mcmc_params, estimator.param_summary, extra)
+    estimator.n_iter_ = len(estimator.mcmc_params)
+    if family == 'binomial':
+        estimator.dispersion_estimation_ = None
+    else:
+        estimator.dispersion_delta_ = (float(estimator.extra_params_sum_[-1])
+                                      if family == 'poisson' and estimator.over_dispersion else 0)
+        estimator.dispersion_estimation_ = (1/(1-estimator.dispersion_delta_)**2
+                                            if estimator.over_dispersion else None)
+        if family == 'weibull':
+            estimator.scale_ = float(np.exp(estimator.extra_params_sum_[-1]))
+        for name, value in estimator._deviance_dispersion_update(original_X, y).items():
+            setattr(estimator, name, value)
+    return estimator
+
+
+class BayesLogRegClassifier(ClassifierMixin, BaseEstimator):
     """A Logistic Regression Classifier that uses MCMC to evaluate the parameters.
     This objects inherits from sklearn\'s BaseEstimator and
     LinearClassifierMixin.
@@ -107,12 +176,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         self.C = C
         self.start = start
         self.niter = niter
-        if algo == 'rosenthal':
-            self.algo = adaptive_mcmc
-        elif algo == 'lap':
-            self.algo = rwm_with_lap
-        else:
-            self.algo = rwm
+        self.algo = algo
         self.algo_options = algo_options
         self.param_summary = param_summary
         self.initialize_weights = initialize_weights
@@ -209,114 +273,24 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return self
     
     def fit(self, X, y):
-        """Fit the model
-
-        Parameters
-        ----------
-        X : numpy array
-            The feature (or design) matrix.
-        y : numpy array
-            The response variable.
-
-        Returns
-        -------
-        self
-            Updates internal attributes, such as `coef_` and `intercept_`.
-
-        """
-        t0 = dt()
-        X = check_array(X, force_all_finite='allow-nan', estimator=self, copy=True)
-        if not self.has_constant:
-            X = add_constant(X, prepend=True)       
-        
-        if self.start is not None:
-            pass
-        else:
-            if self.verbose:
-                print_time("Initializing Coefficients...", t0, dt(), backsn=True)
-            if self.initialize_weights == 'sklearn':
-                C = self.C
-                if C is None:
-                    C = 1
-                mod = glm_lr(C=C, solver='liblinear', penalty='l1', fit_intercept=False).fit(X, y)
-                self.start = mod.coef_.reshape(-1, )
-                if self.extra_params > 0:
-                    self.start = np.concatenate((self.start, np.repeat(1, self.extra_params)))
-            elif self.initialize_weights == 'ones':
-                self.start = np.ones(shape=X.shape[1] + self.extra_params)
-            elif self.initialize_weights == 'random':
-                self.start = np.random.normal(size=(X.shape[1] + self.extra_params, ))
-            else:
-                self.start = np.zeros(shape=X.shape[1] + self.extra_params)
-
-        if self.verbose:
-            print_time("Beginning MCMC...", t0, dt(), backsn=True)
-        
-        postArgs = {
-            'X': X,
-            'Y': y,
-            'l_scale': self.C if self.C is None else 2*self.C
-        }
-        
-        algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
-                             algo=self.algo, postArgs=postArgs,
-                             algoOpts=self.algo_options, sd=self.retry_sd,
-                             max_tries=self.retry_max_tries)
-        
-        self.mcmc_params = algo_res['parameters']
-        self.prev_vals = algo_res['prev_vals']
-        
-        self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, self.param_summary,
-                                                                                 self.extra_params)
-        self.n_iter_ = self.niter
-        self.classes_ = np.unique(y)
-        
-        if self.over_dispersion:
-            self.dispersion_estimation_ = self.extra_params_sum_[-1]
-        else:
-            self.dispersion_estimation_ = None
-        
-        if self.verbose:
-            print_time("Finished MCMC. Stored Coefficients...", t0, dt(), backsn=True)
-            
-        return self
+        """Fit the model with finite numeric features and a compatible response."""
+        return _fit_bayesian(self, X, y, 'binomial')
     
-    def predict(self, X):
+    def decision_function(self, X):
+        """Return the linear predictor for each row."""
         check_is_fitted(self, 'coef_')
-        scores = self.decision_function(X)
-        # note: decision_function returns X.dot(Betas). This code, modified from sklearn,
-        # computes the decision based on the sign of the log odds ratio (X.dot(betas) == log(p/(1-p))).
-        # When p <= 0.5, decision is 0, when p > 0.5, decision is 1 (threshold of 0.5 is the default for sklearn). 
-        if len(scores.shape) == 1:
-            indices = (scores > 0).astype(np.int)
-        else:
-            indices = scores.argmax(axis=1)
-        # returning the value in this way allows for someone to define their own classes,
-        # for example, -1, 1 instead of 0, 1
-        # Note: this is used in sklearn, but this code is not be robust enough for that,
-        # so you need to define your classes as 0, 1
-        return self.classes_[indices]
+        X = validate_data(self, X, reset=False)
+        linear = X[:, 1:] if self.has_constant else X
+        return (linear @ self.coef_.ravel() + self.intercept_).ravel()
+
+    def predict(self, X):
+        """Return the class with probability at least one half."""
+        return self.classes_[(self.decision_function(X) >= 0).astype(int)]
     
     def predict_proba(self, X):
-        """Generate predicted probability.
-
-        Parameters
-        ----------
-        X : numpy array
-            Feature (or design) matrix.
-
-        Returns
-        -------
-        numpy array (float)
-            The predicted probabilities.
-
-        """
-        check_is_fitted(self, 'coef_')
-        
-        decision = self.decision_function(X)
-        decision_2d = np.c_[-decision, decision]
-        
-        return softmax(decision_2d, copy=False)
+        """Return binary probabilities with the logistic link."""
+        positive = expit(self.decision_function(X))
+        return np.column_stack([1-positive, positive])
     
     def predict_log_proba(self, X):
         """Generate predicted log probability.
@@ -360,7 +334,7 @@ class BayesLogRegClassifier(BaseEstimator, LinearClassifierMixin):
         return scorer(self, X, y, sample_weight=sample_weight)
 
 
-class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
+class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
     """
     A Poisson Regressor that uses MCMC to evaluate the parameters.
     This objects inherits from sklearn\'s BaseEstimator and
@@ -436,12 +410,7 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         self.C = C
         self.start = start
         self.niter = niter
-        if algo == 'rosenthal':
-            self.algo = adaptive_mcmc
-        elif algo == 'lap':
-            self.algo = rwm_with_lap
-        else:
-            self.algo = rwm
+        self.algo = algo
         self.algo_options = algo_options
         self.param_summary = param_summary
         self.initialize_weights = initialize_weights
@@ -468,35 +437,23 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
                 self.extra_params = 0
     
     def _deviance_dispersion_update(self, X, y, sample_weight=None):
-        weights = _check_sample_weight(sample_weight, X)
-        y_pred = self.predict(X)
-        y_mean = np.average(y, weights=weights)
-        deviance_ = np.sum(weights * (2*(xlogy(y, y/y_pred) - y + y_pred)))
-        null_deviance_ = np.sum(weights * (2*(xlogy(y, y/y_mean) - y + y_mean)))
-        # pearson residual:  (raw residual)/(variance function)
-        pearson_residuals_ = (y - y_pred)/np.sqrt(y_pred)
-        pearson_chi2_ = np.sum(pearson_residuals_**2)
-        model_d2_ = 1 - deviance_/null_deviance_
-        # degrees of freedom of the model (all params (including intercept) minus 1)
-        df_model_ = X.shape[1]
-        # degrees of freedom of residuals ((n_obs - 1) - (nparms - 1)), or
-        df_residuals_ = X.shape[0] - X.shape[1] - 1
-        # total degrees of freedom
-        df_total_ = df_residuals_ + df_model_
-        # method of moments estimator for dispersion scale
-        dispersion_scale_ = pearson_chi2_/df_residuals_
-        dispersion_scale_sqrt_ = np.sqrt(dispersion_scale_)
-        results = {'deviance_': deviance_,
-                   'null_deviance_': null_deviance_,
-                   'pearson_residuals_': pearson_residuals_,
-                   'pearson_chi2_': pearson_chi2_,
-                   'model_d2_': model_d2_,
-                   'df_model_': df_model_,
-                   'df_residuals_': df_residuals_,
-                   'df_total_': df_total_,
-                   'dispersion_scale_': dispersion_scale_,
-                   'dispersion_scale_sqrt_': dispersion_scale_sqrt_}
-        return results
+        """Return positive-response diagnostics based on Poisson deviance."""
+        y = np.asarray(y).ravel()
+        weights = np.ones(len(y)) if sample_weight is None else np.asarray(sample_weight, dtype=float)
+        if weights.shape != y.shape or np.any(weights < 0) or weights.sum() <= 0:
+            raise ValueError('Supply one nonnegative sample weight per response')
+        predicted = self.predict(X)
+        mean = np.average(y, weights=weights)
+        deviance = 2*np.sum(weights*(xlogy(y, y/predicted)-y+predicted))
+        null = 2*np.sum(weights*(xlogy(y, y/mean)-y+mean))
+        residuals = (y-predicted)/np.sqrt(predicted)
+        chi2 = np.sum(weights*residuals**2)
+        degrees = len(y)-self.coef_.size-1
+        dispersion = chi2/degrees
+        return dict(deviance_=deviance, null_deviance_=null, pearson_residuals_=residuals,
+                    pearson_chi2_=chi2, model_d2_=1-deviance/null if null else float(deviance == 0),
+                    df_model_=self.coef_.size, df_residuals_=degrees, df_total_=len(y)-1,
+                    dispersion_scale_=dispersion, dispersion_scale_sqrt_=np.sqrt(dispersion))
         
     def _create_coefs(self, mcmc_params, param_summary, extra_params):
         """
@@ -571,117 +528,25 @@ class BayesPoissonRegressor(BaseEstimator, LinearClassifierMixin):
         return self
     
     def fit(self, X, y):
-        """Fit the model
-
-        Parameters
-        ----------
-        X : numpy array
-            The feature (or design) matrix.
-        y : numpy array
-            The response variable.
-
-        Returns
-        -------
-        self
-            Updates internal attributes, such as `coef_` and `intercept_`.
-
-        """
-        t0 = dt()
-        X = check_array(X, force_all_finite='allow-nan', estimator=self, copy=True)
-        if not self.has_constant:
-            X = add_constant(X, prepend=True)       
-        
-        if self.start is not None:
-            pass
-        else:
-            if self.verbose:
-                print_time("Initializing Coefficients...", t0, dt(), backsn=True)
-            if self.initialize_weights == 'sklearn':
-                C = self.C
-                if C is None:
-                    C = 1
-                try:
-                    from sklearn.linear_model import PoissonRegressor as glm_pois_sk
-                    mod = glm_pois_sk(alpha=1/C, fit_intercept=False, max_iter=1000).fit(X, y)
-                    self.start = mod.coef_.reshape(-1, )
-                except ImportError:
-                    print('Older sklearn, no PoissonRegressor. Using statsmodels instead')
-                    mod = glm_pois(y, X, family=Poisson()).fit()
-                    self.start = mod.params.reshape(-1, )
-                if self.extra_params > 0:
-                    self.start = np.concatenate((self.start, np.repeat(1, self.extra_params)))
-            elif self.initialize_weights == 'ones':
-                self.start = np.ones(shape=X.shape[1] + self.extra_params)
-            elif self.initialize_weights == 'random':
-                self.start = np.random.normal(size=(X.shape[1] + self.extra_params, ))
-            else:
-                self.start = np.zeros(shape=X.shape[1] + self.extra_params)
-
-        if self.verbose:
-            print_time("Beginning MCMC...", t0, dt(), backsn=True)
-        
-        postArgs = {
-            'X': X,
-            'Y': y,
-            'l_scale': self.C if self.C is None else 2*self.C
-        }
-        
-        algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
-                             algo=self.algo, postArgs=postArgs,
-                             algoOpts=self.algo_options, sd=self.retry_sd,
-                             max_tries=self.retry_max_tries)
-        
-        self.mcmc_params = algo_res['parameters']
-        self.prev_vals = algo_res['prev_vals']
-        
-        self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, self.param_summary,
-                                                                                 self.extra_params)
-        self.n_iter_ = self.niter
-        
-        # get model summaries
-        if self.over_dispersion:
-            self.dispersion_delta_ = self.extra_params_sum_[-1]
-            self.dispersion_estimation_ = 1/(1 - self.dispersion_delta_)**2
-        else:
-            self.dispersion_delta_ = 0
-            self.dispersion_estimation_ = None
-        
-        ddu = self._deviance_dispersion_update(X[:, 1:], y,
-                                               sample_weight=None)
-        self.deviance_ = ddu['deviance_']
-        self.null_deviance_ = ddu['null_deviance_']
-        self.pearson_residuals_ = ddu['pearson_residuals_']
-        self.pearson_chi2_ = ddu['pearson_chi2_']
-        self.model_d2_ = ddu['model_d2_']
-        self.df_model_ = ddu['df_model_']
-        self.df_residuals_ = ddu['df_residuals_']
-        self.df_total_ = ddu['df_total_']
-        self.dispersion_scale_ = ddu['dispersion_scale_']
-        self.dispersion_scale_sqrt_ = ddu['dispersion_scale_sqrt_']
-        
-        return self
+        """Fit the model with finite numeric features and a compatible response."""
+        return _fit_bayesian(self, X, y, 'poisson')
     
     def predict(self, X):
+        """Return positive count predictions."""
         check_is_fitted(self, 'coef_')
-        X = check_array(X, accept_sparse=['csr', 'csc', 'coo'],
-                        dtype=[np.float64, np.float32], ensure_2d=True,
-                        allow_nd=False)
-        mu = X @ self.coef_ + self.intercept_
-        #return np.exp(mu)
-        return np.exp(mu)*(1-self.dispersion_delta_)
+        X = validate_data(self, X, reset=False)
+        linear = X[:, 1:] if self.has_constant else X
+        return np.exp(linear @ self.coef_ + self.intercept_)*(1-self.dispersion_delta_)
     
     def score(self, X, y, sample_weight=None):
+        """Return D2 or use the configured scikit-learn scorer."""
         if self.scorer == 'D2':
-            ddu = self._deviance_dispersion_update(X, y,
-                                                   sample_weight=None)
-            score = ddu['model_d2_']
-        else:
-            score = self.scorer(X, y, sample_weight=sample_weight)
-        
-        return score
+            return self._deviance_dispersion_update(X, y, sample_weight)['model_d2_']
+        scorer = get_scorer(self.scorer) if isinstance(self.scorer, str) else self.scorer
+        return scorer(self, X, y, sample_weight=sample_weight)
 
     
-class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
+class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
     """
     A Weibull Regressor that uses MCMC to evaluate the parameters.
     This objects inherits from sklearn\'s BaseEstimator and
@@ -758,12 +623,7 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         self.C = C
         self.start = start
         self.niter = niter
-        if algo == 'rosenthal':
-            self.algo = adaptive_mcmc
-        elif algo == 'lap':
-            self.algo = rwm_with_lap
-        else:
-            self.algo = rwm
+        self.algo = algo
         self.algo_options = algo_options
         self.param_summary = param_summary
         self.initialize_weights = initialize_weights
@@ -771,8 +631,9 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         self.verbose = verbose
         self.retry_sd = retry_sd
         self.retry_max_tries = retry_max_tries
+        self.over_dispersion = over_dispersion
         self.lpost = weibull_regression_post
-        self.extra_params = 0
+        self.extra_params = 1
             
     def _create_coefs(self, mcmc_params, param_summary, extra_params):
         """
@@ -824,164 +685,52 @@ class BayesWeibullRegressor(BaseEstimator, LinearClassifierMixin):
         return coefs, intercept, extra_parm
     
     def _deviance_dispersion_update(self, X, y, sample_weight=None):
-        weights = _check_sample_weight(sample_weight, X)
-        y_pred = self.predict(X)
-        y_mean = np.average(y, weights=weights)
-        deviance_ = np.sum(weights * (2*(xlogy(y, y/y_pred) - y + y_pred)))
-        null_deviance_ = np.sum(weights * (2*(xlogy(y, y/y_mean) - y + y_mean)))
-        # pearson residual:  (raw residual)/(variance function)
-        # TODO: put correct weibull variance here
-        pearson_residuals_ = (y - y_pred)/np.sqrt(y_pred)
-        pearson_chi2_ = np.sum(pearson_residuals_**2)
-        model_d2_ = 1 - deviance_/null_deviance_
-        # degrees of freedom of the model (all params (including intercept) minus 1)
-        df_model_ = X.shape[1]
-        # degrees of freedom of residuals ((n_obs - 1) - (nparms - 1)), or
-        df_residuals_ = X.shape[0] - X.shape[1] - 1
-        # total degrees of freedom
-        df_total_ = df_residuals_ + df_model_
-        # method of moments estimator for dispersion scale
-        dispersion_scale_ = pearson_chi2_/df_residuals_
-        dispersion_scale_sqrt_ = np.sqrt(dispersion_scale_)
-        results = {'deviance_': deviance_,
-                   'null_deviance_': null_deviance_,
-                   'pearson_residuals_': pearson_residuals_,
-                   'pearson_chi2_': pearson_chi2_,
-                   'model_d2_': model_d2_,
-                   'df_model_': df_model_,
-                   'df_residuals_': df_residuals_,
-                   'df_total_': df_total_,
-                   'dispersion_scale_': dispersion_scale_,
-                   'dispersion_scale_sqrt_': dispersion_scale_sqrt_}
-        return results
+        """Return positive-response diagnostics based on Poisson deviance."""
+        y = np.asarray(y).ravel()
+        weights = np.ones(len(y)) if sample_weight is None else np.asarray(sample_weight, dtype=float)
+        if weights.shape != y.shape or np.any(weights < 0) or weights.sum() <= 0:
+            raise ValueError('Supply one nonnegative sample weight per response')
+        predicted = self.predict(X)
+        mean = np.average(y, weights=weights)
+        deviance = 2*np.sum(weights*(xlogy(y, y/predicted)-y+predicted))
+        null = 2*np.sum(weights*(xlogy(y, y/mean)-y+mean))
+        residuals = (y-predicted)/np.sqrt(predicted)
+        chi2 = np.sum(weights*residuals**2)
+        degrees = len(y)-self.coef_.size-1
+        dispersion = chi2/degrees
+        return dict(deviance_=deviance, null_deviance_=null, pearson_residuals_=residuals,
+                    pearson_chi2_=chi2, model_d2_=1-deviance/null if null else float(deviance == 0),
+                    df_model_=self.coef_.size, df_residuals_=degrees, df_total_=len(y)-1,
+                    dispersion_scale_=dispersion, dispersion_scale_sqrt_=np.sqrt(dispersion))
         
     def adjust_params_(self, new_param_summary):
-        """This method is intended to update the aggregated parameters with a new
-        summary as defined in new_param_summary. For example, if someone wanted
-        to switch from `coef_` representing the mean to `coef_` representing
-        the median, they could use this function to do so.
-
-        Parameters
-        ----------
-        new_param_summary : str
-            The method of aggregating the MCMC chain parameters (either mean,
-            median, mode_kde, mode_histogram, or last_value).
-
-        Returns
-        -------
-        self
-            Updates the `coef_`, `intercept_`, and `extra_params_sum_` attributes.
-
-        """
-        self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, new_param_summary,
-                                                                                 self.extra_params)
+        """Update coefficients and scale with a new posterior summary."""
+        self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(
+            self.mcmc_params, new_param_summary, self.extra_params)
+        self.scale_ = float(np.exp(self.extra_params_sum_[-1]))
         return self
     
     def fit(self, X, y):
-        """Fit the model
-
-        Parameters
-        ----------
-        X : numpy array
-            The feature (or design) matrix.
-        y : numpy array
-            The response variable.
-
-        Returns
-        -------
-        self
-            Updates internal attributes, such as `coef_` and `intercept_`.
-
-        """
-        t0 = dt()
-        X = check_array(X, force_all_finite='allow-nan', estimator=self, copy=True)
-        if not self.has_constant:
-            X = add_constant(X, prepend=True)       
-        
-        if self.start is not None:
-            pass
-        else:
-            if self.verbose:
-                print_time("Initializing Coefficients...", t0, dt(), backsn=True)
-            if self.initialize_weights == 'sklearn':
-                C = self.C
-                if C is None:
-                    C = 1
-                # TODO: update with Weibull Regression starting values
-                ### If using sklearn version 0.23.2, can use this line instead
-                #mod = glm_pois(alpha=1/C, fit_intercept=False, max_iter=1000).fit(X, y)
-                #self.start = mod.coef_.reshape(-1, )
-                ### else, use statsmodels
-                mod = glm_pois(y, X, family=Poisson()).fit()
-                self.start = mod.params.reshape(-1, )
-                if self.extra_params > 0:
-                    self.start = np.concatenate((self.start, np.repeat(1, self.extra_params)))
-            elif self.initialize_weights == 'ones':
-                self.start = np.ones(shape=X.shape[1] + self.extra_params)
-            elif self.initialize_weights == 'random':
-                self.start = np.random.normal(X.shape[1] + self.extra_params)
-            else:
-                self.start = np.zeros(shape=X.shape[1] + self.extra_params)
-
-        if self.verbose:
-            print_time("Beginning MCMC...", t0, dt(), backsn=True)
-        
-        postArgs = {
-            'X': X,
-            'Y': y,
-            'l_scale': self.C if self.C is None else 2*self.C
-        }
-        
-        algo_res = applyMCMC(st=self.start, ni=self.niter, lp=self.lpost,
-                             algo=self.algo, postArgs=postArgs,
-                             algoOpts=self.algo_options, sd=self.retry_sd,
-                             max_tries=self.retry_max_tries)
-        
-        self.mcmc_params = algo_res['parameters']
-        self.prev_vals = algo_res['prev_vals']
-        
-        self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(self.mcmc_params, self.param_summary,
-                                                                                 self.extra_params)
-        self.n_iter_ = self.niter
-        
-        #get model summaries
-        weights = _check_sample_weight(None, X)
-        y_pred = self.predict(X[:, 1:])
-        y_mean = np.average(y, weights=weights)
-        dev = np.sum(weights * (2*(xlogy(y, y/y_pred) - y + y_pred)))
-        dev_null = np.sum(weights * (2*(xlogy(y, y/y_mean) - y + y_mean)))
-        self.deviance_ = dev
-        self.null_deviance_ = dev_null
-        self.pearson_residuals_ = (y - y_pred)/np.sqrt(y_pred)
-        self.pearson_chi2_ = np.sum(self.pearson_residuals_**2)
-        self.model_d2_ = 1 - dev/dev_null
-        self.df_model_ = X.shape[1] - 1
-        self.df_residuals_ = X.shape[0] - X.shape[1]
-        self.dispersion_scale_ = self.pearson_chi2_/self.df_residuals_
-        self.dispersion_scale_sqrt_ = np.sqrt(self.dispersion_scale_)
-        
-        return self
+        """Fit the model with finite numeric features and a compatible response."""
+        return _fit_bayesian(self, X, y, 'weibull')
     
     def predict(self, X):
+        """Return the Weibull mean from the fitted shape and scale."""
         check_is_fitted(self, 'coef_')
-        X = check_array(X, accept_sparse=['csr', 'csc', 'coo'],
-                        dtype=[np.float64, np.float32], ensure_2d=True,
-                        allow_nd=False)
-        mu = X @ self.coef_ + self.intercept_
-        return np.exp(mu)
+        X = validate_data(self, X, reset=False)
+        linear = X[:, 1:] if self.has_constant else X
+        shape = np.exp(linear @ self.coef_ + self.intercept_)
+        return self.scale_*gamma(1+1/shape)
     
-    def score(self, X, y, sample_weight=None, scorer='D2'):
+    def score(self, X, y, sample_weight=None, scorer='r2'):
+        """Return R2, or D2 for the positive-response diagnostic."""
         if scorer == 'D2':
-            ddu = self._deviance_dispersion_update(X[:, 1:], y,
-                                                   sample_weight=None)
-            score = 1 - ddu['deviance_']/ddu['null_deviance_']
-        else:
-            score = scorer(X, y, sample_weight=sample_weight)
-        
-        return score
+            return self._deviance_dispersion_update(X, y, sample_weight)['model_d2_']
+        scorer = get_scorer(scorer) if isinstance(scorer, str) else scorer
+        return scorer(self, X, y, sample_weight=sample_weight)
     
 
-class LogReg(BaseEstimator, LinearClassifierMixin):
+class LogReg(ClassifierMixin, BaseEstimator):
     """
     A class for performing Logistic Regression using scipy.optimize.minimize.
     This is not meant to replace skleaarn's implementation, and in fact, it
@@ -990,105 +739,50 @@ class LogReg(BaseEstimator, LinearClassifierMixin):
     Logistic Regression
     """
 
-    def __init__(self, x0=None, lamb=1, l_norm=1, method=None, jac=None,
-                 hess=None, hessp=None, bounds=None, constraints=(), tol=None,
-                 callback=None, options=None, has_constant=False):
-        
-        self.optimize_args = {'fun': likelihood_bernoulli,
-                              'x0': x0,
-                              'method': method,
-                              'jac': jac,
-                              'hess': hess,
-                              'hessp': hessp,
-                              'bounds': bounds,
-                              'constraints': constraints,
-                              'tol': tol,
-                              'callback': callback,
-                              'options': options
-                             }
-        self.lamb = lamb
-        self.l_norm = l_norm
+    def __init__(self, x0=None, lamb=1, l_norm=1, method=None, jac=None, hess=None,
+                 hessp=None, bounds=None, constraints=(), tol=None, callback=None,
+                 options=None, has_constant=False):
+        self.x0, self.lamb, self.l_norm = x0, lamb, l_norm
+        self.method, self.jac, self.hess, self.hessp = method, jac, hess, hessp
+        self.bounds, self.constraints, self.tol = bounds, constraints, tol
+        self.callback, self.options, self.has_constant = callback, options, has_constant
         
         
     def fit(self, X, y):
-        """
-        Fit the model
-
-        Parameters
-        ----------
-        X : numpy array
-            The feature (or design) matrix.
-        y : numpy array
-            The response variable.
-
-        Returns
-        -------
-        self
-            Updates internal attributes, such as coef_ and intercept_.
-
-        """
-        
-        if not self.has_constant:
-            X = add_constant(X, prepend=True)
-        
-        if self.optimize_args['x0'] is None:
-            self.optimize_args['x0'] = np.zeros(shape=X.shape[1])
-            #self.optimize_args['x0'] = np.random.normal(size=X.shape[1])
-        
-        args = (X, y, self.lamb, self.l_norm)
-        
-        self.optimize_args.update({'args': args})
-        self.optim_results = minimize(**self.optimize_args)
-        
-        self.intercept_ = self.optim_results.x[0].reshape(1, )
-        self.coef_ = self.optim_results.x[1:].reshape(1, -1)
+        """Minimize the penalized binary logistic negative log likelihood."""
+        X, y = validate_data(self, X, y, dtype=float)
+        self.classes_, y = np.unique(y, return_inverse=True)
+        if len(self.classes_) != 2:
+            raise ValueError('The classifier requires exactly two classes')
+        design = X if self.has_constant else np.column_stack([np.ones(len(X)), X])
+        initial = np.zeros(design.shape[1]) if self.x0 is None else np.asarray(self.x0)
+        self.optim_results = minimize(glm_likelihood_bernoulli, initial,
+            args=(design, y, self.lamb, self.l_norm), method=self.method, jac=self.jac,
+            hess=self.hess, hessp=self.hessp, bounds=self.bounds, constraints=self.constraints,
+            tol=self.tol, callback=self.callback, options=self.options)
+        self.intercept_, self.coef_ = self.optim_results.x[:1], self.optim_results.x[1:][None, :]
         self.n_iter_ = self.optim_results.nit
-        self.classes_ = np.unique(y)
         return self
     
+    def decision_function(self, X):
+        """Return the linear predictor for each row."""
+        check_is_fitted(self, 'coef_')
+        X = validate_data(self, X, reset=False)
+        linear = X[:, 1:] if self.has_constant else X
+        return (linear @ self.coef_.ravel() + self.intercept_).ravel()
+
     def predict(self, X):
-        scores = self.decision_function(X)
-        # note: decision_function returns X.dot(Betas). This code, modified from sklearn,
-        # computes the decision based on the sign of the log odds ratio (X.dot(betas) == log(p/(1-p))).
-        # When p <= 0.5, decision is 0, when p > 0.5, decision is 1 (threshold of 0.5 is the default for sklearn). 
-        if len(scores.shape) == 1:
-            indices = (scores > 0).astype(np.int)
-        else:
-            indices = scores.argmax(axis=1)
-        # returning the value in this way allows for someone to define their own classes,
-        # for example, -1, 1 instead of 0, 1
-        # Note: this is used in sklearn, but this code is not be robust enough for that,
-        # so you need to define your classes as 0, 1
-        return self.classes_[indices]
+        """Return the class with probability at least one half."""
+        return self.classes_[(self.decision_function(X) >= 0).astype(int)]
     
     def predict_proba(self, X):
-        """
-        Generate predicted probability.
-
-        Parameters
-        ----------
-        X : numpy array
-            Feature (or design) matrix.
-
-        Returns
-        -------
-        numpy array (float)
-            The predicted probabilities.
-
-        """
-        #check_is_fitted(self)
-        
-        decision = self.decision_function(X)
-        decision_2d = np.c_[-decision, decision]
-        
-        return softmax(decision_2d, copy=False)
+        """Return binary probabilities with the logistic link."""
+        positive = expit(self.decision_function(X))
+        return np.column_stack([1-positive, positive])
     
     def predict_log_proba(self, X):
         return np.log(self.predict_proba(X))
     
     def score(self, X, y, sample_weight=None):
-        #TODO: Test default scoring
-        scoring = self.scoring or 'accuracy'
-        scoring = get_scorer(scoring)
-        
-        return scoring(self, X, y, sample_weight=sample_weight)
+        """Return classification accuracy."""
+        return ClassifierMixin.score(self, X, y, sample_weight=sample_weight)

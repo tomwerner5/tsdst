@@ -69,6 +69,7 @@ def signIntervals(fun, lower=-50, upper=50, step=0.01, fun_args=None,
             else:
                 curves.append("maximum")
             lower_bound_index = i
+            current_sign = sign(fx[i])
 
     if curvature:
         return bounds, curves
@@ -113,6 +114,8 @@ def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
     if fun_args is None:
         fun_args = {}
     
+    fun_args = {} if fun_args is None else fun_args
+    opt = {} if opt is None else opt
     dom_tol = 1e-8
     maxiter = 10000
     bounds = [-10000.0, 10000.0]
@@ -241,6 +244,8 @@ def AdaptiveNMorBrent(fun, start=None, opt=None, print_=True, fun_args=None):
         A dictionary containing the results.
 
     """
+    fun_args = {} if fun_args is None else fun_args
+    opt = {} if opt is None else opt
     dom_tol = 1e-8
     maxiter = 10000
     bounds = [-10000.0, 10000.0]

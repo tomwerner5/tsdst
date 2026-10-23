@@ -28,10 +28,7 @@ class NeuralNetwork(object):
                  batch_size=64,
                  num_iterations=500,
                  optimizer='adam',
-                 optimizer_args={'learning_rate': 0.001,
-                                 'beta1': 0.9,
-                                 'beta2': 0.999,
-                                 'eps': 1e-8},
+                 optimizer_args=None,
                  m_scale=1,
                  bn_tol=1e-9,
                  bn_momentum=0,
@@ -247,12 +244,13 @@ class NeuralNetwork(object):
         -------
         None.
         """
-        self.model = model
+        from copy import deepcopy
+        self.model = deepcopy(model)
         self.num_layers = len(model.keys())
         self.eval_size = eval_size
         self.batch_size = batch_size
         self.num_iterations = num_iterations
-        self.optimizer_args = optimizer_args
+        self.optimizer_args = dict(learning_rate=.001, beta1=.9, beta2=.999, eps=1e-8) if optimizer_args is None else dict(optimizer_args)
         self.m_scale = m_scale
         self.bn_tol = bn_tol
         self.bn_momentum = bn_momentum
@@ -269,7 +267,7 @@ class NeuralNetwork(object):
                             'elu_der': elu_der,
                             'selu': selu,
                             'selu_der': selu_der,
-                            'gelu': selu,
+                            'gelu': gelu,
                             'gelu_approx': gelu_approx,
                             'gelu_speedy': gelu_speedy,
                             'gelu_der': gelu_der,
@@ -292,15 +290,15 @@ class NeuralNetwork(object):
                              'xavier_normal': xavier_normal,
                              'lecun_uniform': lecun_uniform,
                              'lecun_normal': lecun_normal,
-                             'random': random
+                             'random': random_normal
                              }
         self.optimizers = {'adam': adam,
                            'gradient_descent': gradient_descent}
-        self.scorer = {'accuracy': accuracy,
+        self.scorer_list = {'accuracy': accuracy,
                        'rpmse': rpmse,
                        'bias': bias
                        }
-        self.optimizer = 'adam'
+        self.optimizer = optimizer
         self.update_parameters = self.optimizers[optimizer]
     
 
@@ -553,14 +551,9 @@ class NeuralNetwork(object):
             else:
                 A = hzs["hz" + str(i - 1)]
                 
-            # m doesn't come from the derivative. We are dividing by m because we
-            # technically calculated the gradient for each observation. Thus, we
-            # average them to get the overall impact. We could also just sum and 
-            # not use the mean, but having a lower value is helpful to not run
-            # into errors with large numbers
-            
-            dW = (1/(batch_m*self.m_scale))*(np.dot(A.T, dZ) + lamda_w*norm_der(wb["Weight" + str(i)], p_w)/p_w)
-            dB = (1/(batch_m*self.m_scale))*(np.sum(dZ, axis=0, keepdims=True) + lamda_b*norm_der(wb["bias" + str(i)], p_b)/p_b)
+            # dZ already includes the batch average. Scale only the penalty here.
+            dW = np.dot(A.T, dZ) + lamda_w*norm_der(wb["Weight" + str(i)], p_w)/(p_w*batch_m*self.m_scale)
+            dB = np.sum(dZ, axis=0, keepdims=True) + lamda_b*norm_der(wb["bias" + str(i)], p_b)/(p_b*batch_m*self.m_scale)
             dwdb["Weight" + str(i)] = dW
             dwdb["bias" + str(i)] = dB
         return dwdb
@@ -591,7 +584,8 @@ class NeuralNetwork(object):
         self.m = X.shape[0]
         
         # Reshape Y so that it is a matrix, even in 1D
-        Y = Y.reshape(self.m, -1)
+        X = np.asarray(X, dtype=float)
+        Y = np.asarray(Y).reshape(self.m, -1)
         self.model['output']['depth'] = Y.shape[1]
         
         # Check for an additional metric to evaluate other than cost
@@ -599,7 +593,7 @@ class NeuralNetwork(object):
         has_metric = False
         if 'evaluation_metric' in output_layer_components:
             if isinstance(self.model['output']['evaluation_metric'], str):
-                met_func = self.scorer[self.model['output']['evaluation_metric']]
+                met_func = self.scorer_list[self.model['output']['evaluation_metric']]
             else:
                 met_func = self.model['output']['evaluation_metric']
             has_metric = True
@@ -609,7 +603,7 @@ class NeuralNetwork(object):
         
         # Total batches needed for minibatch
         if self.batch_size > self.m:
-            total_batches = self.m
+            total_batches = 1
         else:
             total_batches = int(self.m/self.batch_size) + sum([self.m % self.batch_size != 0])
         
@@ -624,7 +618,7 @@ class NeuralNetwork(object):
         
         # TODO: Figure out if this (and below) is the proper way to do minibatch
         if self.shuffle:
-            rand_indx = np.random.choice(range(X.shape[0]), X.shape[0])
+            rand_indx = np.random.permutation(X.shape[0])
             X = X[rand_indx, :]
             Y = Y[rand_indx, :] 
 
@@ -668,7 +662,7 @@ class NeuralNetwork(object):
                 
                 # Update parameters with optimizing function
                 if self.optimizer == 'adam':
-                    if i == 0:
+                    if count == 0:
                         self.optimizer_args['mt'] = {}
                         self.optimizer_args['vt'] = {}
                         for key in wb.keys():
@@ -723,42 +717,11 @@ class NeuralNetwork(object):
         return hz
     
     def draw_predictive_samples(self, X, n_samples=1000, n_outputs=1):
-        """
-        Draws predictive samples for each observation from the distribution
-        created by using dropout.
-        
-        The rows of the output represent the observations in X, and the columns
-        of the output represent the number of samples drawn. If Y has multiple
-        outputs or classes for a single observation, then the shape of the
-        output will be (X.shape[0], Y.shape[1]*n_samples). For example, if
-        there are four observations in X, two classes in Y, and you want three
-        samples, then the output will be:
-            
-            [[Y11_c1, Y11_c2] [Y12_c1, Y12_c2], [Y13_c1, Y13_c2]
-             [Y21_c1, Y21_c2] [Y22_c1, Y22_c2], [Y23_c1, Y23_c2]
-             [Y31_c1, Y31_c2] [Y32_c1, Y32_c2], [Y33_c1, Y33_c2]
-             [Y41_c1, Y41_c2] [Y42_c1, Y42_c2], [Y43_c1, Y43_c2]]
-
-        Parameters
-        ----------
-        X : numpy array
-            The input data.
-        n_samples : int, optional
-            The number of samples to draw. The default is 1000.
-        n_outputs : int, optional
-            The number of outputs or classes in Y. The default is 1.
-
-        Returns
-        -------
-        draws : numpy array
-            The sampled predicted values.
-
-        """
-        draws = np.zeros(shape=(X.shape[0], n_samples*n_outputs))
+        """Draw dropout predictions without updating batch-normalization statistics."""
+        draws = np.zeros((len(X), n_samples * n_outputs))
         for i in range(n_samples):
-            hz, _, _, _, _ = self.forward_prop(X, self.wb, self.batch_norm,
-                                               train=True, sample=True)
-            draws[:, (i*n_outputs):((i+1)*n_outputs)] = hz
+            output, _, _, _, _, _ = self.forward_prop(X, self.wb, self.batch_norm, train=False, sample=True)
+            draws[:, i*n_outputs:(i+1)*n_outputs] = output
         return draws
     
     def score(self, X, y):
