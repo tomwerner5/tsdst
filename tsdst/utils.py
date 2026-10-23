@@ -10,14 +10,15 @@ from timeit import default_timer as dt
 
 import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine, URL
+from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 
 
 def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args=None, read_sql_args=None):
     """Read one query or a list of queries through a local DSN connection."""
     if not pw:
         pw = getpass(prompt='Password: ')
-    url = URL.create(dialect, username=user, password=pw, host=dsn)
+    url = make_url(dialect + "://" + dsn).set(username=user, password=pw)
     engine = create_engine(url, **(create_engine_args or {}))
     try:
         if isinstance(sql, str):
@@ -31,7 +32,7 @@ def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None, create_engine_ar
     """Write a dataframe through a DSN connection and release the engine."""
     if not pw:
         pw = getpass(prompt='Password: ')
-    url = URL.create(dialect, username=user, password=pw, host=dsn)
+    url = make_url(dialect + "://" + dsn).set(username=user, password=pw)
     engine = create_engine(url, **(create_engine_args or {}))
     try:
         data.to_sql(tableName, engine, **(to_sql_args or {}))

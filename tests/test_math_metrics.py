@@ -8,7 +8,14 @@ import pytest
 from numpy.testing import assert_allclose
 from scipy import stats
 from sklearn.linear_model import LinearRegression, LogisticRegression, PoissonRegressor
-from sklearn.metrics import accuracy_score, r2_score
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    r2_score,
+    recall_score,
+)
 
 from tsdst import metrics as m, tmath as t
 
@@ -23,7 +30,9 @@ def test_basic_math():
     assert_allclose(t.scaling(x), [0., .6, 1.])
     assert t.norm(x, 2, use_expo=True) == pytest.approx(np.linalg.norm(x))
     assert_allclose(t.norm_der(x, 2), 2 * x)
-    assert t.norm(x, 0) == 3
+    assert t.norm(x, 0) == 2
+    assert t.norm(np.array([-4., -2., 0., 3.]), 0) == 3
+    assert t.norm(np.zeros(4), 0) == 0
 
 
 def test_rank_statistics_and_correlations():
@@ -69,6 +78,37 @@ def test_classification_metrics(classification):
     assert m.accuracy(np.eye(2)[truth], np.eye(2)[prediction]) == accuracy_score(truth, prediction)
 
 
+def test_confusion_counts_and_binary_metrics_match_fixed_reference():
+    # Rows are actual labels [0, 1]; columns are predicted labels [0, 1].
+    truth = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    prediction = np.array([0, 0, 0, 1, 1, 0, 1, 1, 1, 1])
+    expected = np.array([[3, 2], [1, 4]])
+
+    result = m.conf_mat_metrics(truth, prediction)
+    np.testing.assert_array_equal(confusion_matrix(truth, prediction, labels=[0, 1]), expected)
+    np.testing.assert_array_equal(result["Conf_Mat"], expected)
+    assert m.accuracy(truth, prediction) == pytest.approx(accuracy_score(truth, prediction))
+    assert m.accuracy(truth, prediction) == pytest.approx(.7)
+    assert result["Sens/Recall"] == pytest.approx(recall_score(truth, prediction, pos_label=1))
+    assert result["ppv"] == pytest.approx(precision_score(truth, prediction, pos_label=1))
+    assert 2 * result["ppv"] * result["Sens/Recall"] / (result["ppv"] + result["Sens/Recall"]) == pytest.approx(
+        f1_score(truth, prediction, pos_label=1)
+    )
+    assert result["Specificity"] == pytest.approx(3 / 5)
+    assert result["npv"] == pytest.approx(3 / 4)
+
+
+def test_confusion_metrics_are_perfect_when_actual_equals_predicted():
+    truth = np.array([0, 0, 1, 1])
+    result = m.conf_mat_metrics(truth, truth.copy())
+    np.testing.assert_array_equal(result["Conf_Mat"], [[2, 0], [0, 2]])
+    assert result["Sens/Recall"] == 1
+    assert result["Specificity"] == 1
+    assert result["ppv"] == 1
+    assert result["npv"] == 1
+    assert m.accuracy(truth, truth.copy()) == 1
+
+
 def test_regression_metrics(regression):
     x, y = regression
     model = LinearRegression().fit(x, y)
@@ -93,6 +133,7 @@ def test_pseudo_r2_and_information_criteria():
     assert m.aicCalc(-10, 2, 100, metric="aicc") > 24
     assert m.aicCalc(-10, 2, 100, metric="bic") == pytest.approx(20 + 2 * np.log(100))
     assert m.aicCalc(-10, 2, 100, metric="ebic") > 24
+    assert np.isinf(m.aicCalc(-10, 2, 3, metric="aicc"))
     with pytest.raises(ValueError):
         m.aicCalc(-10, 2, 100, metric="missing")
 

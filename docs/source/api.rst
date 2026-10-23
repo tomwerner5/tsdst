@@ -30,6 +30,68 @@ General Functions
 This section includes approximations about the normal distribution, as well as
 calculations for the poison-binomial distribution.
 
+``dwrap`` supports the normal, exponential, Weibull, lognormal, and gamma
+distributions. Each supports ``pdf``, ``cdf``, ``sf``, ``inv-cdf``,
+``left-truncated-cdf``, and ``left-truncated-inv-cdf``. Append the lower cutoff
+to the distribution parameters for a truncated operation.
+
+The two log options control separate scales:
+
+.. list-table:: Quantile input and output options
+    :header-rows: 1
+
+    * - ``log_p``
+      - ``log``
+      - Input
+      - Output
+    * - False
+      - False
+      - Probability
+      - Quantile
+    * - True
+      - False
+      - Log probability
+      - Quantile
+    * - False
+      - True
+      - Probability
+      - Log quantile
+    * - True
+      - True
+      - Log probability
+      - Log quantile
+
+``log=True`` keeps its existing meaning: return the log of the output.
+For quantiles, use ``log_p=True`` to accept log probabilities, as in R's
+``qnorm(..., log.p=TRUE)``. The same options apply to truncated quantiles.
+Logged quantiles are finite only for positive quantiles. Zero produces
+negative infinity, and a negative quantile produces NaN.
+
+.. code-block:: python
+
+    import numpy as np
+    from tsdst.distributions import dwrap
+
+    p = np.array([0.75, 0.975])
+    q = dwrap(p, [0, 1], "inv-cdf", "normal")
+    q_from_log_p = dwrap(np.log(p), [0, 1], "inv-cdf", "normal", log_p=True)
+    log_q = dwrap(p, [0, 1], "inv-cdf", "normal", log=True)
+    log_q_from_log_p = dwrap(
+        np.log(p), [0, 1], "inv-cdf", "normal", log=True, log_p=True
+    )
+
+For densities, ``log=True`` returns log densities. Sum these values for the
+log likelihood of independent observations. Negate the sum for the negative
+log likelihood:
+
+.. code-block:: python
+
+    observations = np.array([-1.0, 0.0, 1.0])
+    nll = -dwrap(observations, [0, 1], "pdf", "normal", log=True).sum()
+
+``log_p`` is an input option for quantiles only. Use ``log=True`` for log
+outputs from ``pdf``, ``cdf``, ``sf``, and ``left-truncated-cdf``.
+
 .. autosummary::
     :toctree: generated/
     :nosignatures:
@@ -94,6 +156,33 @@ Bayesian Estimators
 
 Bayesian Estimators using MCMC to calculate model parameters and associated errors.
 
+``BayesPoissonRegressor.predict`` returns the conditional count mean,
+``exp(intercept + X @ coefficients)``, with or without overdispersion.
+For the generalized Poisson likelihood, ``theta = mean * (1 - delta)``
+and the conditional variance is ``mean / (1 - delta)**2``.
+Predictions use the coefficient summary selected by ``param_summary``.
+They do not average count means over all posterior draws.
+
+The adaptive overdispersion likelihood used with ``C=None`` now uses this
+same mean parameterization. Refit models trained with that branch.
+
+``BayesWeibullRegressor`` keeps covariate-dependent shape and one shared
+sampled scale. ``predict_shape`` exposes shape, ``predict`` returns the mean,
+and ``predict_variance`` returns the Weibull variance. ``fit`` and likelihood
+scoring accept right-censoring indicators through ``status``. The
+``over_dispersion`` argument is retained but unused for this distribution.
+
+Weibull ``score`` defaults to R2. ``scorer="log_likelihood"`` returns the
+weighted mean log density or log survival contribution. ``scorer="D2"``
+compares sums of Weibull survival-deviance residuals against a fitted null
+Weibull model. This descriptive D2 is not a GLM likelihood-ratio test.
+The Pearson residuals use the actual Weibull variance; their empirical
+inflation estimate is a diagnostic, not a separate distribution parameter.
+
+Generalized Poisson fitting uses ``0 <= delta < 1`` for overdispersion.
+Unexpected NaN or positive-infinite posterior values raise an error. Negative
+infinity remains a valid rejection of a proposal outside posterior support.
+
 .. autosummary::
     :toctree: generated/
     :nosignatures:
@@ -101,6 +190,27 @@ Bayesian Estimators using MCMC to calculate model parameters and associated erro
     estimators.BayesLogRegClassifier
     estimators.BayesPoissonRegressor
     estimators.BayesWeibullRegressor
+
+Regularized regression uncertainty
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``GenerateRegCov``, ``RegressionSE``, and ``modeling.predict`` accept
+``covariance="sampling"`` or ``covariance="curvature"``. Sampling is the
+default. With information matrix S and L2 penalty matrix P, set A=S+lamda*P.
+Sampling covariance uses A^-1 S A^-1; curvature uses A^-1. Linear regression
+multiplies the matrix by an OLS noise-variance estimate. Logistic regression
+uses its fitted Bernoulli information matrix and unit dispersion.
+
+A separately fitted intercept is unpenalized by default. Set
+``penalize_intercept=True`` to include it in the penalty. The supplied
+``lamda`` must match the fitted model's effective L2 penalty. These options
+apply to the standard-error helpers, not the Bayesian posterior priors.
+
+OLS intervals use Student t critical values. Logistic Wald intervals use
+normal critical values. Intervals for penalized fits are approximations:
+sampling covariance describes the shrunken estimator's variation and does
+not remove shrinkage bias. Curvature intervals use a local Gaussian-prior
+interpretation with an estimated noise scale when needed.
 
 .. _feature_selection_api:
 

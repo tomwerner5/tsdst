@@ -408,7 +408,7 @@ def norm(x, p, use_expo=False):
 
     """
     if p == 0:
-        return len(x)
+        return np.count_nonzero(x)
     expo = 1/p
     if p == 1:
         return np.sum(np.abs(x))
@@ -427,10 +427,6 @@ def norm(x, p, use_expo=False):
             return norm**expo
         else:
             return norm
-    elif p == 0:
-        # Note: Hastie defines the L_0 norm as the number of elements
-        # though this is not derived mathmatically
-        return len(x)
     else:
         raise ValueError("Not a valid norm")
         

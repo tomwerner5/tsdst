@@ -1,9 +1,17 @@
 import numpy as np
 
-from scipy.stats import norm as normal, lognorm, gamma
+from scipy import stats
+from scipy.stats import norm as normal
 from scipy.special import xlogy, loggamma
 
 from .tmath import norm
+
+
+_DWRAP_FAMILIES = {
+    "exponential": stats.make_distribution(stats.expon),
+    "weibull": stats.make_distribution(stats.weibull_min),
+    "gamma": stats.make_distribution(stats.gamma),
+}
 
 
 # #########################################
@@ -325,213 +333,155 @@ def dpoibin_exact(k, p, cdf=False):
     return karray
 
 
-def dwrap(data, params, disttype, funct, log=False):
-    """This function is meant to be similar to the R distribution functions,
-    such as dnorm, pnorm, qnorm, etc. It calculates variations of the 
-    cdf or pdf depending on the funct selected.
-    
-    I have found that writing the distributions in plain math is sometimes 
-    faster in python than using the scipy implementations, which is why
-    this function originally existed. I wrote my own versions of the
-    distributions, except where the distributions were complicated and it
-    wasn't worth it at the time (and then this function uses scipy). However,
-    as time goes on, that will probably change. Also, the :any:`scipy.stats`
-    implementations and documentations are quite complete, so unless you're
-    feeling adventurous, it's probably a good idea to just use :any:`scipy`.
+def dwrap(data, params, disttype, funct, log=False, *, log_p=False):
+    """Evaluate a distribution with separate log input and output options.
 
     Parameters
     ----------
-    data : numpy array or pandas dataframe/series
-        Numeric values representing the data of interest, either a random
-        variable, probability, or quantile.
-    params : numpy array or pandas dataframe/series
-        the parameters of the function of interest (shape, scale, etc.)
+    data : array-like
+        Observation values for densities and probabilities. For quantiles,
+        supply probabilities, or log probabilities when ``log_p=True``.
+        Values follow NumPy broadcasting rules with the parameter rows.
+    params : array-like
+        Supply one parameter set or a matrix with one set per row:
 
-        - weibull: (shape, scale)
-        - exponential: (rate,)
-        - lnorm: (mu, sigma)
-        - normal: (mu, sigma)
-        - gamma: (shape, scale)
+        - normal: (mu, sigma), where sigma is the standard deviation.
+        - exponential: (rate,).
+        - weibull: (shape, scale).
+        - lnorm: (mu, sigma), the mean and standard deviation of log(X).
+        - gamma: (shape, scale).
 
+        Append the lower cutoff for either left-truncated operation.
+        Shapes, scales, rates, and standard deviations must be positive.
+        Invalid distribution parameters produce NaN.
     disttype : str
-        the distribution type, which currently includes
+        All five distributions support these operations:
 
-        - pdf (probability density function)
-        - cdf (cumulative distribution function)
-        - inv-cdf (inverse cumulative distribution function)
-        - sf (survival function, 1 - cdf)
-        - left-truncated-cdf
-        - left-truncated-inv-cdf.
+        - pdf: probability density.
+        - cdf: cumulative probability.
+        - sf: survival probability, P(X > data).
+        - inv-cdf: quantile at the supplied probability.
+        - left-truncated-cdf: cumulative probability conditional on X > cutoff.
+        - left-truncated-inv-cdf: quantile conditional on X > cutoff.
 
-        (Note: not all of these options may be available for all funct values)
+        A truncated CDF is zero at and below the cutoff. If the cutoff is
+        below the original support, the original lower bound still applies.
     funct : str
-        the distribution function, which currently includes weibull, 
-        exponential, log-normal (as lnorm), normal, and gamma
+        Choose normal, exponential, weibull, lnorm, or gamma.
     log : bool, optional
-        Whether to use the log of the distribution or not. The default is
-        False.
+        Return the natural logarithm of the output. This applies to every
+        operation, including quantiles. A logged quantile is finite only
+        when the quantile is positive. The default is False.
+    log_p : bool, optional
+        Interpret quantile inputs as natural logarithms of probabilities.
+        This follows R's ``qnorm(..., log.p=TRUE)`` convention. Inputs must
+        be at most zero. This option applies only to the two inverse-CDF
+        operations. It does not change the output scale. The default is False.
+
+    Returns
+    -------
+    numpy.ndarray
+        Density, probability, or quantile values on the requested output scale.
 
     Raises
     ------
     ValueError
-        Raised when invalid distribution type or function is chosen.
+        If the distribution or operation is unknown, the number of parameters
+        is wrong, or log_p is used for an operation other than a quantile.
 
-    Returns
-    -------
-    numpy array 
-        an array containing the evaluation of the distribution.
+    Notes
+    -----
+    For pdf, cdf, and sf, ``log=True`` follows R's log-output convention.
+    For quantiles, R uses ``log.p`` for the input scale. This wrapper uses
+    ``log_p`` for that purpose and keeps ``log`` as the output switch.
+    Both switches can be used together.
+
+    Sum log densities to obtain the log likelihood for independent
+    observations. Negate that sum to obtain the negative log likelihood.
+    Quantiles have a different role and do not return likelihoods.
 
     Examples
     --------
     >>> import numpy as np
     >>> from tsdst.distributions import dwrap
-    >>> 
-    >>> data = np.array([0.5,0.975])
-    >>> params = np.array([0, 1])
-    >>> 
-    >>> dwrap(data, params, disttype="inv-cdf", funct="normal", log=False)
+    >>> p = np.array([0.5, 0.975])
+    >>> dwrap(p, [0, 1], "inv-cdf", "normal")
     array([0.        , 1.95996398])
+    >>> dwrap(np.log(p), [0, 1], "inv-cdf", "normal", log_p=True)
+    array([0.        , 1.95996398])
+    >>> dwrap([0.975], [0, 1], "inv-cdf", "normal", log=True)
+    array([0.6729261])
+    >>> dwrap([0, 1], [0, 1], "pdf", "normal", log=True)
+    array([-0.91893853, -1.41893853])
     """
-    try:
-        num_parms = params.shape[1]
-        params = np.array(params).reshape(-1, num_parms)
-    except (IndexError, AttributeError):
-        params = np.array(params).reshape(1, -1)
-
-    if funct == "weibull":
-        shape = params[:, 0]
-        scale = params[:, 1]
-        if disttype == "pdf":
-            if log:
-                return (np.log(shape) - np.log(scale) +
-                        xlogy(shape - 1.0, data/scale) -
-                        (data/scale)**shape)
-            else:
-                return ((shape/scale)*((data/scale)**(shape - 1.0)) *
-                        np.exp(-(data/scale)**shape))
-        elif disttype == "cdf":
-            if log:
-                return np.log((1.0 - np.exp(-(data/scale)**shape)))
-            else:
-                return (1.0 - np.exp(-(data/scale)**shape))
-        elif disttype == "sf":
-            if log:
-                return -(data/scale)**shape
-            else:
-                return np.exp(-(data/scale)**shape)
-        elif disttype == "inv-cdf":
-            if log:
-                return np.log(scale) + ((1/shape)*np.log(-np.log(1 - data)))
-            else:
-                return scale*(-np.log(1 - data))**(1/shape)
-        # The left-truncted distribution is useful for evaluating the
-        # censored items (probability of failing given it lived this long)
-        elif disttype == "left-truncated-cdf":
-            a = params[:, 2]
-            if log:
-                return np.log(1 - (np.exp(((a/scale)**shape) - ((data/scale)**shape))))
-            else:
-                return 1 - (np.exp(((a/scale)**shape) - ((data/scale)**shape)))
-        elif disttype == "left-truncated-inv-cdf":
-            a = params[:, 2]
-            if log:
-                return np.log(scale) + (1/shape)*np.log((((a/scale)**shape) - np.log(1 - data)))
-            else:
-                return scale*(((a/scale)**shape) - np.log(1 - data))**(1/shape)
-        else:
-            raise ValueError("Not a valid distribution type")
-    elif funct == "exponential":
-        rate = params[:, 0]
-
-        if disttype == "pdf":
-            if log:
-                return np.log(rate) - rate*data
-            else:
-                return rate * np.exp(-rate*data)
-        elif disttype == "cdf":
-            if log:
-                return np.log(1.0 - np.exp(-rate*data))
-            else:
-                return 1.0 - np.exp(-rate*data)
-        elif disttype == "sf":
-            if log:
-                return -rate*data
-            else:
-                return np.exp(-rate*data)
-        else:
-            raise ValueError("Not a valid distribution type")
-    elif funct == "lnorm":
-        mu = params[:, 0]
-        sigma = params[:, 1]
-        if disttype == "pdf":
-            if log:
-                return (-(np.log(data) + np.log(sigma) +
-                          0.5*np.log(2*np.pi)) -
-                        (((np.log(data) - mu)**2)/(2*sigma**2)))
-            else:
-                return ((1/(data*sigma*np.sqrt(2*np.pi))) *
-                        np.exp(-((np.log(data) - mu)**2)/(2*sigma**2)))
-        elif disttype == "cdf":
-            if log:
-                return lognorm.logcdf(x=data, scale=np.exp(mu), s=sigma)
-            else:
-                return lognorm.cdf(x=data, scale=np.exp(mu), s=sigma)
-        elif disttype == "sf":
-            if log:
-                return lognorm.logsf(x=data, scale=np.exp(mu), s=sigma)
-            else:
-                return lognorm.sf(x=data, scale=np.exp(mu), s=sigma)
-        else:
-            raise ValueError("Not a valid distribution type")
-    elif funct == "normal":
-        mu = params[:, 0]
-        sigma = params[:, 1]
-        if disttype == "pdf":
-            if log:
-                return (-0.5*np.log(2*np.pi) - np.log(sigma) -
-                        0.5*((data - mu) / sigma)**2)
-            else:
-                return ((1/(np.sqrt(2*np.pi)*sigma)) *
-                        (np.exp(-((data - mu)**2)/(2*(sigma**2)))))
-        elif disttype == "cdf":
-            if log:
-                return normal.logcdf(x=data, loc=mu, scale=sigma)
-            else:
-                return normal.cdf(x=data, loc=mu, scale=sigma)
-        elif disttype == "sf":
-            if log:
-                return normal.logsf(x=data, loc=mu, scale=sigma)
-            else:
-                return normal.sf(x=data, loc=mu, scale=sigma)
-        elif disttype == "inv-cdf":
-            if log:
-                return np.log(normal.ppf(q=data, loc=mu, scale=sigma))
-            else:
-                return normal.ppf(q=data, loc=mu, scale=sigma)
-        else:
-            raise ValueError("Not a valid distribution type")
-    elif funct == "gamma":
-        param1 = params[:, 0]
-        param2 = params[:, 1]
-        if disttype == "pdf":
-            if log:
-                return gamma.logpdf(x=data, a=param1, scale=param2)
-            else:
-                return gamma.pdf(x=data, a=param1, scale=param2)
-        elif disttype == "cdf":
-            if log:
-                return gamma.logcdf(x=data, a=param1, scale=param2)
-            else:
-                return gamma.cdf(x=data, a=param1, scale=param2)
-        elif disttype == "sf":
-            if log:
-                return gamma.logsf(x=data, a=param1, scale=param2)
-            else:
-                return gamma.sf(x=data, a=param1, scale=param2)
-        else:
-            raise ValueError("Not a valid distribution type")
-    else:
+    parameter_counts = {"normal": 2, "exponential": 1, "weibull": 2,
+                        "lnorm": 2, "gamma": 2}
+    methods = {"pdf": "pdf", "cdf": "cdf", "sf": "ccdf",
+               "inv-cdf": "icdf", "left-truncated-cdf": "cdf",
+               "left-truncated-inv-cdf": "icdf"}
+    if funct not in parameter_counts:
         raise ValueError("Not a valid distribution")
+    if disttype not in methods:
+        raise ValueError("Not a valid distribution type")
+    quantile = methods[disttype] == "icdf"
+    if log_p and not quantile:
+        raise ValueError("log_p applies only to inverse-CDF operations")
+
+    truncated = disttype.startswith("left-truncated-")
+    count = parameter_counts[funct]
+    params = np.asarray(params, dtype=float)
+    if params.ndim <= 1:
+        params = params.reshape(1, -1)
+    if params.ndim != 2 or params.shape[0] == 0 or params.shape[1] != count + truncated:
+        raise ValueError(f"{funct} with {disttype} requires {count + truncated} parameters per row")
+    valid = np.isfinite(params[:, :count]).all(axis=1)
+    positive = params[:, 1:count] if funct in ("normal", "lnorm") else params[:, :count]
+    valid &= (positive > 0).all(axis=1)
+    parameters = np.where(valid[:, None], params[:, :count], 1.)
+
+    if funct == "normal":
+        distribution = stats.Normal(mu=parameters[:, 0], sigma=parameters[:, 1])
+    elif funct == "exponential":
+        distribution = _DWRAP_FAMILIES[funct]() / parameters[:, 0]
+    elif funct == "weibull":
+        distribution = parameters[:, 1] * _DWRAP_FAMILIES[funct](c=parameters[:, 0])
+    elif funct == "lnorm":
+        distribution = stats.exp(stats.Normal(mu=parameters[:, 0], sigma=parameters[:, 1]))
+    else:
+        distribution = parameters[:, 1] * _DWRAP_FAMILIES[funct](a=parameters[:, 0])
+    if truncated:
+        lower_bound, upper_bound = distribution.support()
+        valid &= (params[:, -1] < upper_bound) & ~np.isnan(params[:, -1])
+    values = np.asarray(data, dtype=float)
+    method = methods[disttype]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        if truncated and quantile:
+            if log_p:
+                log_probability = np.where(values <= 0, values, np.nan)
+                log_survival = np.where(
+                    log_probability < -np.log(2),
+                    np.log1p(-np.exp(log_probability)),
+                    np.log(-np.expm1(log_probability)),
+                )
+            else:
+                probability = np.where((values >= 0) & (values <= 1), values, np.nan)
+                log_survival = np.log1p(-probability)
+            conditional_log_survival = distribution.logccdf(params[:, -1]) + log_survival
+            result = distribution.ilogccdf(conditional_log_survival)
+            result = np.maximum(result, np.maximum(params[:, -1], lower_bound))
+        else:
+            if truncated:
+                distribution = stats.truncate(distribution, lb=params[:, -1])
+            if quantile and log_p:
+                method = "ilogcdf"
+            elif not quantile and log:
+                method = "log" + method
+            result = getattr(distribution, method)(values)
+        if quantile and log:
+            result = np.log(result)
+    if methods[disttype] == "pdf":
+        result = np.where(np.isinf(values), -np.inf if log else 0., result)
+    return np.where(valid, result, np.nan)
 
 
 # #########################################
@@ -934,8 +884,8 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
     betas = parms[1:]
     
     mu = X.dot(parms)
-    Ypred = 1.0/(1.0 + np.exp(-mu))
-    like = np.sum(Y*np.log(Ypred) + (1.0 - Y)*np.log(1.0 - Ypred))
+    # Evaluate from logits so saturated probabilities do not cause log(0).
+    like = -np.sum(Y*np.logaddexp(0, -mu) + (1-Y)*np.logaddexp(0, mu))
     # normal prior on the intercept
     int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - 0.5*((intercept - n_mu) / n_sigma)**2)
     # Laplace prior 
@@ -1031,8 +981,8 @@ def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     l_scale = np.exp(parms[-1])
     
     mu = X.dot(parms[:-1]).reshape(-1, )
-    Ypred = 1/(1 + np.exp(-mu))
-    like = np.sum(Y*np.log(Ypred) + (1 - Y)*np.log(1 - Ypred))
+    # Evaluate from logits so saturated probabilities do not cause log(0).
+    like = -np.sum(Y*np.logaddexp(0, -mu) + (1-Y)*np.logaddexp(0, mu))
     # normal prior on the intercept
     int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - (((intercept - n_mu)**2) / (2*(n_sigma**2))))
     # Laplace prior for Coefficient
@@ -1114,7 +1064,7 @@ def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     # Laplace prior 
     #parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     # Normal prior
-    parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
+    parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)
     
     # exponential prior for scale parameter
     scale_prior = np.log(l_scale_rate) - l_scale_rate * l_scale
@@ -1190,18 +1140,23 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
     betas = parms[1:-2]
     l_scale = np.exp(parms[-2])
     delta = parms[-1]
+    if not np.isfinite(delta) or not 0 <= delta < 1:
+        if log:
+            return np.inf if neg else -np.inf
+        return 0.
     
-    mu = X.dot(parms[:-2]) - parms[-1]
-    lamda = np.exp(mu)
+    # Convert the conditional mean to the generalized Poisson parameter.
+    log_theta = X.dot(parms[:-2]) + np.log1p(-delta)
+    theta = np.exp(log_theta)
     
-    like = np.sum(mu + (Y - 1)*np.log(lamda + delta*Y) - lamda - delta*Y - loggamma(Y + 1))
+    like = np.sum(log_theta + (Y - 1)*np.log(theta + delta*Y) - theta - delta*Y - loggamma(Y + 1))
 
     # normal prior on the intercept
     int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - (((intercept - l_loc)**2) / (2.0*(n_sigma**2))))
     # Laplace prior 
     #parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     # Normal prior
-    parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
+    parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)
     
     # exponential prior for scale parameter
     scale_prior = np.log(l_scale_rate) - l_scale_rate * l_scale
@@ -1275,7 +1230,7 @@ def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
     # Laplace prior 
     #parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     # Normal prior
-    coef_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
+    coef_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)
     
     post = like + coef_prior + int_prior 
     
@@ -1347,6 +1302,10 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
     #delta = np.log(1/(1+np.exp(-parms[-1]))) + 1
     # else:
     delta = parms[-1]
+    if not np.isfinite(delta) or not 0 <= delta < 1:
+        if log:
+            return np.inf if neg else -np.inf
+        return 0.
     
     lamda = np.exp(X.dot(parms[:-1]))
     theta = lamda*(1 - delta)
@@ -1359,7 +1318,7 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
     # Laplace prior on beta
     coef_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     # Normal prior on beta
-    #coef_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
+    #coef_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)
     
     ## prior on delta
     # normal
@@ -1474,7 +1433,7 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
     # Laplace prior 
     parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     # Normal prior
-    #parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - (((betas - l_loc)**2) / (2.0*(l_scale**2))))
+    #parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)
     # assuming uniform for over dispersion prior
     post = fail_like + cens_like + parm_prior + int_prior + scale_prior + parms[-1]
     

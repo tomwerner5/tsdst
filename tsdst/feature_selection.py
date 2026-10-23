@@ -365,7 +365,9 @@ def _calcForwardAICs(X, Y, model, metric, family):
     mod = clone(model).fit(X, np.asarray(Y).ravel())
 
     ss = X.shape[0]
-    ncoefs = X.shape[1]
+    ncoefs = X.shape[1] + int(getattr(mod, 'fit_intercept', not getattr(mod, 'has_constant', False)))
+    if family == 'gaussian':
+        ncoefs += 1  # Gaussian likelihood also estimates the residual variance.
 
     if family == "binomial":
         nllf = likelihood_bernoulli
@@ -429,6 +431,14 @@ def forwardSelection(XY, target_var, model, metric='bic', family='gaussian',
     """
     if target_var not in XY or n_jobs < 1:
         raise ValueError('Supply a target column and a positive job count')
+    if return_type not in ('all', 'list', 'data', 'model'):
+        raise ValueError('return_type must be all, list, data, or model')
+    if use_probabilities and family != 'binomial':
+        raise ValueError('Probability compression requires the binomial family')
+    if len(XY.columns) < 2:
+        raise ValueError('Forward selection needs at least one candidate predictor')
+    if early_stop and (stop_at_p < 1 or stop_when < 1 or not 0 <= perc_min < 1):
+        raise ValueError('Use positive stopping counts and perc_min between zero and one')
     selected, remaining = [], [column for column in XY if column != target_var]
     best, small_steps = np.inf, 0
     arguments = None

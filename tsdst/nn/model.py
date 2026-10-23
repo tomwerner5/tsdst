@@ -326,7 +326,8 @@ class NeuralNetwork(object):
             cur_row = prev_col
             cur_col = self.model[key]['depth']
             
-            init_func = self.initializers[self.model[key]['initializer']]
+            initializer = self.model[key]['initializer']
+            init_func = self.initializers[initializer] if isinstance(initializer, str) else initializer
             
             # Weights cannot be initialized to zero, or the model can't train
             W = init_func(cur_row, cur_col)
@@ -422,7 +423,8 @@ class NeuralNetwork(object):
             else:
                 batch_norm['norm_z' + indx] = z
             
-            actf = self.activations[self.model[key]['activation']]
+            activation = self.model[key]['activation']
+            actf = self.activations[activation] if isinstance(activation, str) else activation
             hz = actf(batch_norm['norm_z' + indx], **self.model[key]['activation_args'])
             
             if i != self.num_layers - 1:
@@ -430,7 +432,7 @@ class NeuralNetwork(object):
                     dropout_keep_prob = self.model[key]['dropout_keep_prob']
                 else:
                     dropout_keep_prob = 1
-                drop_mask = np.random.uniform(size=hz.shape)
+                drop_mask = np.random.uniform(size=hz.shape) if dropout_keep_prob < 1 else np.zeros(hz.shape)
                 dropout["Weight" + indx] = drop_mask <= dropout_keep_prob
                 hz = (hz*dropout["Weight" + indx])/dropout_keep_prob
                 
@@ -454,109 +456,56 @@ class NeuralNetwork(object):
         return hz, zs, batch_norm, hzs, dropout, regularizers
         
     def back_prop(self, X, Y, wb, zs, batch_norm, hzs, dropout):
-        """
-        The backward propagation step.
-
-        Parameters
-        ----------
-        X : numpy array
-            The input data.
-        Y : numpy array
-            The true Y values.
-        wb : dict
-            A dictionary of the weights/biases for each layer.
-        zs : dict
-            A dictionary of the linearly (affine transform) activated values
-            for each layer.
-        batch_norm : dict
-            A dictionary containing the initial (or previous) batch norm
-            results.
-        hzs : dict
-            A dictionary of the fully activated values for each layer
-        dropout : dict
-            A dictionary of the dropout status for each layer.
-
-        Returns
-        -------
-        dwdb : dict
-            A dictionary of the gradients with respect to the weights and
-            biases.
-
-        """
-        dwdb = {}
-        batch_m = X.shape[0]
-        keys = list(self.model.keys())
-        for i in range(self.num_layers - 1, -1, -1):
-            lamda_w = self.model[keys[i]]['lambda']['Weight']
-            p_w = self.model[keys[i]]['lp_norm']['Weight']
-            lamda_a = self.model[keys[i]]['lambda']['activity']
-            p_a = self.model[keys[i]]['lp_norm']['activity']
-            lamda_b = self.model[keys[i]]['lambda']['bias']
-            p_b = self.model[keys[i]]['lp_norm']['bias']
-            
-            if i == self.num_layers - 1:
-                dcostoutf = self.activations[self.model[keys[i]]['derivative']]
-                dZ = dcostoutf(Y, hzs["hz" + str(i)], zs["z" + str(i)],
-                               **self.model[keys[i]]['derivative_args'])/(batch_m*self.m_scale)
-                dZ += lamda_a*norm_der(hzs["hz" + str(i)], p_a)/(batch_m*self.m_scale)
-                
-                # Batchnorm step, if applicable
-                if self.model[keys[i]]['use_batch_norm']:
-                    dxhat = dZ * wb["gamma" + str(i)]
-                    dvar = -0.5*np.sum(dxhat*batch_norm["z_mu"+str(i)], axis=0)*(1/batch_norm["std"+str(i)]**3)
-                    dxdstd = dxhat/batch_norm["std"+str(i)]
-                    dmu = -np.sum(dxdstd, axis=0) 
-                    dmu -= 2*dvar*np.mean(batch_norm["z_mu"+str(i)], axis=0)
-                    
-                    dgamma = np.sum(dZ*batch_norm["xhat"+str(i)], axis=0)
-                    dbeta = np.sum(dZ, axis=0)
-                    
-                    dwdb["gamma" + str(i)] = dgamma
-                    dwdb["beta" + str(i)] = dbeta
-                    
-                    dZ = dxdstd + 2*dvar*batch_norm["z_mu"+str(i)]/zs["z"+str(i)].shape[0]
-                    dZ += dmu/zs["z"+str(i)].shape[0]
-
+        """Differentiate the recorded average loss, penalties, dropout, and batch norm."""
+        gradients = {}
+        normalizer = X.shape[0]*self.m_scale
+        keys = list(self.model)
+        upstream = None
+        for i in range(self.num_layers-1, -1, -1):
+            layer = self.model[keys[i]]
+            index = str(i)
+            activation_input = batch_norm['norm_z'+index]
+            activated = hzs['hz'+index]
+            activity = layer['lambda']['activity'] / layer['lp_norm']['activity']
+            activity_gradient = activity*norm_der(activated, layer['lp_norm']['activity'])/normalizer
+            if i == self.num_layers-1:
+                derivative = layer['derivative']
+                function = self.activations[derivative] if isinstance(derivative, str) else derivative
+                dZ = function(Y, activated, activation_input, **layer['derivative_args'])/normalizer
+                if activity:
+                    activation = layer['activation']
+                    if activation == 'softmax':
+                        dZ += activated*(activity_gradient-np.sum(activity_gradient*activated, axis=1, keepdims=True))
+                    elif activation == 'linear':
+                        dZ += activity_gradient
+                    else:
+                        derivative_name = activation + '_der' if isinstance(activation, str) else None
+                        if derivative_name not in self.activations:
+                            raise ValueError('Output activity regularization needs a known activation derivative')
+                        dZ += activity_gradient*self.activations[derivative_name](activation_input, **layer['activation_args'])
             else:
-                dZ = dZ.dot(wb["Weight" + str(i + 1)].T)
-                
-                dropout_keep_prob = self.model[keys[i]]['dropout_keep_prob']
-                dZ = dZ * dropout["Weight" + str(i)]/dropout_keep_prob
-                
-                dactf = self.activations[self.model[keys[i]]['derivative']]
-
-                dZ = dZ * dactf(zs["z" + str(i)],
-                                **self.model[keys[i]]['activation_args'])
-                dZ = dZ + lamda_a*norm_der(hzs["hz" + str(i)], p_a)/(batch_m*self.m_scale)
-                
-                # Batchnorm step, if applicable
-                if self.model[keys[i]]['use_batch_norm']:
-                    dxhat = dZ * wb["gamma" + str(i)]
-                    dvar = -0.5*np.sum(dxhat*batch_norm["z_mu"+str(i)], axis=0)*(1/batch_norm["std"+str(i)]**3)
-                    dxdstd = dxhat/batch_norm["std"+str(i)]
-                    dmu = -np.sum(dxdstd, axis=0) 
-                    dmu -= 2*dvar*np.mean(batch_norm["z_mu"+str(i)], axis=0)
-                    
-                    dgamma = np.sum(dZ*batch_norm["xhat"+str(i)], axis=0)
-                    dbeta = np.sum(dZ, axis=0)
-                    
-                    dwdb["gamma" + str(i)] = dgamma
-                    dwdb["beta" + str(i)] = dbeta
-                    
-                    dZ = dxdstd + 2*dvar*batch_norm["z_mu"+str(i)]/zs["z"+str(i)].shape[0]
-                    dZ += dmu/zs["z"+str(i)].shape[0]
-                
-            if i == 0:
-                A = X
-            else:
-                A = hzs["hz" + str(i - 1)]
-                
-            # dZ already includes the batch average. Scale only the penalty here.
-            dW = np.dot(A.T, dZ) + lamda_w*norm_der(wb["Weight" + str(i)], p_w)/(p_w*batch_m*self.m_scale)
-            dB = np.sum(dZ, axis=0, keepdims=True) + lamda_b*norm_der(wb["bias" + str(i)], p_b)/(p_b*batch_m*self.m_scale)
-            dwdb["Weight" + str(i)] = dW
-            dwdb["bias" + str(i)] = dB
-        return dwdb
+                dA = upstream + activity_gradient
+                dA = dA*dropout['Weight'+index]/layer['dropout_keep_prob']
+                derivative = layer['derivative']
+                function = self.activations[derivative] if isinstance(derivative, str) else derivative
+                if layer['activation'] == 'softmax':
+                    probabilities = self.activations['softmax'](activation_input, **layer['activation_args'])
+                    dZ = probabilities*(dA-np.sum(dA*probabilities, axis=1, keepdims=True))
+                else:
+                    dZ = dA*function(activation_input, **layer['activation_args'])
+            if layer['use_batch_norm']:
+                xhat = batch_norm['xhat'+index]
+                gradients['gamma'+index] = np.sum(dZ*xhat, axis=0, keepdims=True)
+                gradients['beta'+index] = np.sum(dZ, axis=0, keepdims=True)
+                scaled = dZ*wb['gamma'+index]
+                dZ = (scaled-scaled.mean(axis=0)-xhat*np.mean(scaled*xhat, axis=0))/batch_norm['std'+index]
+            previous = X if i == 0 else hzs['hz'+str(i-1)]
+            for parameter, data_gradient in (('Weight', previous.T @ dZ), ('bias', np.sum(dZ, axis=0, keepdims=True))):
+                power = layer['lp_norm'][parameter]
+                penalty_gradient = layer['lambda'][parameter]*norm_der(wb[parameter+index], power)/(power*normalizer)
+                gradients[parameter+index] = data_gradient+penalty_gradient
+            upstream = dZ @ wb['Weight'+index].T
+        return gradients
 
 
     def fit(self, X, Y):
@@ -643,7 +592,8 @@ class NeuralNetwork(object):
                                                                                      sample=False)
                 
                 # Calculate cost without regularization
-                costf = self.activations[self.model['output']['cost']]
+                cost_function = self.model['output']['cost']
+                costf = self.activations[cost_function] if isinstance(cost_function, str) else cost_function
                 cost = costf(Y_batch, hz,
                              **self.model['output']['cost_args'])
                 
@@ -698,30 +648,29 @@ class NeuralNetwork(object):
         return self
     
     def predict(self, X):
+        """Return predictions using fixed batch-normalization statistics."""
+        from copy import deepcopy
+        output, _, _, _, _, _ = self.forward_prop(np.asarray(X), self.wb, deepcopy(self.batch_norm),
+                                                 train=False, sample=False)
+        return output
+
+    def draw_predictive_samples(self, X, n_samples=1000, n_outputs=None):
+        """Draw dropout predictions using fixed batch-normalization statistics.
+
+        Each draw occupies consecutive output columns. By default the output
+        count comes from the fitted network; an explicit count must match it.
         """
-        Predict the Y values based on the input X.
-
-        Parameters
-        ----------
-        X : numpy array
-            The input data.
-
-        Returns
-        -------
-        hz : numpy array
-            The predicted Y values.
-
-        """
-        hz, _, _, _, _, _ = self.forward_prop(X, self.wb, self.batch_norm,
-                                           train=False, sample=False)
-        return hz
-    
-    def draw_predictive_samples(self, X, n_samples=1000, n_outputs=1):
-        """Draw dropout predictions without updating batch-normalization statistics."""
-        draws = np.zeros((len(X), n_samples * n_outputs))
+        from copy import deepcopy
+        if not isinstance(n_samples, (int, np.integer)) or n_samples < 1:
+            raise ValueError('n_samples must be a positive integer')
+        width = self.model['output']['depth']
+        if n_outputs is not None and n_outputs != width:
+            raise ValueError('n_outputs must match the fitted network output count')
+        draws = np.empty((len(X), n_samples*width))
         for i in range(n_samples):
-            output, _, _, _, _, _ = self.forward_prop(X, self.wb, self.batch_norm, train=False, sample=True)
-            draws[:, i*n_outputs:(i+1)*n_outputs] = output
+            output, _, _, _, _, _ = self.forward_prop(np.asarray(X), self.wb, deepcopy(self.batch_norm),
+                                                     train=False, sample=True)
+            draws[:, i*width:(i+1)*width] = output
         return draws
     
     def score(self, X, y):

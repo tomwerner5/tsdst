@@ -10,7 +10,7 @@ import warnings
 from numba import jit
 from numpy import linalg as la
 from scipy.special import loggamma
-from scipy.stats import chi2
+from scipy.stats import chi2, norm as normal
 from scipy.linalg import toeplitz, solve
 from sklearn.preprocessing import scale
 from timeit import default_timer as dt
@@ -591,7 +591,7 @@ def samp_size_calc_raftery(q=0.025, r=0.005, s=0.95):
         Minimum number of samples needed.
 
     """
-    phi = qnorm_approx(0.5 * (1.0 + s))
+    phi = normal.ppf(0.5 * (1.0 + s))
     nmin = np.ceil((q * (1.0 - q) * phi**2)/r**2).astype(int)
     return phi, nmin
 
@@ -1027,9 +1027,12 @@ def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001, thin=1, print_=
     Transition counts use NumPy arrays. The diagnostic requires both binary
     quantile states and enough transitions between those states.
     """
-    if not 0 < q < 1 or not 0 < r < 1 or not 0 < s < 1 or thin < 1:
+    if (not 0 < q < 1 or not 0 < r < 1 or not 0 < s < 1
+            or not 0 < converge_eps < 1 or not isinstance(thin, (int, np.integer)) or thin < 1):
         raise ValueError('Use probabilities between 0 and 1 and positive thinning')
     chain = np.asarray(chain).reshape(len(chain), -1)
+    if not np.isfinite(chain).all():
+        raise ValueError('The diagnostic requires finite chain values')
     phi, nmin = samp_size_calc_raftery(q, r, s)
     if len(chain) < nmin:
         raise ValueError('The chain needs at least {} samples'.format(nmin))
@@ -1038,8 +1041,9 @@ def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001, thin=1, print_=
         binary = (values <= np.quantile(values, q)).astype(int)
         if np.unique(binary).size < 2:
             raise ValueError('The diagnostic needs a nonconstant chain')
-        for k in range(thin, len(binary) - 2, thin):
-            states = binary[::k]
+        for stride in range(1, len(binary) - 2):
+            k = stride*thin
+            states = binary[::stride]
             if len(states) < 4:
                 raise ValueError('Too few transitions for this quantile')
             table = np.zeros((2, 2, 2))

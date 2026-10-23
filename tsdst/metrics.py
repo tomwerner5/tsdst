@@ -498,6 +498,8 @@ def aicCalc(loglike, num_model_params, sample_size, c=2, metric="aicc"):
         The IC value.
 
     """
+    if metric == "aicc" and sample_size <= num_model_params + 1:
+        return np.inf
     ic = None
     if metric == "aic" or metric == "aicc":
         ic = (2*num_model_params) - 2*(loglike)
@@ -518,39 +520,63 @@ def aicCalc(loglike, num_model_params, sample_size, c=2, metric="aicc"):
 
 def glm_regularized_AIC(X, Y, reg_mod, unreg_mod, tol=1e-6,
                         method='kawano', family='binomial'):
-    """Calculate AIC with active coefficients or a Fisher information correction.
+    """Calculate regularized GLM AIC from active coefficients.
 
-    The intercept participates in the likelihood and the parameter count.
-    The Kawano correction compares the two models on the active columns.
+    The Kawano binomial and Poisson correction is twice trace(J^-1 I),
+    with both information matrices restricted to nonzero coefficients,
+    including a nonzero intercept. This follows the authors' sAIC package.
+    A singular active information matrix raises an error instead of silently
+    replacing the published inverse with a pseudoinverse.
+
+    The Hastie option counts active coefficients. Gaussian regression uses
+    the active coefficient count plus one estimated variance parameter and
+    the maximum-likelihood residual variance, RSS/n, for both method names.
     """
     original_X = X
-    X, Y = np.asarray(X, dtype=float), np.asarray(Y).ravel()
+    X, Y = np.asarray(X, dtype=float), np.asarray(Y, dtype=float).ravel()
+    if X.ndim != 2 or len(Y) != len(X) or not np.isfinite(X).all() or not np.isfinite(Y).all():
+        raise ValueError('Supply a finite design matrix and one finite response per row')
+    if not np.isfinite(tol) or tol < 0:
+        raise ValueError('The active-coefficient tolerance must be finite and nonnegative')
+    method = method.lower()
+    if method not in ('kawano', 'hastie'):
+        raise ValueError('Method must be kawano or hastie')
     design = np.column_stack([np.ones(len(X)), X])
     beta = np.r_[np.asarray(reg_mod.intercept_).ravel(), np.asarray(reg_mod.coef_).ravel()]
+    if beta.size != design.shape[1]:
+        raise ValueError('The model must have one coefficient per feature and one intercept')
     active = np.abs(beta) > tol
-    active[0] = True
+    eta = design @ beta
     if family == 'binomial':
-        nll = glm_likelihood_bernoulli(beta, design, Y, lamb=0)
-        p, p0 = reg_mod.predict_proba(original_X)[:, 1], unreg_mod.predict_proba(original_X)[:, 1]
-        weights, weights0 = p * (1 - p), p0 * (1 - p0)
+        if not np.isin(Y, [0, 1]).all():
+            raise ValueError('Binomial responses must be zero or one')
+        # logaddexp keeps the Bernoulli likelihood finite for extreme logits.
+        nll = np.sum(np.logaddexp(0, eta) - Y*eta)
+        p = reg_mod.predict_proba(original_X)[:, 1]
+        p0 = unreg_mod.predict_proba(original_X)[:, 1]
+        weights, weights0 = p*(1-p), p0*(1-p0)
     elif family == 'poisson':
-        nll = glm_likelihood_poisson(beta, design, Y, lamb=0)
+        if np.any(Y < 0) or not np.all(Y == np.floor(Y)):
+            raise ValueError('Poisson responses must be nonnegative integers')
+        from scipy.special import gammaln
+        nll = np.sum(np.exp(eta) - Y*eta + gammaln(Y+1))
         weights, weights0 = reg_mod.predict(original_X), unreg_mod.predict(original_X)
     elif family == 'gaussian':
-        nll = glm_likelihood_gaussian(beta, design, Y, lamb=0)
-        weights = weights0 = np.ones(len(X))
+        variance = np.mean((Y-eta)**2)
+        if variance <= 0:
+            raise ValueError('Gaussian AIC requires a positive residual variance')
+        nll = len(Y)/2*(np.log(2*np.pi*variance)+1)
+        return 2*(nll + np.count_nonzero(active) + 1)
     else:
         raise ValueError('Family must be binomial, poisson, or gaussian')
-    if method == 'kawano':
+    if method == 'kawano' and np.any(active):
         selected = design[:, active]
-        fisher = selected.T @ (weights[:, None] * selected)
-        fisher0 = selected.T @ (weights0[:, None] * selected)
-        degrees = np.trace(np.linalg.pinv(fisher) @ fisher0)
-    elif method == 'hastie':
-        degrees = active.sum()
+        fisher = selected.T @ (np.asarray(weights)[:, None]*selected)
+        fisher0 = selected.T @ (np.asarray(weights0)[:, None]*selected)
+        degrees = np.trace(np.linalg.solve(fisher, fisher0))
     else:
-        raise ValueError('Method must be kawano or hastie')
-    return 2 * (nll + degrees)
+        degrees = np.count_nonzero(active)
+    return 2*(nll + degrees)
 
 
 def js_div(px, py):

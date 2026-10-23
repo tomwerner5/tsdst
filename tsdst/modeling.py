@@ -3,7 +3,7 @@ import pandas as pd
 import warnings
 
 from copy import deepcopy as copy
-from scipy.stats import t
+from scipy.stats import t, norm as normal
 from sklearn.metrics import (f1_score, confusion_matrix,
                              roc_auc_score, accuracy_score)
 from sklearn.model_selection import (StratifiedKFold, KFold,
@@ -206,8 +206,29 @@ def scoreModel(X, Y, model, metrics=None,
 
 # Currently, this takes just as long as scoreModel and the logic is simpler... keeping for legacy reasons
 def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=True, avg='weighted'):
-    """Score a model with the current metric definitions."""
-    return scoreModel(X, Y, model, thres=thres, mtype=mtype, print_=print_, avg=avg)
+    """Return the legacy score fields with corrected classification counts."""
+    if mtype == 'classification':
+        metrics = ['Accuracy', 'F1', 'Sens/Recall', 'Specificity', 'PPV', 'NPV',
+                   'Confusion Matrix', 'AUC', 'McFadden R2', 'Tjur R2',
+                   'Nagelkerke R2', 'Cox/Snell R2']
+        result = scoreModel(X, Y, model, metrics=metrics, thres=thres,
+                            mtype=mtype, print_=False, avg=avg)
+        result['ppv'] = result.pop('PPV')
+        result['npv'] = result.pop('NPV')
+        result['Conf_Mat'] = result.pop('Confusion Matrix')
+    else:
+        truth = np.asarray(Y).ravel()
+        predicted = np.asarray(model.predict(X)).ravel()
+        centered = truth - truth.mean()
+        total = np.sum(centered**2)
+        explained = np.sum((predicted - truth.mean())**2)
+        rsquared = explained / total if total else np.nan
+        result = {'Bias': bias(truth, predicted), 'RPMSE': rpmse(truth, predicted),
+                  'R2': rsquared,
+                  'Adj. R2': 1 - (1 - rsquared) * (len(truth) - 1) / (len(truth) - X.shape[1] - 1)}
+    if print_:
+        print(result)
+    return result
 
 
 def runScorers(X, Y, splits, model, mtype, metrics=None,
@@ -554,84 +575,97 @@ def prettyConfMat(Ytrue, Ypred, print_=True, margins=True, labels=None):
     return result
 
   
-def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, lamda=0):
-    """Return covariance, inverse design information, variance, and coefficients.
+def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, lamda=0,
+                   *, covariance='sampling', penalize_intercept=False):
+    """Return coefficient covariance, its unscaled form, noise variance, and beta.
 
-    Logistic information uses weighted matrix multiplication in both memory
-    modes. This avoids a diagonal matrix with one entry per observation.
+    With information S and penalty matrix P, A=S+lamda*P. Sampling covariance
+    uses A^-1 S A^-1; curvature uses A^-1. Linear regression multiplies either
+    matrix by an OLS estimate of noise variance. Logistic regression uses
+    S=X.T @ diag(p*(1-p)) @ X and unit dispersion. Its covariance is a local
+    asymptotic approximation. A separately fitted intercept is unpenalized
+    unless penalize_intercept=True. lamda must match the fitted L2 penalty.
     """
-    X, Y = np.asarray(X, dtype=float), np.asarray(Y).ravel()
-    design = np.column_stack([np.ones(len(X)), X])
-    beta = np.r_[np.asarray(fit_mod.intercept_).ravel(), np.asarray(fit_mod.coef_).ravel()][:, None]
-    penalty = lamda * np.diag(np.r_[0., np.ones(X.shape[1])])
+    original_X = X
+    X, Y = np.asarray(X, dtype=float), np.asarray(Y, dtype=float).ravel()
+    if X.ndim != 2 or len(Y) != len(X) or not np.isfinite(X).all() or not np.isfinite(Y).all():
+        raise ValueError('Supply finite features and one finite response per observation')
+    if covariance not in ('sampling', 'curvature'):
+        raise ValueError('covariance must be sampling or curvature')
+    if not np.isfinite(lamda) or lamda < 0:
+        raise ValueError('lamda must be finite and nonnegative')
+    intercept = bool(getattr(fit_mod, 'fit_intercept', True))
+    design = np.column_stack([np.ones(len(X)), X]) if intercept else X
+    beta = np.asarray(fit_mod.coef_).ravel()
+    if intercept:
+        beta = np.r_[np.asarray(fit_mod.intercept_).ravel(), beta]
+    if beta.size != design.shape[1]:
+        raise ValueError('The fitted coefficient count does not match the design')
+    penalty = np.eye(design.shape[1])
+    if intercept and not penalize_intercept:
+        penalty[0, 0] = 0
     if logit:
-        weights = np.prod(fit_mod.predict_proba(X), axis=1)
-        covariance = np.linalg.inv(design.T @ (weights[:, None] * design) + penalty)
-        return covariance, None, None, beta
-    residuals = Y[:, None] - design @ beta
-    variance = np.sum(residuals ** 2) / (len(X) - design.shape[1])
+        probabilities = np.asarray(fit_mod.predict_proba(original_X))
+        if probabilities.shape != (len(X), 2):
+            raise ValueError('Logistic covariance requires a binary probability model')
+        weights = np.prod(probabilities, axis=1)
+        information = design.T @ (weights[:, None]*design)
+        inverse = np.linalg.inv(information+lamda*penalty)
+        base = inverse @ information @ inverse if covariance == 'sampling' else inverse
+        return base, None, None, beta[:, None]
+    degrees = len(X)-design.shape[1]
+    if degrees <= 0:
+        raise ValueError('Noise-variance estimation needs positive residual degrees of freedom')
     information = design.T @ design
-    inverse = np.linalg.inv(information + penalty)
-    covariance_base = inverse @ information @ inverse if lamda else inverse
-    return variance * covariance_base, covariance_base, variance, beta
+    # Estimate noise from OLS so shrinkage bias does not inflate residual variance.
+    ordinary = np.linalg.solve(information, design.T @ Y)
+    variance = np.sum((Y-design @ ordinary)**2)/degrees
+    inverse = np.linalg.inv(information+lamda*penalty)
+    base = inverse @ information @ inverse if covariance == 'sampling' else inverse
+    return variance*base, base, variance, beta[:, None]
   
 
-def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, lamda=0):
-    """Since sklearn doesn't generate the standard errors by default...
-
-    Parameters
-    ----------
-    X : pandas dataframe
-        The feature or design matrix.
-    Y : pandas series or numpy array
-        The response or target variable.
-    fit_mod : sklearn model, or similar
-        The fitted model (Logistic or linear Regression).
-    logit : bool, optional
-        If True, calculate Logistic Regression SE, otherwise, Linear. Default is True
-    low_memory : bool, optional
-        Sometimes this process uses a lot of memory. If True, calculate using less memory.
-        The default is False.
-    lamda : float, optional
-        If performing ridge regression, this is the penalty term, lambda.
-
-    Returns
-    -------
-    se : numpy array
-        The standard error of the coefficients.
-
-    """
-    cov, XtX_inv, sigma2, betas = GenerateRegCov(X=X, Y=Y, fit_mod=fit_mod,
-                                          logit=logit, low_memory=low_memory,
-                                          lamda=lamda)
-    se = np.sqrt(np.diag(cov))
-    return se, cov, XtX_inv, sigma2, betas
+def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, lamda=0,
+                 *, covariance='sampling', penalize_intercept=False):
+    """Return coefficient standard errors and the selected covariance quantities."""
+    cov, base, sigma2, betas = GenerateRegCov(X, Y, fit_mod, logit, low_memory, lamda,
+        covariance=covariance, penalize_intercept=penalize_intercept)
+    return np.sqrt(np.diag(cov)), cov, base, sigma2, betas
   
 
 def predict(X_test, X_train, Y_train, fit_mod, logit=True, interval='prediction',
             low_memory=False, lamda=0, level=0.95, logit_transform=False,
-            logit_se_method='wald'):
+            logit_se_method='wald', *, covariance='sampling', penalize_intercept=False):
     """Return predictions with confidence or prediction intervals.
 
-    Logistic intervals use the Wald method. A logistic prediction interval
-    uses the confidence interval for the response probability.
+    OLS intervals use Student t critical values and estimated residual variance.
+    Logistic intervals use asymptotic normal Wald bounds on the linear predictor.
+    A requested logistic prediction interval returns a probability confidence
+    interval, not a binary outcome interval. Intervals with an L2 penalty are
+    local approximations; sampling covariance measures variation of the shrunken
+    estimator and does not remove its bias for unpenalized population parameters.
+    Curvature intervals use the separately requested Gaussian-prior interpretation.
     """
     if interval not in ('prediction', 'confidence') or not 0 < level < 1:
-        raise ValueError('Supply a valid interval type and a level between 0 and 1')
-    covariance, _, variance, beta = GenerateRegCov(X_train, Y_train, fit_mod, logit, low_memory, lamda)
-    design = np.column_stack([np.ones(len(X_test)), np.asarray(X_test)])
+        raise ValueError('Supply a valid interval type and a level between zero and one')
+    cov, _, variance, beta = GenerateRegCov(X_train, Y_train, fit_mod, logit, low_memory, lamda,
+        covariance=covariance, penalize_intercept=penalize_intercept)
+    X_test = np.asarray(X_test)
+    design = np.column_stack([np.ones(len(X_test)), X_test]) if beta.size == X_test.shape[1]+1 else X_test
     estimate = (design @ beta).ravel()
-    prediction_variance = np.einsum('ij,jk,ik->i', design, covariance, design)
+    prediction_variance = np.einsum('ij,jk,ik->i', design, cov, design)
     if logit:
         if logit_se_method != 'wald':
             raise NotImplementedError('Only the Wald method is available')
         if interval == 'prediction':
             warnings.warn('Using a confidence interval for a binary response', UserWarning)
-    elif interval == 'prediction':
-        prediction_variance += variance
-    critical = t.ppf((1 + level) / 2, df=len(X_train) - beta.size)
-    margin = critical * np.sqrt(prediction_variance)
-    result = np.column_stack([estimate, estimate - margin, estimate + margin])
+        critical = normal.ppf((1+level)/2)
+    else:
+        if interval == 'prediction':
+            prediction_variance += variance
+        critical = t.ppf((1+level)/2, df=len(X_train)-beta.size)
+    margin = critical*np.sqrt(np.maximum(prediction_variance, 0))
+    result = np.column_stack([estimate, estimate-margin, estimate+margin])
     if logit and logit_transform:
         result = sigmoid(result)
     return pd.DataFrame(result, columns=['yhat', 'lower_int', 'upper_int'])
