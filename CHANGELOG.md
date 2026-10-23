@@ -2,6 +2,8 @@
 
 ## 2.1.0
 
+- Replaced the obsolete conda publishing action and built a noarch package.
+- Set the required PyPI upload username and added secret-format diagnostics.
 - Added selectable Weibull shape or scale regression and conditional scale predictions.
 - Added configurable shared-parameter priors and documented AFT and hazard interpretations.
 
