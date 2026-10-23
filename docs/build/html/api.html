@@ -60,6 +60,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -428,7 +429,7 @@ MCMC module.</p>
 <td><p>The posterior density for a weibull distribution with a gamma prior.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/tsdst.distributions.weibull_regression_post.html#tsdst.distributions.weibull_regression_post" title="tsdst.distributions.weibull_regression_post"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distributions.weibull_regression_post</span></code></a></p></td>
-<td><p>Evaluate the posterior for covariate-dependent Weibull shape and a shared scale.</p></td>
+<td><p>Evaluate a Weibull regression posterior with a selectable regression parameter.</p></td>
 </tr>
 </tbody>
 </table>
@@ -447,11 +448,14 @@ Predictions use the coefficient summary selected by <code class="docutils litera
 They do not average count means over all posterior draws.</p>
 <p>The adaptive overdispersion likelihood used with <code class="docutils literal notranslate"><span class="pre">C=None</span></code> now uses this
 same mean parameterization. Refit models trained with that branch.</p>
-<p><code class="docutils literal notranslate"><span class="pre">BayesWeibullRegressor</span></code> keeps covariate-dependent shape and one shared
-sampled scale. <code class="docutils literal notranslate"><span class="pre">predict_shape</span></code> exposes shape, <code class="docutils literal notranslate"><span class="pre">predict</span></code> returns the mean,
-and <code class="docutils literal notranslate"><span class="pre">predict_variance</span></code> returns the Weibull variance. <code class="docutils literal notranslate"><span class="pre">fit</span></code> and likelihood
-scoring accept right-censoring indicators through <code class="docutils literal notranslate"><span class="pre">status</span></code>. The
-<code class="docutils literal notranslate"><span class="pre">over_dispersion</span></code> argument is retained but unused for this distribution.</p>
+<p><code class="docutils literal notranslate"><span class="pre">BayesWeibullRegressor</span></code> accepts <code class="docutils literal notranslate"><span class="pre">regression_parameter=&quot;shape&quot;</span></code> (the existing
+model) or <code class="docutils literal notranslate"><span class="pre">regression_parameter=&quot;scale&quot;</span></code> (a Weibull AFT model). The selected
+parameter varies with covariates; the other parameter is a shared sampled
+scalar. <code class="docutils literal notranslate"><span class="pre">predict_shape</span></code> and <code class="docutils literal notranslate"><span class="pre">predict_scale</span></code> expose both parameters,
+<code class="docutils literal notranslate"><span class="pre">predict</span></code> returns the mean, and <code class="docutils literal notranslate"><span class="pre">predict_variance</span></code> returns the variance.
+<code class="docutils literal notranslate"><span class="pre">fit</span></code> and likelihood scoring accept right-censoring indicators through
+<code class="docutils literal notranslate"><span class="pre">status</span></code>. The <code class="docutils literal notranslate"><span class="pre">over_dispersion</span></code> argument remains unused for this distribution.
+See <a class="reference internal" href="weibull_regression.html"><span class="doc">Weibull regression</span></a> for interpretation, priors, and examples.</p>
 <p>Weibull <code class="docutils literal notranslate"><span class="pre">score</span></code> defaults to R2. <code class="docutils literal notranslate"><span class="pre">scorer=&quot;log_likelihood&quot;</span></code> returns the
 weighted mean log density or log survival contribution. <code class="docutils literal notranslate"><span class="pre">scorer=&quot;D2&quot;</span></code>
 compares sums of Weibull survival-deviance residuals against a fitted null
@@ -470,7 +474,7 @@ infinity remains a valid rejection of a proposal outside posterior support.</p>
 <td><p>A Poisson Regressor that uses MCMC to evaluate the parameters.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/tsdst.estimators.BayesWeibullRegressor.html#tsdst.estimators.BayesWeibullRegressor" title="tsdst.estimators.BayesWeibullRegressor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimators.BayesWeibullRegressor</span></code></a></p></td>
-<td><p>A Weibull Regressor that uses MCMC to evaluate the parameters.</p></td>
+<td><p>Fit Weibull shape or scale with covariates and sample the other parameter.</p></td>
 </tr>
 </tbody>
 </table>

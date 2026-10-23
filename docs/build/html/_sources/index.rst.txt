@@ -11,6 +11,7 @@ This documentation covers the public functions, classes, and methods contained i
 
    API Pages  <api>
    Automatic EDA <eda>
+   Weibull regression <weibull_regression>
 
 
 Indices and tables

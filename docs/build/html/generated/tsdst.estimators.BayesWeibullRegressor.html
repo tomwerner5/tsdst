@@ -60,6 +60,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -157,9 +158,63 @@
 <h1>tsdst.estimators.BayesWeibullRegressor<a class="headerlink" href="#tsdst-estimators-bayesweibullregressor" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="tsdst.estimators.BayesWeibullRegressor">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tsdst.estimators.</span></span><span class="sig-name descname"><span class="pre">BayesWeibullRegressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rosenthal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_max_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sklearn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">over_dispersion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/estimators.html#BayesWeibullRegressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.estimators.BayesWeibullRegressor" title="Link to this definition">¶</a></dt>
-<dd><p>A Weibull Regressor that uses MCMC to evaluate the parameters.
-This estimator follows scikit-learn’s public regressor interface.</p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">tsdst.estimators.</span></span><span class="sig-name descname"><span class="pre">BayesWeibullRegressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">C</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rosenthal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_max_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sklearn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_summary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_constant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">over_dispersion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">regression_parameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'shape'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_prior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/estimators.html#BayesWeibullRegressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.estimators.BayesWeibullRegressor" title="Link to this definition">¶</a></dt>
+<dd><p>Fit Weibull shape or scale with covariates and sample the other parameter.</p>
+<p>The default regression_parameter=’shape’ keeps the existing model. Use
+regression_parameter=’scale’ for a Weibull accelerated failure time (AFT)
+model with a shared shape. Both models use positive parameters through log
+links and support observed and right-censored event times.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>regression_parameter_</strong><span class="classifier">str</span></dt><dd><p>Parameterization selected during fit. Changing the constructor setting
+after fitting does not reinterpret an existing chain; refit to change it.</p>
+</dd>
+<dt><strong>shared_parameter_</strong><span class="classifier">float</span></dt><dd><p>Exponentiated summary of the final log parameter in the fitted chain.</p>
+</dd>
+<dt><strong>shape_</strong><span class="classifier">float</span></dt><dd><p>Shared shape, present only for scale regression. Use predict_shape to
+obtain one shape per feature row in either mode.</p>
+</dd>
+<dt><strong>scale_</strong><span class="classifier">float</span></dt><dd><p>Shared scale, present only for shape regression. Use predict_scale to
+obtain one scale per feature row in either mode.</p>
+</dd>
+<dt><strong>shared_prior_</strong><span class="classifier">tuple of float</span></dt><dd><p>Gamma(shape, scale) hyperparameters used for the shared parameter.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Choosing the regression parameter changes the scientific model. A shared
+parameter is constant across observations but is still sampled in MCMC.
+It is not fixed at a known numerical value.</p>
+<p>With scale regression, scale(x)=exp(intercept + x &#64; beta) and shape=k is
+shared. A one-unit increase in x_j multiplies every conditional lifetime
+quantile, including the median, by exp(beta_j). The percentage time change
+is 100*(exp(beta_j)-1). The hazard ratio is exp(-k*beta_j), constant over
+time. This Weibull model therefore has both AFT and proportional-hazards
+interpretations. Risk increases with time if k&gt;1, decreases if k&lt;1, and is
+constant if k=1. The direction is shared across observations.</p>
+<p>With shape regression, shape(x)=exp(intercept + x &#64; beta) and scale=lambda
+is shared. Covariates change the time pattern of risk. Different conditional
+shapes give crossing hazards and survival curves. Every group has
+F(lambda)=1-exp(-1), approximately 63.2% failed at the shared scale. A shape
+coefficient does not give a fixed percentage change in lifetime or a
+constant hazard ratio. This model can be useful when covariates change the
+failure mechanism rather than only its time scale.</p>
+<p>Scale regression is a common starting point when effects act on lifetime.
+Heavy censoring can weaken estimation in either model. A shared shape does
+not guarantee numerical convergence, and varying shape does not by itself
+imply failure to converge. Review observed failures, covariate support,
+prior sensitivity, and chain diagnostics when selecting a model.</p>
+<p>The coefficient priors are defined on the sampled coefficients. The shared
+positive parameter has a Gamma prior, with a log-scale Jacobian in the
+posterior. The default shared-shape prior for scale regression is Gamma(2,1).
+Shape regression keeps the existing Gamma(0.01,100) shared-scale prior.
+shared_prior overrides either pair, using Gamma shape and scale rather than
+rate. A prior on Weibull scale depends on the units used for time.</p>
+<p class="rubric">References</p>
+<p><a class="reference external" href="https://stat.ethz.ch/R-manual/R-devel/library/survival/html/survreg.html">https://stat.ethz.ch/R-manual/R-devel/library/survival/html/survreg.html</a>
+<a class="reference external" href="https://www.itl.nist.gov/div898/handbook/eda/section3/eda3668.htm">https://www.itl.nist.gov/div898/handbook/eda/section3/eda3668.htm</a></p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -179,27 +234,30 @@ This estimator follows scikit-learn’s public regressor interface.</p>
 <td><p>Get parameters for this estimator.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.predict.html#tsdst.estimators.BayesWeibullRegressor.predict" title="tsdst.estimators.BayesWeibullRegressor.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(X)</p></td>
-<td><p>Return the conditional Weibull mean from fitted shape and scale.</p></td>
+<td><p>Return the conditional Weibull mean under the fitted parameterization.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood.html#tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood" title="tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_log_likelihood</span></code></a>(X, y[, status])</p></td>
 <td><p>Return log density for events and log survival for right-censored times.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.predict_shape.html#tsdst.estimators.BayesWeibullRegressor.predict_shape" title="tsdst.estimators.BayesWeibullRegressor.predict_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_shape</span></code></a>(X)</p></td>
-<td><p>Return exp(intercept + X &#64; coefficients), the conditional shape.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.predict_scale.html#tsdst.estimators.BayesWeibullRegressor.predict_scale" title="tsdst.estimators.BayesWeibullRegressor.predict_scale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_scale</span></code></a>(X)</p></td>
+<td><p>Return conditional Weibull scale for each supplied feature row.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.predict_variance.html#tsdst.estimators.BayesWeibullRegressor.predict_variance" title="tsdst.estimators.BayesWeibullRegressor.predict_variance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_variance</span></code></a>(X)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.predict_shape.html#tsdst.estimators.BayesWeibullRegressor.predict_shape" title="tsdst.estimators.BayesWeibullRegressor.predict_shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_shape</span></code></a>(X)</p></td>
+<td><p>Return conditional Weibull shape for each supplied feature row.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.predict_variance.html#tsdst.estimators.BayesWeibullRegressor.predict_variance" title="tsdst.estimators.BayesWeibullRegressor.predict_variance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_variance</span></code></a>(X)</p></td>
 <td><p>Return scale squared times Gamma(1+2/shape)-Gamma(1+1/shape) squared.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.score.html#tsdst.estimators.BayesWeibullRegressor.score" title="tsdst.estimators.BayesWeibullRegressor.score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score</span></code></a>(X, y[, sample_weight, scorer, status])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.score.html#tsdst.estimators.BayesWeibullRegressor.score" title="tsdst.estimators.BayesWeibullRegressor.score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score</span></code></a>(X, y[, sample_weight, scorer, status])</p></td>
 <td><p>Return R2, mean Weibull log likelihood, or survival-deviance D2.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.set_fit_request.html#tsdst.estimators.BayesWeibullRegressor.set_fit_request" title="tsdst.estimators.BayesWeibullRegressor.set_fit_request"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_fit_request</span></code></a>(*[, status])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.set_fit_request.html#tsdst.estimators.BayesWeibullRegressor.set_fit_request" title="tsdst.estimators.BayesWeibullRegressor.set_fit_request"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_fit_request</span></code></a>(*[, status])</p></td>
 <td><p>Configure whether metadata should be requested to be passed to the <code class="docutils literal notranslate"><span class="pre">fit</span></code> method.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.set_params.html#tsdst.estimators.BayesWeibullRegressor.set_params" title="tsdst.estimators.BayesWeibullRegressor.set_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code></a>(**params)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.set_params.html#tsdst.estimators.BayesWeibullRegressor.set_params" title="tsdst.estimators.BayesWeibullRegressor.set_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code></a>(**params)</p></td>
 <td><p>Set the parameters of this estimator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.set_score_request.html#tsdst.estimators.BayesWeibullRegressor.set_score_request" title="tsdst.estimators.BayesWeibullRegressor.set_score_request"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_score_request</span></code></a>(*[, sample_weight, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tsdst.estimators.BayesWeibullRegressor.set_score_request.html#tsdst.estimators.BayesWeibullRegressor.set_score_request" title="tsdst.estimators.BayesWeibullRegressor.set_score_request"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_score_request</span></code></a>(*[, sample_weight, ...])</p></td>
 <td><p>Configure whether metadata should be requested to be passed to the <code class="docutils literal notranslate"><span class="pre">score</span></code> method.</p></td>
 </tr>
 </tbody>

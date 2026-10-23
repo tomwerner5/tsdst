@@ -1,4 +1,4 @@
-tsdst.estimators.BayesWeibullRegressor
+﻿tsdst.estimators.BayesWeibullRegressor
 ======================================
 
 .. currentmodule:: tsdst.estimators
@@ -20,6 +20,7 @@ tsdst.estimators.BayesWeibullRegressor
       ~BayesWeibullRegressor.get_params
       ~BayesWeibullRegressor.predict
       ~BayesWeibullRegressor.predict_log_likelihood
+      ~BayesWeibullRegressor.predict_scale
       ~BayesWeibullRegressor.predict_shape
       ~BayesWeibullRegressor.predict_variance
       ~BayesWeibullRegressor.score

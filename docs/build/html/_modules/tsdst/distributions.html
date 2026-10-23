@@ -57,6 +57,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API Pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -1478,109 +1479,106 @@
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_weibull_shared_prior</span><span class="p">(</span><span class="n">regression_parameter</span><span class="p">,</span> <span class="n">shared_prior</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Resolve the Gamma(shape, scale) prior for the shared Weibull parameter."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">regression_parameter</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">regression_parameter</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'shape'</span><span class="p">,</span> <span class="s1">'scale'</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"regression_parameter must be 'shape' or 'scale'"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shared_prior</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">100.</span><span class="p">)</span> <span class="k">if</span> <span class="n">regression_parameter</span> <span class="o">==</span> <span class="s1">'shape'</span> <span class="k">else</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">prior</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shared_prior</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'shared_prior must contain a positive Gamma shape and scale'</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+    <span class="k">if</span> <span class="n">prior</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">prior</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">prior</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'shared_prior must contain a positive Gamma shape and scale'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">prior</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="weibull_regression_post">
 <a class="viewcode-back" href="../../generated/tsdst.distributions.weibull_regression_post.html#tsdst.distributions.weibull_regression_post">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">weibull_regression_post</span><span class="p">(</span><span class="n">parms</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">l_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">neg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                            <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">"""Evaluate the posterior for covariate-dependent Weibull shape and a shared scale.</span>
-<span class="sd">    </span>
+                            <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">regression_parameter</span><span class="o">=</span><span class="s1">'shape'</span><span class="p">,</span> <span class="n">shared_prior</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Evaluate a Weibull regression posterior with a selectable regression parameter.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    parms : numpy.ndarray</span>
-<span class="sd">        Intercept and shape-regression coefficients, followed by log Weibull</span>
-<span class="sd">        scale. The last value is a distribution-scale parameter; l_scale is the</span>
-<span class="sd">        separate coefficient-prior scale argument.</span>
-<span class="sd">    X : numpy array (numeric)</span>
-<span class="sd">        The independent variables (or feature matrix), where the first column</span>
-<span class="sd">        is a dummy column of 1's (for the intercept).</span>
+<span class="sd">        Intercept and regression coefficients, followed by the log of the</span>
+<span class="sd">        shared distribution parameter. The coefficients model log shape when</span>
+<span class="sd">        regression_parameter='shape', or log scale when it is 'scale'.</span>
+<span class="sd">    X : numpy.ndarray</span>
+<span class="sd">        Design matrix with a leading column of ones for the intercept.</span>
 <span class="sd">    Y : numpy.ndarray</span>
-<span class="sd">        Positive event or right-censoring times, one per feature row.</span>
-<span class="sd">    status : numpy array (int, bool) or None</span>
-<span class="sd">        Indicates status used for censoring, in this case, right censoring.</span>
-<span class="sd">        An array of 1's and 0's, such that a 1 indicates an event, and 0 is the</span>
-<span class="sd">        censored observation. If None, it will assume there are no censored</span>
-<span class="sd">        events. Default is None.</span>
+<span class="sd">        Positive event or right-censoring times, one per design row.</span>
+<span class="sd">    status : array-like of zero or one, optional</span>
+<span class="sd">        One denotes an observed event; zero denotes right censoring.</span>
+<span class="sd">        None treats all times as observed events.</span>
 <span class="sd">    l_scale : float, optional</span>
-<span class="sd">        Positive Laplace coefficient-prior scale. The default is 1.</span>
-<span class="sd">        A slope contributes abs(beta)/l_scale to the negative log posterior.</span>
-<span class="sd">        The estimator sets this scale to 2*C. Matching an external L1 penalty</span>
-<span class="sd">        also requires matching likelihood and intercept conventions.</span>
+<span class="sd">        Positive Laplace slope-prior scale. The default is 1. Each slope</span>
+<span class="sd">        contributes abs(beta)/l_scale to the negative log posterior.</span>
 <span class="sd">    neg : bool, optional</span>
-<span class="sd">        Return negative density. The default value is False.</span>
+<span class="sd">        Negate the selected density or log density. The default is False.</span>
 <span class="sd">    log : bool, optional</span>
-<span class="sd">        Return log-density. The default value is True.</span>
+<span class="sd">        Return log density when True. The default is True.</span>
+<span class="sd">    regression_parameter : {'shape', 'scale'}, optional</span>
+<span class="sd">        Distribution parameter modeled as exp(X @ coefficients). The other</span>
+<span class="sd">        parameter is a shared positive scalar. The default is 'shape'.</span>
+<span class="sd">    shared_prior : pair of float, optional</span>
+<span class="sd">        Gamma(shape, scale) hyperparameters for the shared positive parameter.</span>
+<span class="sd">        None uses (0.01, 100) for shared Weibull scale in shape regression,</span>
+<span class="sd">        or (2, 1) for shared Weibull shape in scale regression.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    float</span>
-<span class="sd">        The posterior density (height of the posterior density)</span>
+<span class="sd">        Posterior density or log density, optionally negated. The density is</span>
+<span class="sd">        defined on the sampled coefficient and log-shared-parameter scale.</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
-<span class="sd">    The coefficient vector is sampled on the real line. Shape is</span>
-<span class="sd">    exp(X @ parms[:-1]), which enforces positivity. Weibull scale is</span>
-<span class="sd">    exp(parms[-1]). The intercept has a normal prior with standard deviation</span>
-<span class="sd">    10, the slopes have Laplace priors with scale l_scale, and the positive</span>
-<span class="sd">    Weibull scale has a Gamma prior with shape 0.01 and scale 100.</span>
-<span class="sd">    The final parms[-1] contribution is the log-scale Jacobian for that Gamma</span>
-<span class="sd">    prior. No extra shape-link Jacobian is required because the coefficient</span>
-<span class="sd">    priors are defined on the sampled coefficients themselves.</span>
+<span class="sd">    The intercept prior is normal with mean zero and standard deviation 10.</span>
+<span class="sd">    Slope priors are Laplace with scale l_scale. The final log parameter has</span>
+<span class="sd">    a Gamma prior on its exponentiated value, so parms[-1] supplies the</span>
+<span class="sd">    log-scale Jacobian. The coefficients have priors on their sampled scale;</span>
+<span class="sd">    their log link does not require another Jacobian.</span>
 
-<span class="sd">    Events contribute a Weibull log density. Right-censored times contribute</span>
-<span class="sd">    log survival. The event mask is applied to the matching observation shapes</span>
-<span class="sd">    in both density terms.</span>
+<span class="sd">    Scale regression with a shared shape is a Weibull accelerated failure</span>
+<span class="sd">    time and proportional hazards model. Shape regression with a shared</span>
+<span class="sd">    scale generally has neither interpretation. The shared parameter is</span>
+<span class="sd">    sampled, rather than held at a known value. See BayesWeibullRegressor</span>
+<span class="sd">    for coefficient interpretations.</span>
+
+<span class="sd">    Events contribute log density and right-censored times contribute log</span>
+<span class="sd">    survival. Both branches use the matching observation's shape and scale.</span>
 <span class="sd">    """</span>
-    <span class="n">l_loc</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">n_sigma</span> <span class="o">=</span> <span class="mi">10</span>
-    
+    <span class="n">gshape</span><span class="p">,</span> <span class="n">gscale</span> <span class="o">=</span> <span class="n">_weibull_shared_prior</span><span class="p">(</span><span class="n">regression_parameter</span><span class="p">,</span> <span class="n">shared_prior</span><span class="p">)</span>
     <span class="n">intercept</span> <span class="o">=</span> <span class="n">parms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">betas</span> <span class="o">=</span> <span class="n">parms</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    
-    <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">parms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">logshape</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">parms</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logshape</span><span class="p">)</span>
-    
-    <span class="k">if</span> <span class="n">status</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">status</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-    <span class="n">fails</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">status</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">cens</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">status</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="n">shape_fail</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="n">status</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">shape_cens</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="n">status</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="n">gshape</span> <span class="o">=</span> <span class="mf">0.01</span>
-    <span class="n">gscale</span> <span class="o">=</span> <span class="mf">100.0</span>
-    
-    <span class="n">xly_1</span> <span class="o">=</span> <span class="n">xlogy</span><span class="p">(</span><span class="n">shape_fail</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">fails</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span>
-    <span class="n">xly_2</span> <span class="o">=</span> <span class="n">xlogy</span><span class="p">(</span><span class="n">gshape</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
-    
-    <span class="k">if</span> <span class="n">fails</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">fail_like</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">shape_fail</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="o">+</span> <span class="n">xly_1</span> <span class="o">-</span> <span class="p">(</span><span class="n">fails</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span><span class="o">**</span><span class="n">shape_fail</span><span class="p">))</span>
+    <span class="n">shared</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">parms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">varying</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">parms</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="c1"># Scale regression shifts the time axis with one shared hazard shape.</span>
+    <span class="c1"># Shape regression changes the hazard's time pattern at a shared scale.</span>
+    <span class="k">if</span> <span class="n">regression_parameter</span> <span class="o">==</span> <span class="s1">'shape'</span><span class="p">:</span>
+        <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">varying</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">varying</span><span class="p">),</span> <span class="n">shared</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">fail_like</span> <span class="o">=</span> <span class="mi">0</span>
-        
-    <span class="k">if</span> <span class="n">cens</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">cens_like</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">cens</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span><span class="o">**</span><span class="n">shape_cens</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">cens_like</span> <span class="o">=</span> <span class="mi">0</span>
-    
-    <span class="c1">#scale prior</span>
-    <span class="n">scale_prior</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">loggamma</span><span class="p">(</span><span class="n">gshape</span><span class="p">)</span> <span class="o">+</span> <span class="n">gshape</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">gscale</span><span class="p">))</span> <span class="o">+</span> <span class="n">xly_2</span> <span class="o">-</span> <span class="p">(</span><span class="n">scale</span><span class="o">/</span><span class="n">gscale</span><span class="p">))</span>
-    <span class="c1"># normal prior on the intercept</span>
-    <span class="n">int_prior</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.0</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">n_sigma</span><span class="p">)</span> <span class="o">-</span> <span class="p">(((</span><span class="n">intercept</span> <span class="o">-</span> <span class="n">l_loc</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span><span class="o">*</span><span class="p">(</span><span class="n">n_sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">))))</span>
-    <span class="c1"># Laplace prior </span>
-    <span class="n">parm_prior</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">l_scale</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">betas</span> <span class="o">-</span> <span class="n">l_loc</span><span class="p">)</span><span class="o">/</span><span class="n">l_scale</span><span class="p">))</span>
-    <span class="c1"># Normal prior</span>
-    <span class="c1">#parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)</span>
-    <span class="c1"># The final log-scale term is the Jacobian for the Weibull scale prior.</span>
-    <span class="n">post</span> <span class="o">=</span> <span class="n">fail_like</span> <span class="o">+</span> <span class="n">cens_like</span> <span class="o">+</span> <span class="n">parm_prior</span> <span class="o">+</span> <span class="n">int_prior</span> <span class="o">+</span> <span class="n">scale_prior</span> <span class="o">+</span> <span class="n">parms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    
+        <span class="n">shape</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">varying</span><span class="p">),</span> <span class="n">shared</span><span class="p">),</span> <span class="n">varying</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span> <span class="k">if</span> <span class="n">status</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">status</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="n">fails</span><span class="p">,</span> <span class="n">cens</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">events</span><span class="p">],</span> <span class="n">Y</span><span class="p">[</span><span class="o">~</span><span class="n">events</span><span class="p">]</span>
+    <span class="n">shape_fail</span><span class="p">,</span> <span class="n">shape_cens</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="n">events</span><span class="p">],</span> <span class="n">shape</span><span class="p">[</span><span class="o">~</span><span class="n">events</span><span class="p">]</span>
+    <span class="n">scale_fail</span><span class="p">,</span> <span class="n">scale_cens</span> <span class="o">=</span> <span class="n">scale</span><span class="p">[</span><span class="n">events</span><span class="p">],</span> <span class="n">scale</span><span class="p">[</span><span class="o">~</span><span class="n">events</span><span class="p">]</span>
+    <span class="n">fail_like</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">shape_fail</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">scale_fail</span><span class="p">)</span>
+                       <span class="o">+</span> <span class="n">xlogy</span><span class="p">(</span><span class="n">shape_fail</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">fails</span><span class="o">/</span><span class="n">scale_fail</span><span class="p">)</span>
+                       <span class="o">-</span> <span class="p">(</span><span class="n">fails</span><span class="o">/</span><span class="n">scale_fail</span><span class="p">)</span><span class="o">**</span><span class="n">shape_fail</span><span class="p">)</span>
+    <span class="n">cens_like</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">cens</span><span class="o">/</span><span class="n">scale_cens</span><span class="p">)</span><span class="o">**</span><span class="n">shape_cens</span><span class="p">)</span>
+    <span class="n">shared_prior_value</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">loggamma</span><span class="p">(</span><span class="n">gshape</span><span class="p">)</span> <span class="o">+</span> <span class="n">gshape</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">gscale</span><span class="p">))</span>
+                          <span class="o">+</span> <span class="n">xlogy</span><span class="p">(</span><span class="n">gshape</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">shared</span><span class="p">)</span> <span class="o">-</span> <span class="n">shared</span><span class="o">/</span><span class="n">gscale</span><span class="p">)</span>
+    <span class="n">intercept_prior</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">10.</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">intercept</span><span class="o">/</span><span class="mf">10.</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">coefficient_prior</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">l_scale</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">betas</span><span class="p">)</span><span class="o">/</span><span class="n">l_scale</span><span class="p">)</span>
+    <span class="c1"># The shared positive parameter is sampled on its log scale in both modes.</span>
+    <span class="n">post</span> <span class="o">=</span> <span class="n">fail_like</span> <span class="o">+</span> <span class="n">cens_like</span> <span class="o">+</span> <span class="n">coefficient_prior</span> <span class="o">+</span> <span class="n">intercept_prior</span> <span class="o">+</span> <span class="n">shared_prior_value</span> <span class="o">+</span> <span class="n">parms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">log</span><span class="p">:</span>
         <span class="n">post</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">neg</span><span class="p">:</span>
-        <span class="k">return</span> <span class="o">-</span><span class="n">post</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">post</span></div>
+    <span class="k">return</span> <span class="o">-</span><span class="n">post</span> <span class="k">if</span> <span class="n">neg</span> <span class="k">else</span> <span class="n">post</span></div>
 
 
 

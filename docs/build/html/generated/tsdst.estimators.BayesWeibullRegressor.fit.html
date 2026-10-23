@@ -60,6 +60,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -179,9 +180,12 @@ If None, all times are treated as observed events.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>The model estimates log shape as intercept + X &#64; coefficients and samples
-one shared log scale. The reported prediction is the conditional Weibull
-mean. Use predict_shape to obtain the positive shape parameter.</p>
+<p>The selected parameter uses exp(intercept + X &#64; coefficients). The other
+parameter is a shared positive scalar sampled on its log scale. Coefficients
+come first in start and in each chain row; the final value is log shared
+scale for shape regression or log shared shape for scale regression.
+The reported prediction is the conditional mean under that parameterization.
+Use predict_shape and predict_scale for the distribution parameters.</p>
 </dd></dl>
 
 </section>

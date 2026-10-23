@@ -1301,107 +1301,104 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
         return post
 
 
+def _weibull_shared_prior(regression_parameter, shared_prior):
+    """Resolve the Gamma(shape, scale) prior for the shared Weibull parameter."""
+    if not isinstance(regression_parameter, str) or regression_parameter not in ('shape', 'scale'):
+        raise ValueError("regression_parameter must be 'shape' or 'scale'")
+    if shared_prior is None:
+        return (0.01, 100.) if regression_parameter == 'shape' else (2., 1.)
+    try:
+        prior = np.asarray(shared_prior, dtype=float)
+    except (TypeError, ValueError) as error:
+        raise ValueError('shared_prior must contain a positive Gamma shape and scale') from error
+    if prior.shape != (2,) or not np.isfinite(prior).all() or np.any(prior <= 0):
+        raise ValueError('shared_prior must contain a positive Gamma shape and scale')
+    return tuple(prior)
+
+
 def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
-                            log=True):
-    r"""Evaluate the posterior for covariate-dependent Weibull shape and a shared scale.
-    
+                            log=True, *, regression_parameter='shape', shared_prior=None):
+    """Evaluate a Weibull regression posterior with a selectable regression parameter.
+
     Parameters
     ----------
     parms : numpy.ndarray
-        Intercept and shape-regression coefficients, followed by log Weibull
-        scale. The last value is a distribution-scale parameter; l_scale is the
-        separate coefficient-prior scale argument.
-    X : numpy array (numeric)
-        The independent variables (or feature matrix), where the first column
-        is a dummy column of 1's (for the intercept).
+        Intercept and regression coefficients, followed by the log of the
+        shared distribution parameter. The coefficients model log shape when
+        regression_parameter='shape', or log scale when it is 'scale'.
+    X : numpy.ndarray
+        Design matrix with a leading column of ones for the intercept.
     Y : numpy.ndarray
-        Positive event or right-censoring times, one per feature row.
-    status : numpy array (int, bool) or None
-        Indicates status used for censoring, in this case, right censoring.
-        An array of 1's and 0's, such that a 1 indicates an event, and 0 is the
-        censored observation. If None, it will assume there are no censored
-        events. Default is None.
+        Positive event or right-censoring times, one per design row.
+    status : array-like of zero or one, optional
+        One denotes an observed event; zero denotes right censoring.
+        None treats all times as observed events.
     l_scale : float, optional
-        Positive Laplace coefficient-prior scale. The default is 1.
-        A slope contributes abs(beta)/l_scale to the negative log posterior.
-        The estimator sets this scale to 2*C. Matching an external L1 penalty
-        also requires matching likelihood and intercept conventions.
+        Positive Laplace slope-prior scale. The default is 1. Each slope
+        contributes abs(beta)/l_scale to the negative log posterior.
     neg : bool, optional
-        Return negative density. The default value is False.
+        Negate the selected density or log density. The default is False.
     log : bool, optional
-        Return log-density. The default value is True.
+        Return log density when True. The default is True.
+    regression_parameter : {'shape', 'scale'}, optional
+        Distribution parameter modeled as exp(X @ coefficients). The other
+        parameter is a shared positive scalar. The default is 'shape'.
+    shared_prior : pair of float, optional
+        Gamma(shape, scale) hyperparameters for the shared positive parameter.
+        None uses (0.01, 100) for shared Weibull scale in shape regression,
+        or (2, 1) for shared Weibull shape in scale regression.
 
     Returns
     -------
     float
-        The posterior density (height of the posterior density)
+        Posterior density or log density, optionally negated. The density is
+        defined on the sampled coefficient and log-shared-parameter scale.
 
     Notes
     -----
-    The coefficient vector is sampled on the real line. Shape is
-    exp(X @ parms[:-1]), which enforces positivity. Weibull scale is
-    exp(parms[-1]). The intercept has a normal prior with standard deviation
-    10, the slopes have Laplace priors with scale l_scale, and the positive
-    Weibull scale has a Gamma prior with shape 0.01 and scale 100.
-    The final parms[-1] contribution is the log-scale Jacobian for that Gamma
-    prior. No extra shape-link Jacobian is required because the coefficient
-    priors are defined on the sampled coefficients themselves.
+    The intercept prior is normal with mean zero and standard deviation 10.
+    Slope priors are Laplace with scale l_scale. The final log parameter has
+    a Gamma prior on its exponentiated value, so parms[-1] supplies the
+    log-scale Jacobian. The coefficients have priors on their sampled scale;
+    their log link does not require another Jacobian.
 
-    Events contribute a Weibull log density. Right-censored times contribute
-    log survival. The event mask is applied to the matching observation shapes
-    in both density terms.
+    Scale regression with a shared shape is a Weibull accelerated failure
+    time and proportional hazards model. Shape regression with a shared
+    scale generally has neither interpretation. The shared parameter is
+    sampled, rather than held at a known value. See BayesWeibullRegressor
+    for coefficient interpretations.
+
+    Events contribute log density and right-censored times contribute log
+    survival. Both branches use the matching observation's shape and scale.
     """
-    l_loc = 0
-    n_sigma = 10
-    
+    gshape, gscale = _weibull_shared_prior(regression_parameter, shared_prior)
     intercept = parms[0]
     betas = parms[1:-1]
-    
-    scale = np.exp(parms[-1])
-    logshape = X.dot(parms[:-1])
-    shape = np.exp(logshape)
-    
-    if status is None:
-        status = np.repeat(1, X.shape[0])
-
-    fails = Y[status == 1]
-    cens = Y[status == 0]
-    shape_fail = shape[status == 1]
-    shape_cens = shape[status == 0]
-    gshape = 0.01
-    gscale = 100.0
-    
-    xly_1 = xlogy(shape_fail - 1.0, fails/scale)
-    xly_2 = xlogy(gshape - 1.0, scale)
-    
-    if fails.shape[0] != 0:
-        fail_like = np.sum((np.log(shape_fail) - np.log(scale) + xly_1 - (fails/scale)**shape_fail))
+    shared = np.exp(parms[-1])
+    varying = np.exp(X.dot(parms[:-1]))
+    # Scale regression shifts the time axis with one shared hazard shape.
+    # Shape regression changes the hazard's time pattern at a shared scale.
+    if regression_parameter == 'shape':
+        shape, scale = varying, np.full(len(varying), shared)
     else:
-        fail_like = 0
-        
-    if cens.shape[0] != 0:
-        cens_like = np.sum(-(cens/scale)**shape_cens)
-    else:
-        cens_like = 0
-    
-    #scale prior
-    scale_prior = (-(loggamma(gshape) + gshape*np.log(gscale)) + xly_2 - (scale/gscale))
-    # normal prior on the intercept
-    int_prior = (-0.5*np.log(2.0*np.pi) - np.log(n_sigma) - (((intercept - l_loc)**2) / (2.0*(n_sigma**2))))
-    # Laplace prior 
-    parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
-    # Normal prior
-    #parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)
-    # The final log-scale term is the Jacobian for the Weibull scale prior.
-    post = fail_like + cens_like + parm_prior + int_prior + scale_prior + parms[-1]
-    
+        shape, scale = np.full(len(varying), shared), varying
+    events = np.ones(len(Y), dtype=bool) if status is None else np.asarray(status) == 1
+    fails, cens = Y[events], Y[~events]
+    shape_fail, shape_cens = shape[events], shape[~events]
+    scale_fail, scale_cens = scale[events], scale[~events]
+    fail_like = np.sum(np.log(shape_fail) - np.log(scale_fail)
+                       + xlogy(shape_fail - 1., fails/scale_fail)
+                       - (fails/scale_fail)**shape_fail)
+    cens_like = np.sum(-(cens/scale_cens)**shape_cens)
+    shared_prior_value = (-(loggamma(gshape) + gshape*np.log(gscale))
+                          + xlogy(gshape - 1., shared) - shared/gscale)
+    intercept_prior = -0.5*np.log(2.*np.pi) - np.log(10.) - 0.5*(intercept/10.)**2
+    coefficient_prior = np.sum(-np.log(2*l_scale) - np.abs(betas)/l_scale)
+    # The shared positive parameter is sampled on its log scale in both modes.
+    post = fail_like + cens_like + coefficient_prior + intercept_prior + shared_prior_value + parms[-1]
     if not log:
         post = np.exp(post)
-
-    if neg:
-        return -post
-    else:
-        return post
+    return -post if neg else post
 
 
 def pois_uniform(param, count, neg=False, log=True):

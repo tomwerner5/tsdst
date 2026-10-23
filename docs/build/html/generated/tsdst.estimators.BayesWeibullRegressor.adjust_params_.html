@@ -60,6 +60,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -178,8 +179,9 @@ median, mode_kde, mode_histogram, or last_value).</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>The scale is exp(the summarized log-scale parameter). Predictions use the
-new shape coefficients and this shared scale. No MCMC chain is rerun.</p>
+<p>The shared parameter is exp(the summarized final log parameter). This updates
+<code class="docutils literal notranslate"><span class="pre">scale_</span></code> for shape regression or <code class="docutils literal notranslate"><span class="pre">shape_</span></code> for scale regression, using the fitted
+<code class="docutils literal notranslate"><span class="pre">regression_parameter_</span></code>. No MCMC chain is rerun.</p>
 </dd></dl>
 
 </section>

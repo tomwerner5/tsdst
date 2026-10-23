@@ -19,7 +19,8 @@ from .distributions import (ap_logreg_lasso,
                                  ap_poisson_lasso,
                                  posterior_poisson_lasso_od,
                                  ap_poisson_lasso_od,
-                                 weibull_regression_post)
+                                 weibull_regression_post,
+                                 _weibull_shared_prior)
 from .mcmc import adaptive_mcmc, rwm_with_lap, rwm, applyMCMC
 from .tmath import mode_histogram, mode_kde
 
@@ -100,6 +101,8 @@ def _fit_bayesian(estimator, X, y, family, status=None):
             posterior, extra = ((posterior_poisson_lasso_od, 1) if estimator.over_dispersion else (posterior_poisson_lasso, 0))
     elif family == 'weibull':
         target, status = _weibull_response(y, len(y), status)
+        weibull_parameter = estimator.regression_parameter
+        weibull_prior = _weibull_shared_prior(weibull_parameter, estimator.shared_prior)
         posterior, extra = weibull_regression_post, 1
     else:
         raise ValueError('Unknown Bayesian family')
@@ -123,7 +126,10 @@ def _fit_bayesian(estimator, X, y, family, status=None):
             if not np.isfinite(shape):
                 shape, scale = 1., np.mean(target)
             initial = np.zeros(size)
-            initial[0], initial[-1] = np.log(shape), np.log(scale)
+            if weibull_parameter == 'shape':
+                initial[0], initial[-1] = np.log(shape), np.log(scale)
+            else:
+                initial[0], initial[-1] = np.log(scale), np.log(shape)
         else:
             strength = 1 if estimator.C is None else estimator.C
             model = (glm_lr(C=strength, solver='liblinear', l1_ratio=1, fit_intercept=False)
@@ -135,7 +141,8 @@ def _fit_bayesian(estimator, X, y, family, status=None):
     else:
         initial = np.zeros(size)
         if family == 'weibull':
-            initial[-1] = np.log(np.mean(target))
+            index = -1 if weibull_parameter == 'shape' else 0
+            initial[index] = np.log(np.mean(target))
     if estimator.start is None and family == 'poisson' and estimator.over_dispersion:
         initial[-1] = 0.
     if initial.shape != (size,) or not np.isfinite(initial).all():
@@ -149,7 +156,8 @@ def _fit_bayesian(estimator, X, y, family, status=None):
         raise ValueError('Unknown MCMC algorithm: ' + str(estimator.algo))
     arguments = {'X': design, 'Y': target, 'l_scale': 1 if estimator.C is None else 2*estimator.C}
     if family == 'weibull':
-        arguments['status'] = status
+        arguments.update(status=status, regression_parameter=weibull_parameter,
+                         shared_prior=weibull_prior)
 
     def log_posterior(parameters, **arguments):
         if not np.isfinite(parameters).all():
@@ -169,11 +177,13 @@ def _fit_bayesian(estimator, X, y, family, status=None):
         if family == 'weibull':
             # Reject shapes/scales and hazards outside floating-point support.
             with np.errstate(all='ignore'):
-                shape = np.exp(design @ parameters[:-1])
-                scale = np.exp(parameters[-1])
-                log_hazard = shape*(np.log(target)-parameters[-1])
-            if (not np.isfinite(shape).all() or np.any(shape <= 0)
-                    or not np.isfinite(scale) or scale <= 0 or np.any(log_hazard > np.log(np.finfo(float).max))):
+                varying = np.exp(linear)
+                shared = np.exp(parameters[-1])
+                shape = varying if weibull_parameter == 'shape' else shared
+                log_scale = parameters[-1] if weibull_parameter == 'shape' else linear
+                log_hazard = shape*(np.log(target)-log_scale)
+            if (not np.isfinite(varying).all() or np.any(varying <= 0)
+                    or not np.isfinite(shared) or shared <= 0 or np.any(log_hazard > np.log(np.finfo(float).max))):
                 return -np.inf
         with np.errstate(over='ignore', under='ignore', invalid='ignore', divide='ignore'):
             value = posterior(parameters, **arguments)
@@ -200,7 +210,9 @@ def _fit_bayesian(estimator, X, y, family, status=None):
         for name, value in estimator._deviance_dispersion_update(original_X, y).items():
             setattr(estimator, name, value)
     else:
-        estimator.scale_ = float(np.exp(estimator.extra_params_sum_[-1]))
+        estimator.regression_parameter_ = weibull_parameter
+        estimator.shared_prior_ = weibull_prior
+        estimator._set_shared_parameter()
         estimator.status_ = status.copy()
         mean = estimator.predict(original_X)
         estimator.dispersion_estimation_ = estimator.predict_variance(original_X)/mean**2
@@ -718,15 +730,75 @@ class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
 
     
 class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
-    r"""A Weibull Regressor that uses MCMC to evaluate the parameters.
-    This estimator follows scikit-learn's public regressor interface.
+    r"""Fit Weibull shape or scale with covariates and sample the other parameter.
+
+    The default regression_parameter='shape' keeps the existing model. Use
+    regression_parameter='scale' for a Weibull accelerated failure time (AFT)
+    model with a shared shape. Both models use positive parameters through log
+    links and support observed and right-censored event times.
+
+    Attributes
+    ----------
+    regression_parameter_ : str
+        Parameterization selected during fit. Changing the constructor setting
+        after fitting does not reinterpret an existing chain; refit to change it.
+    shared_parameter_ : float
+        Exponentiated summary of the final log parameter in the fitted chain.
+    shape_ : float
+        Shared shape, present only for scale regression. Use predict_shape to
+        obtain one shape per feature row in either mode.
+    scale_ : float
+        Shared scale, present only for shape regression. Use predict_scale to
+        obtain one scale per feature row in either mode.
+    shared_prior_ : tuple of float
+        Gamma(shape, scale) hyperparameters used for the shared parameter.
+
+    Notes
+    -----
+    Choosing the regression parameter changes the scientific model. A shared
+    parameter is constant across observations but is still sampled in MCMC.
+    It is not fixed at a known numerical value.
+
+    With scale regression, scale(x)=exp(intercept + x @ beta) and shape=k is
+    shared. A one-unit increase in x_j multiplies every conditional lifetime
+    quantile, including the median, by exp(beta_j). The percentage time change
+    is 100*(exp(beta_j)-1). The hazard ratio is exp(-k*beta_j), constant over
+    time. This Weibull model therefore has both AFT and proportional-hazards
+    interpretations. Risk increases with time if k>1, decreases if k<1, and is
+    constant if k=1. The direction is shared across observations.
+
+    With shape regression, shape(x)=exp(intercept + x @ beta) and scale=lambda
+    is shared. Covariates change the time pattern of risk. Different conditional
+    shapes give crossing hazards and survival curves. Every group has
+    F(lambda)=1-exp(-1), approximately 63.2% failed at the shared scale. A shape
+    coefficient does not give a fixed percentage change in lifetime or a
+    constant hazard ratio. This model can be useful when covariates change the
+    failure mechanism rather than only its time scale.
+
+    Scale regression is a common starting point when effects act on lifetime.
+    Heavy censoring can weaken estimation in either model. A shared shape does
+    not guarantee numerical convergence, and varying shape does not by itself
+    imply failure to converge. Review observed failures, covariate support,
+    prior sensitivity, and chain diagnostics when selecting a model.
+
+    The coefficient priors are defined on the sampled coefficients. The shared
+    positive parameter has a Gamma prior, with a log-scale Jacobian in the
+    posterior. The default shared-shape prior for scale regression is Gamma(2,1).
+    Shape regression keeps the existing Gamma(0.01,100) shared-scale prior.
+    shared_prior overrides either pair, using Gamma shape and scale rather than
+    rate. A prior on Weibull scale depends on the units used for time.
+
+    References
+    ----------
+    https://stat.ethz.ch/R-manual/R-devel/library/survival/html/survreg.html
+    https://www.itl.nist.gov/div898/handbook/eda/section3/eda3668.htm
     """
 
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
                  algo_options=None, retry_sd=0.02, retry_max_tries=100,
                  initialize_weights='sklearn', param_summary='mean',
                  has_constant=False, verbose=True,
-                 over_dispersion=False):
+                 over_dispersion=False, *, regression_parameter='shape', shared_prior=None):
         r"""The constructor for the BayesWeibullRegressor
 
         Parameters
@@ -781,6 +853,14 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
             and scale already determine the conditional variance. No separate
             Poisson-style dispersion parameter is sampled. The default is False.
 
+        regression_parameter : {'shape', 'scale'}, optional
+            Parameter modeled by exp(intercept + X @ coefficients). The other
+            parameter is a shared sampled scalar. The default is 'shape'.
+        shared_prior : pair of float, optional
+            Gamma(shape, scale) hyperparameters for the shared scalar. None uses
+            (0.01, 100) for shared scale in shape regression, or (2, 1) for shared
+            shape in scale regression. Both values must be positive and finite.
+
         Returns
         -------
         None.
@@ -797,6 +877,8 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
         self.retry_sd = retry_sd
         self.retry_max_tries = retry_max_tries
         self.over_dispersion = over_dispersion
+        self.regression_parameter = regression_parameter
+        self.shared_prior = shared_prior
         self.lpost = weibull_regression_post
         self.extra_params = 1
             
@@ -861,12 +943,12 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
         times, events = _weibull_response(y, X.shape[0], status)
         weights = _validated_weights(sample_weight, len(times))
         positive = weights > 0
-        shape = self.predict_shape(X)
+        shape, scale = self._predict_weibull_parameters(X)
         mean = self.predict(X)
         variance = self.predict_variance(X)
         # Complete times use Weibull standard deviations; a censored time is not a completed response.
         residuals = np.where(events, (times-mean)/np.sqrt(variance), np.nan)
-        deviance_residuals = _weibull_deviance_residuals(times, shape, self.scale_, events)
+        deviance_residuals = _weibull_deviance_residuals(times, shape, scale, events)
         deviance = np.sum(weights[positive]*deviance_residuals[positive]**2)
         null_shape, null_scale = _weibull_null_fit(times[positive], events[positive], weights[positive])
         null_residuals = _weibull_deviance_residuals(times, null_shape, null_scale, events)
@@ -904,12 +986,13 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
 
         Notes
         -----
-        The scale is exp(the summarized log-scale parameter). Predictions use the
-        new shape coefficients and this shared scale. No MCMC chain is rerun.
+        The shared parameter is exp(the summarized final log parameter). This updates
+        ``scale_`` for shape regression or ``shape_`` for scale regression, using the fitted
+        ``regression_parameter_``. No MCMC chain is rerun.
         """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(
             self.mcmc_params, new_param_summary, self.extra_params)
-        self.scale_ = float(np.exp(self.extra_params_sum_[-1]))
+        self._set_shared_parameter()
         return self
     
     def fit(self, X, y, status=None):
@@ -932,44 +1015,85 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
 
         Notes
         -----
-        The model estimates log shape as intercept + X @ coefficients and samples
-        one shared log scale. The reported prediction is the conditional Weibull
-        mean. Use predict_shape to obtain the positive shape parameter.
+        The selected parameter uses exp(intercept + X @ coefficients). The other
+        parameter is a shared positive scalar sampled on its log scale. Coefficients
+        come first in start and in each chain row; the final value is log shared
+        scale for shape regression or log shared shape for scale regression.
+        The reported prediction is the conditional mean under that parameterization.
+        Use predict_shape and predict_scale for the distribution parameters.
         """
         return _fit_bayesian(self, X, y, 'weibull', status=status)
     
     def predict(self, X):
-        """Return the conditional Weibull mean from fitted shape and scale."""
-        shape = self.predict_shape(X)
-        return np.exp(np.log(self.scale_) + gammaln(1 + 1/shape))
+        """Return the conditional Weibull mean under the fitted parameterization."""
+        shape, scale = self._predict_weibull_parameters(X)
+        return np.exp(np.log(scale) + gammaln(1 + 1/shape))
+
+
+    def _set_shared_parameter(self):
+        """Refresh the shared parameter and remove the previous mode's scalar."""
+        mode = getattr(self, 'regression_parameter_', self.regression_parameter)
+        attribute, previous = ('scale_', 'shape_') if mode == 'shape' else ('shape_', 'scale_')
+        self.shared_parameter_ = float(np.exp(self.extra_params_sum_[-1]))
+        setattr(self, attribute, self.shared_parameter_)
+        if hasattr(self, previous):
+            delattr(self, previous)
+
+
+    def _predict_weibull_parameters(self, X):
+        """Return one shape and scale per observation using the fitted mode."""
+        mode = getattr(self, 'regression_parameter_', self.regression_parameter)
+        if mode not in ('shape', 'scale'):
+            raise ValueError("regression_parameter must be 'shape' or 'scale'")
+        attribute = 'scale_' if mode == 'shape' else 'shape_'
+        check_is_fitted(self, ['coef_', attribute])
+        X = validate_data(self, X, reset=False, accept_sparse='csr')
+        linear = X[:, 1:] if self.has_constant else X
+        varying = np.exp(linear @ self.coef_ + self.intercept_)
+        shared = np.full(X.shape[0], getattr(self, attribute))
+        # Shared shape makes exp(beta) an AFT time ratio and exp(-shape*beta)
+        # a constant hazard ratio. Shared scale instead gives F(scale)=1-exp(-1)
+        # for every row; varying shape changes risk over time and permits crossing
+        # hazards. Neither choice guarantees stable estimation under censoring.
+        return (varying, shared) if mode == 'shape' else (shared, varying)
 
 
     def predict_shape(self, X):
-        """Return exp(intercept + X @ coefficients), the conditional shape."""
-        check_is_fitted(self, ['coef_', 'scale_'])
-        X = validate_data(self, X, reset=False, accept_sparse='csr')
-        linear = X[:, 1:] if self.has_constant else X
-        return np.exp(linear @ self.coef_ + self.intercept_)
+        """Return conditional Weibull shape for each supplied feature row.
+
+        Shape varies with X in shape-regression mode. In scale-regression mode,
+        every row receives the same fitted, sampled shape.
+        """
+        return self._predict_weibull_parameters(X)[0]
+
+
+    def predict_scale(self, X):
+        """Return conditional Weibull scale for each supplied feature row.
+
+        Scale varies with X in scale-regression mode. In shape-regression mode,
+        every row receives the same fitted, sampled scale.
+        """
+        return self._predict_weibull_parameters(X)[1]
 
 
     def predict_variance(self, X):
         """Return scale squared times Gamma(1+2/shape)-Gamma(1+1/shape) squared."""
-        shape = self.predict_shape(X)
+        shape, scale = self._predict_weibull_parameters(X)
         first = gammaln(1 + 1/shape)
         difference = gammaln(1 + 2/shape) - 2*first
         # The log-Gamma series avoids cancellation for nearly constant lifetimes.
         inverse_shape = 1/shape
         series = zeta(2)*inverse_shape**2 - 2*zeta(3)*inverse_shape**3 + 3.5*zeta(4)*inverse_shape**4
         difference = np.where(shape > 1e4, series, difference)
-        return np.exp(2*np.log(self.scale_) + 2*first) * np.expm1(difference)
+        return np.exp(2*np.log(scale) + 2*first) * np.expm1(difference)
 
 
     def predict_log_likelihood(self, X, y, status=None):
         """Return log density for events and log survival for right-censored times."""
-        times, events = _weibull_response(y, X.shape[0], status)
-        shape = self.predict_shape(X)
-        return np.where(events, weibull_min.logpdf(times, shape, scale=self.scale_),
-                        weibull_min.logsf(times, shape, scale=self.scale_))
+        shape, scale = self._predict_weibull_parameters(X)
+        times, events = _weibull_response(y, len(shape), status)
+        return np.where(events, weibull_min.logpdf(times, shape, scale=scale),
+                        weibull_min.logsf(times, shape, scale=scale))
     
     def score(self, X, y, sample_weight=None, scorer='r2', status=None):
         """Return R2, mean Weibull log likelihood, or survival-deviance D2."""

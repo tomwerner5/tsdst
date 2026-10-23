@@ -166,11 +166,14 @@ They do not average count means over all posterior draws.
 The adaptive overdispersion likelihood used with ``C=None`` now uses this
 same mean parameterization. Refit models trained with that branch.
 
-``BayesWeibullRegressor`` keeps covariate-dependent shape and one shared
-sampled scale. ``predict_shape`` exposes shape, ``predict`` returns the mean,
-and ``predict_variance`` returns the Weibull variance. ``fit`` and likelihood
-scoring accept right-censoring indicators through ``status``. The
-``over_dispersion`` argument is retained but unused for this distribution.
+``BayesWeibullRegressor`` accepts ``regression_parameter="shape"`` (the existing
+model) or ``regression_parameter="scale"`` (a Weibull AFT model). The selected
+parameter varies with covariates; the other parameter is a shared sampled
+scalar. ``predict_shape`` and ``predict_scale`` expose both parameters,
+``predict`` returns the mean, and ``predict_variance`` returns the variance.
+``fit`` and likelihood scoring accept right-censoring indicators through
+``status``. The ``over_dispersion`` argument remains unused for this distribution.
+See :doc:`weibull_regression` for interpretation, priors, and examples.
 
 Weibull ``score`` defaults to R2. ``scorer="log_likelihood"`` returns the
 weighted mean log density or log survival contribution. ``scorer="D2"``

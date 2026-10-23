@@ -18,7 +18,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="tsdst.estimators.BayesWeibullRegressor.predict_variance" href="tsdst.estimators.BayesWeibullRegressor.predict_variance.html" />
-    <link rel="prev" title="tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood" href="tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood.html" />
+    <link rel="prev" title="tsdst.estimators.BayesWeibullRegressor.predict_scale" href="tsdst.estimators.BayesWeibullRegressor.predict_scale.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -60,6 +60,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../weibull_regression.html">Weibull regression</a></li>
 </ul>
 </ul>
 </li>
@@ -86,7 +87,7 @@
               
                 
   <li>
-    <a href="tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood.html" title="Previous Chapter: tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.estimat...</span>
+    <a href="tsdst.estimators.BayesWeibullRegressor.predict_scale.html" title="Previous Chapter: tsdst.estimators.BayesWeibullRegressor.predict_scale"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.estimat...</span>
     </a>
   </li>
   <li>
@@ -131,7 +132,7 @@
 </ul>
 
   <li>
-    <a href="tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood.html" title="Previous Chapter: tsdst.estimators.BayesWeibullRegressor.predict_log_likelihood"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.estimat...</span>
+    <a href="tsdst.estimators.BayesWeibullRegressor.predict_scale.html" title="Previous Chapter: tsdst.estimators.BayesWeibullRegressor.predict_scale"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.estimat...</span>
     </a>
   </li>
   <li>
@@ -158,7 +159,9 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="tsdst.estimators.BayesWeibullRegressor.predict_shape">
 <span class="sig-prename descclassname"><span class="pre">BayesWeibullRegressor.</span></span><span class="sig-name descname"><span class="pre">predict_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/estimators.html#BayesWeibullRegressor.predict_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.estimators.BayesWeibullRegressor.predict_shape" title="Link to this definition">¶</a></dt>
-<dd><p>Return exp(intercept + X &#64; coefficients), the conditional shape.</p>
+<dd><p>Return conditional Weibull shape for each supplied feature row.</p>
+<p>Shape varies with X in shape-regression mode. In scale-regression mode,
+every row receives the same fitted, sampled shape.</p>
 </dd></dl>
 
 </section>

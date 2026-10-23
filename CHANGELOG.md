@@ -2,6 +2,9 @@
 
 ## 2.1.0
 
+- Added selectable Weibull shape or scale regression and conditional scale predictions.
+- Added configurable shared-parameter priors and documented AFT and hazard interpretations.
+
 - Restored factual docstrings, parameter descriptions, and explanatory comments.
 - Clarified spectral covariance, sampled parameter scales, and covariance interpretations.
 - Rebuilt the Sphinx documentation and completed the public API index.
