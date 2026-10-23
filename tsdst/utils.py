@@ -1,158 +1,42 @@
-from __future__ import (division, generators, absolute_import,
-                        print_function, with_statement, nested_scopes,
-                        unicode_literals)
 
 import datetime
 import os
 import pickle
 import random
 import sys
-from bisect import bisect_left
+from bisect import bisect_right
 from getpass import getpass
-from itertools import accumulate
 from timeit import default_timer as dt
 
 import numpy as np
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, URL
 
 
-def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args=None,
-                 read_sql_args=None):
-    """
-    Load data into python from a sql database. 
-    
-    Requires a DSN or connection string. Uses sqlAlchemy to make the
-    connection, and closes the connection on completion.
-    See https://docs.sqlalchemy.org/en/13/core/engines.html for
-    help building connection strings.
-
-    Parameters
-    ----------
-    sql : str, or list
-        A string containing the sql statement to be ran (It should be something
-        that returns a table), or a list of sql statements to return multiple
-        tables (tables are returned as a list of pandas dataframes, in this
-        case).
-    user : str
-        The username for the database application, if applicable.
-    dialect : str
-        The database flavor (oracle, mysql, etc.)
-    dsn : str, optional
-        Can either be a saved DSN from your computer, or a string that
-        represents all the relevant information provided in a DSN. 
-        It can also be a host:port combination. See sqlalchemy
-        documentation for more details.
-    pw : str, optional
-        The password for the database application that matches the user
-        specified, if applicable. If None or '', getpass will ask for a
-        password. If there is no password, just leave it blank.
-        The default is None.
-    create_engine_args : dict
-        A dictionary containing arguments to be passed to sqlAlchemy's
-        create_engine function.
-    read_sql_args : dict
-        A dictionary containing arguments to be passed to pandas'
-        read_sql function.
-
-    Returns
-    -------
-    data : pandas dataframe or list
-        A dataframe (or list of dataframes) containing the returned data.
-
-    """
-    if pw is None or pw == '':
+def dsn_getTable(sql, user, dialect, dsn, pw=None, create_engine_args=None, read_sql_args=None):
+    """Read one query or a list of queries through a local DSN connection."""
+    if not pw:
         pw = getpass(prompt='Password: ')
-
-    if create_engine_args is None:
-        create_engine_args = {}
-
-    if read_sql_args is None:
-        read_sql_args = {}
-
-    # TODO: include better support for sqlite, since it has a weird
-    # OS-dependent connection string.
-    conn = '{dialect}://{user}:{password}@{dsn}'.format(
-        dialect=dialect,
-        user=user,
-        password=pw,
-        dsn=dsn
-    )
-
-    engine = create_engine(conn, **create_engine_args)
-
-    if isinstance(sql, str):
-        data = pd.read_sql(sql=sql, con=engine, **read_sql_args)
-    else:
-        data = []
-        for query in sql:
-            data.append(pd.read_sql(sql=query, con=engine, **read_sql_args))
-    engine.dispose()
-    
-    return data
+    url = URL.create(dialect, username=user, password=pw, host=dsn)
+    engine = create_engine(url, **(create_engine_args or {}))
+    try:
+        if isinstance(sql, str):
+            return pd.read_sql(sql, engine, **(read_sql_args or {}))
+        return [pd.read_sql(query, engine, **(read_sql_args or {})) for query in sql]
+    finally:
+        engine.dispose()
 
 
-def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None,
-                  create_engine_args=None, to_sql_args=None):
-    """
-    Save pandas dataframe to database.
-
-    Parameters
-    ----------
-    data : pandas dataframe
-        The data to save to a table.
-    tableName : str
-        The name of the table in the database.
-    user : str
-        The username for the database application, if applicable.
-    dialect : str
-        The database flavor (oracle, mysql, etc.)
-    dsn : str, optional
-        Can either be a saved DSN from your computer, or a string that
-        represents all the relevant information provided in a DSN.
-        It can also be a host:port combination. See sqlalchemy
-        documentation for more details.
-    pw : str, optional
-        The password for the database application that matches the user
-        specified, if applicable. If None or '', getpass will ask for a
-        password. If there is no password, just leave it blank.
-        The default is None.
-    create_engine_args : dict
-        A dictionary containing arguments to be passed to sqlAlchemy's
-        create_engine function. Default is {}
-    to_sql_args : dict
-        A dictionary containing arguments to be passed to pandas'
-        read_sql function. Default is {}
-
-    Returns
-    -------
-    None.
-
-    """
-    if pw is None or pw == '':
+def dsn_saveTable(data, tableName, user, dialect, dsn, pw=None, create_engine_args=None, to_sql_args=None):
+    """Write a dataframe through a DSN connection and release the engine."""
+    if not pw:
         pw = getpass(prompt='Password: ')
-
-    if create_engine_args is None:
-        create_engine_args = {}
-
-    if to_sql_args is None:
-        to_sql_args = {}
-    
-    # TODO: include better support for sqlite, since it has a weird
-    # OS-dependent connection string.
-    conn = '{dialect}://{user}:{password}@{dsn}'.format(
-        dialect=dialect,
-        user=user,
-        password=pw,
-        dsn=dsn
-    )
-
-    engine = create_engine(conn, **create_engine_args)  
-    
-    data.to_sql(name=tableName, con=engine, **to_sql_args)
-    engine.dispose()
-    
-    return None
+    url = URL.create(dialect, username=user, password=pw, host=dsn)
+    engine = create_engine(url, **(create_engine_args or {}))
+    try:
+        data.to_sql(tableName, engine, **(to_sql_args or {}))
+    finally:
+        engine.dispose()
 
 
 def pretty_print_time(ts, te=None, decimals=0):
@@ -299,7 +183,8 @@ def print_message_with_time(msg, ts, te=None, display_realtime=True,
         printed = printed + "\n"
     sys.stdout.write(printed)
     sys.stdout.flush()
-    checkDir(log_dir)
+    if log:
+        checkDir(log_dir)
     logfile = log_dir + "/" + log_filename
     logfile = logfile.replace("//", "/")
     if log:
@@ -460,7 +345,9 @@ def move_columns_to_end(data, col):
         Data with rearranged columns.
 
     """
-    if not isinstance(col, list):
+    if isinstance(col, str):
+        col = [col]
+    else:
         col = list(col)
     data = data[[c for c in data if c not in col] + col]
     return data
@@ -527,58 +414,20 @@ def toFrame(todf, fromdf):
 
 
 def inferFeatureType(X, n_unique=None):
-    """
-    Infer feature type of a column based on it's `dytpe`. The inferred
-    datatypes are `categorical`, `numeric`, or `date`.
+    """Return categorical, numeric, or date for a Series or a one-dimensional array.
 
-    
-    Parameters
-    ----------
-    X : dataframe or ndarray
-        The dataframe containing columns whose datatype needs to be inferred.
-    n_unique : int
-        The number of unique values to use as a cutoff for numeric columns,
-        for example, if the number of unique values for a numeric column is
-        greater than n_unique, consider it numeric. Default is None.
-    
-    Returns:
-    --------
-    d_type : str
-        String representation of the d_type
-    
-    numpy arrays.dtypes reference table:
-    
-    ? : boolean
-    b : signed byte (sometimes interchangeable with boolean, it seems)
-    B : unsigned byte
-    i : signed integer
-    u : unsigned integer
-    f : float
-    c : complex float
-    m : timedelta
-    M : datetime
-    O : object
-    S : zero-terminated bytes
-    a : zero-terminated bytes
-    U : unicode string
-    V : raw data (void)
-    
+    Numeric columns can use a maximum category count. Missing values do not
+    contribute to that count. Booleans are categorical.
     """
-    d_type = None
-    if X.dtype.kind in "OSUVaBb": # ?/b numeric or categorical?
-        d_type = "categorical"
-    elif X.dtype.kind in "mM":
-        d_type = "date"
-    else:
-        if n_unique is None:
-            d_type = "numeric"
-        else:
-            n_uni_obs = len(pd.unique(X))
-            if n_uni_obs <= n_unique:
-                d_type = "categorical"
-            else:
-                d_type = "numeric"
-    return d_type
+    from pandas.api.types import is_bool_dtype, is_datetime64_any_dtype, is_timedelta64_dtype, is_numeric_dtype
+    series = X if isinstance(X, pd.Series) else pd.Series(X)
+    if is_datetime64_any_dtype(series.dtype) or is_timedelta64_dtype(series.dtype):
+        return 'date'
+    if is_bool_dtype(series.dtype) or not is_numeric_dtype(series.dtype):
+        return 'categorical'
+    if n_unique is not None and series.nunique(dropna=True) <= n_unique:
+        return 'categorical'
+    return 'numeric'
 
 
 def reshape_to_vector(ar, axis=1):
@@ -645,68 +494,20 @@ def one_hot_decode(x):
 
 
 def sample(array, nsamples, prob=None, replace=False, random_state=None):
-    """
-    Mimics the R sample function.
-
-    Parameters
-    ----------
-    array : list or list-like
-        The array to sample from.
-    nsamples : int
-        The number of samples to return.
-    prob : list or list-like, optional
-        The probability of each element in array. Must be of the same length
-        as array. If None, all elements have equal probability.
-        The default is None.
-    replace : bool, optional
-        Sample with replacement. The default is False.
-    random_state : int, optional
-        Set seed for reproducible results. The default is None.
-
-    Raises
-    ------
-    ValueError
-        Raises error if array lengths are not equal or if sampling without
-        replacement is not possible.
-
-    Returns
-    -------
-    samp : list
-        List of sampled values.
-
-    """
-    len_array = len(array)
-    if prob is None:
-        inv_len_array = 1 / len_array
-        prob = [inv_len_array for _ in array]
-
-    prob_sum = sum(prob)
-    if prob_sum != 1:
-        inv_prob_sum = 1. / prob_sum
-        prob = [p * inv_prob_sum for p in prob]
-        prob_sum = 1
-
-    if len_array != len(prob):
-        raise ValueError("len(array) must equal len(prob)")
-
-    if not replace:
-        if nsamples > len_array:
-            raise ValueError("""Number of samples larger than the population
-                             for sampling without replacement. Change
-                             replace=True or lower nsamples.""")
-
-    if random_state is not None:
-        random.seed(random_state)
-
-    samp = []
-
+    """Draw a weighted sample without changing the weights or global random state."""
+    weights = np.ones(len(array), dtype=float) if prob is None else np.array(prob, dtype=float, copy=True)
+    if weights.shape != (len(array),) or not np.isfinite(weights).all() or (weights < 0).any():
+        raise ValueError('Supply one finite, nonnegative weight per value')
+    if nsamples < 0 or weights.sum() <= 0:
+        raise ValueError('The sample size must be nonnegative and total weight must be positive')
+    if not replace and nsamples > np.count_nonzero(weights):
+        raise ValueError('The sample size exceeds the population with positive weights')
+    rng = random.Random(random_state)
+    result = []
     for _ in range(nsamples):
-        acc_prob = list(accumulate(prob))
-        rand = random.random()
-        indx = bisect_left(acc_prob, rand * prob_sum)
-        samp.append(array[indx])
+        cumulative = np.cumsum(weights)
+        index = bisect_right(cumulative, rng.random() * cumulative[-1])
+        result.append(array[index])
         if not replace:
-            prob_sum -= prob[indx]
-            prob[indx] = 0
-
-    return samp
+            weights[index] = 0
+    return result

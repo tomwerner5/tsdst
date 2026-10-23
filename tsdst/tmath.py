@@ -407,6 +407,8 @@ def norm(x, p, use_expo=False):
         Value of the LP norm on the vector.
 
     """
+    if p == 0:
+        return len(x)
     expo = 1/p
     if p == 1:
         return np.sum(np.abs(x))
@@ -430,7 +432,7 @@ def norm(x, p, use_expo=False):
         # though this is not derived mathmatically
         return len(x)
     else:
-        raise('Not a valid norm')
+        raise ValueError("Not a valid norm")
         
         
 def norm_der(x, p, use_expo=False):

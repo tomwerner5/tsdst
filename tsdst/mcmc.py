@@ -187,18 +187,18 @@ def adaptive_mcmc(start, niter, lpost, postArgs=None, options=None):
     postArgs : dict
         Extra arguments for the log posterior function. The default is :obj:`None` . Parameter options include
 
-            - beta \: (:obj:`float`) Between 0 and 1. Decides the proportion to sample for each section of the mixture \
+            - beta : (:obj:`float`) Between 0 and 1. Decides the proportion to sample for each section of the mixture \
             distribution. A mixture distribution is essentially like adding two distributions together. However, to \
             avoid some complicated math, one way to sample from a mixture of two distributions is to use a trick, \
             namely, to first sample from a uniform distribution between 0, 1, and then evaluate whether that value \
             is above some threshold (beta in this case). If it is, sample from the first distribution, otherwise, \
             sample from the second.
-            - progress \: (:obj:`bool`) Whether to display progress bar.
-            - prev_vals \: (:obj:`dict`) The previous values of the last run, namely:
+            - progress : (:obj:`bool`) Whether to display progress bar.
+            - prev_vals : (:obj:`dict`) The previous values of the last run, namely:
 
-                - chol2 \: (:obj:`numpy array`) The decomposed covariance matrix of the parameters.
-                - sumx \: (:obj:`numpy array`) The current sum of the parameter value (for each parameter)
-                - prev_i \: (:obj:`int` or :obj:`float`) The number of samples represented in sumx. Used in averaging \
+                - chol2 : (:obj:`numpy array`) The decomposed covariance matrix of the parameters.
+                - sumx : (:obj:`numpy array`) The current sum of the parameter value (for each parameter)
+                - prev_i : (:obj:`int` or :obj:`float`) The number of samples represented in sumx. Used in averaging \
                 sumx
 
     options : :obj:`dict`, optional
@@ -565,7 +565,7 @@ def rwm(start, niter, lpost, postArgs=None, options=None):
         if progress:
             _updateProgBarMCMC(i + 1, niter, t0, float(accept) / float(i))
     
-    prev_vals = {'E_O': E}
+    prev_vals = {'E_0': E}
     print("Acceptance Rate: ", float(accept) / float(niter))
     return {'parameters': parm, 'prev_vals': prev_vals}
 
@@ -750,37 +750,15 @@ def mobmc(chain, b):
     return (out*b/n)
 
 
-def msvec(chain, b, method="bartlett"):
-    """Translated from R's mcmcse package.
-
-    Parameters
-    ----------
-    chain : numpy array
-        MCMC chain.
-    b : int
-        Number of blocks.
-    method : str, optional
-        Method to estimate covariance matrix. The default is "bartlett".
-
-    Returns
-    -------
-    numpy array
-        Covariance matrix estimate.
-
-    """
-    n = chain.shape[0]
-    chain = chain.reshape(n, -1)
-    p = chain.shape[1]
-    tchain = chain.T
-    out = np.zeros((p, p))
-    dummy = np.zeros((p, p))
-
-    for s in range(int(b)):
-        dummy = tchain[:, 0:(n-s-1)].dot(chain[s:n-1, :])
-        out += lag(s, b, method)*(dummy + dummy.T)
-
-    out += tchain.dot(chain)
-    return out/n
+def msvec(chain, b, method='bartlett'):
+    """Estimate a spectral covariance matrix with a lag window."""
+    chain = np.asarray(chain).reshape(len(chain), -1)
+    n = len(chain)
+    result = chain.T @ chain / n
+    for offset in range(1, min(int(b), n)):
+        cross = chain[:-offset].T @ chain[offset:] / n
+        result += lag(offset, b, method) * (cross + cross.T)
+    return result
 
 
 def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
@@ -862,7 +840,7 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
         r = 1
         message = "r was set to 1 since b = 1."
     mu_hat = np.mean(chain, axis=0)
-    sig_mat = np.zeros(0, (p, p))
+    sig_mat = np.zeros((p, p))
     if np.floor(b/r) < 1:
         raise ValueError("Either decrease r or increase n")
     message = ""
@@ -875,7 +853,7 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
         method_used = "Batch Means"
         if r > 1:
             sig_mat = 2*bm_mat - mbmc(chain, np.floor(b/r))
-            method_used <- "Lugsail Batch Means with r = " + str(r)
+            method_used = "Lugsail Batch Means with r = " + str(r)
             if np.prod(np.diag(sig_mat) > 0) == 0:
                 sig_mat = bm_mat
                 method_used = "Batch Means"
@@ -886,7 +864,7 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
         method_used = "Overlapping Batch Means"
         if r > 1:
             sig_mat = 2*obm_mat - mobmc(chain, np.floor(b/r))
-            method_used <- "Lugsail Overlapping Batch Means with r = " + str(r)
+            method_used = "Lugsail Overlapping Batch Means with r = " + str(r)
             if np.prod(np.diag(sig_mat) > 0) == 0:
                 sig_mat = obm_mat
                 method_used = "Overlapping Batch Means"
@@ -907,6 +885,7 @@ def mcse_multi(chain, method="bm", r=3, size="sqroot", g=None, adjust=True):
     elif method == "tukey":
         chain = scale(chain, with_mean=True, with_std=False)
         tuk_mat = msvec(chain, b, "tukey")
+        sig_mat = tuk_mat
         method_used = "Tukey Spectral Variance"
         if r > 1:
             sig_mat = 2*tuk_mat - msvec(chain, np.floor(b/r), "tukey")
@@ -1033,7 +1012,7 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args=None):
     n = chain.shape[0]
     chain = chain.reshape(n, -1)
     p = chain.shape[1]
-    var_mat = np.cov(chain, rowvar=False, ddof=1)
+    var_mat = np.atleast_2d(np.cov(chain, rowvar=False, ddof=1))
     if covmat is None:
         covmat = mcse_multi(chain, **mcse_multi_args)['cov']
     det_var_p = np.prod(np.linalg.eigvals(var_mat)**(1/p))
@@ -1042,147 +1021,54 @@ def multiESS(chain, covmat=None, g=None, mcse_multi_args=None):
     return ess
 
 
-def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001,
-             thin=1, print_=False):
-    """Calculate the Raftery diagnostic to determine how many more samples are
-    needed.
+def raftery(chain, q=0.025, r=0.005, s=0.95, converge_eps=0.001, thin=1, print_=False):
+    """Estimate burn-in, sample count, and thinning with the Raftery-Lewis diagnostic.
 
-    Parameters
-    ----------
-    chain : numpy array
-        MCMC chain.
-    q : float, optional
-        Quantile of interest (in terms of percentile, i.e. between 0 and 1).
-        The default is 0.025.
-    r : float, optional
-        Accuracy. The default is 0.005.
-    s : float, optional
-        Probability. The default is 0.95.
-    converge_eps : float, optional
-        Convergence threshold (epsilon). The default is 0.001.
-    thin : int, optional
-        Thining amount. The default is 1.
-    print_ : bool, optional
-        Print results. The default is False.
-
-    Raises
-    ------
-    ValueError
-        Raised if there are not enough samples in the chain, given the q,r,s
-        values, or if there is an invalid selection of q.
-
-    Returns
-    -------
-    None.
-
+    Transition counts use NumPy arrays. The diagnostic requires both binary
+    quantile states and enough transitions between those states.
     """
-
-    if not q > 0 or not q < 1:
-        raise ValueError("q must be between 0 and 1")
-    else:
-        # forces chain to be shape (:,1) if it is a single parameter chain
-        chain = chain.reshape(chain.shape[0], -1)
-        niter, nvar = chain.shape
-        columns = ["Burn-in (M)", "Total (N)", "Lower Bound (Nmin)",
-                   "Dependence Factor (I)", "Thinning (k)"]
-        resmatrix = np.empty(shape=(nvar, len(columns)))
-        resmatrix[:] = np.nan
-        # nmin based on sample size calculation for proportions
-        phi = qnorm_approx(0.5 * (1 + s))
-        nmin = np.ceil((q * (1 - q) * phi**2)/r**2).astype(int)
-        if (nmin > niter):
-            raise ValueError("Error: You either need to adjust q, r, or " +
-                             " s, or you need a longer chain (at least " +
-                             str(nmin) + " iterations)" +
-                             "\r\nInput Parameters: \r\n" +
-                             "\tQuantile (q): " + str(q) + "\r\n" +
-                             "\tAccuracy (r): +/- " + str(r) + "\r\n" +
-                             "\tProbability (s): " + str(s)
-                             )
-        else:
-            for i in range(nvar):
-                # U_t = value of the parameter at iteration t
-                # u = value of parameter at defined quantile q
-                quant = np.percentile(chain[:, i], q=q*100)
-                dichot = chain[:, i] <= quant
-
-                kthin = 0
-                bic = 1
-                testres = None
-                newdim = 0
-                # To find k ...
-                while bic >= 0:
-                    kthin = kthin + thin
-                    # Z_t, the indicator function, or a dichotomous
-                    # variable, representing where U_t <= u
-                    testres = dichot[::kthin]
-                    newdim = len(testres)
-
-                    testres = pd.Categorical(testres,
-                                             categories=[False, True])
-                    testtran = pd.crosstab(index=testres[0:(newdim - 2)],
-                                           columns=[testres[2:(newdim)],
-                                           testres[1:(newdim - 1)]],
-                                           margins=False, dropna=False)
-                    g2 = 0
-
-                    # First order MC vs. second order MC test (log
-                    # likelihood ratio statistic, Bishop, Fienberg and
-                    # Holland (1975))
-                    for i1 in range(2):
-                        for i2 in range(2):
-                            for i3 in range(2):
-                                if testtran[i1][i2][i3] != 0:
-                                    fitted = (float(np.sum(testtran[i1][i2][:]))
-                                              * np.sum(testtran[:][i2][i3])
-                                              ) / (np.sum(
-                                                     np.sum(testtran[:][i2][:])
-                                                     ))
-                                    g2 = g2 + testtran[i1][i2][i3] * np.log(
-                                                 testtran[i1][i2][i3]/fitted
-                                                 ) * 2.0
-                    bic = g2 - np.log(newdim - 2.0) * 2.0
-
-                finaltran = pd.crosstab(testres[0:(newdim - 1)],
-                                        testres[1:(newdim)], dropna=False)
-                alpha = finaltran[1][0]/float(finaltran[0][0] + finaltran[1][0])
-                beta = finaltran[0][1]/float(finaltran[0][1] + finaltran[1][1])
-                tempburn = (np.log((converge_eps * (alpha + beta))
-                            / max([alpha, beta]))
-                            / (np.log(np.abs(1.0 - alpha - beta)))
-                            )
-
-                # M = M * k
-                nburn = np.ceil(tempburn) * float(kthin)
-                tempprec = (((2.0 - alpha - beta) * alpha *
-                             beta * phi**2) /
-                            (((alpha + beta)**3) * r**2))
-                nkeep = np.ceil(tempprec) * kthin
-                # (M+N) / Nmin, which is the increase in the number of
-                # iterations due to dependence in the sequence.
-                # If I > 1 by a large amount, there is a high level of
-                # dependence (rule of thumb: > 5 indicate problems)
-                # Problems could be due to bad starting values, high
-                # posterior correlations (which are remedied by
-                # transformations that remove correlations), or
-                # "stickiness" in the chain ( could be resolved by changing
-                # MCMC algorithm)
-                iratio = (nburn + nkeep)/nmin
-                resmatrix[i, 0] = nburn
-                resmatrix[i, 1] = nkeep + nburn
-                resmatrix[i, 2] = nmin
-                resmatrix[i, 3] = np.round(iratio, 2)
-                resmatrix[i, 4] = kthin
-        df = pd.DataFrame(data=resmatrix, columns=columns)
-        inputs = {"r": r, "s": s, "q": q}
-
-        if print_:
-            print("\r\nInput Parameters: ", "\r\n",
-                  "\tQuantile (q): ", inputs["q"], "\r\n",
-                  "\tAccuracy (r): +/-", inputs["r"], "\r\n",
-                  "\tProbability (s): ", inputs["s"], "\r\n",
-                  "\r\n", df)
-        return(df)
+    if not 0 < q < 1 or not 0 < r < 1 or not 0 < s < 1 or thin < 1:
+        raise ValueError('Use probabilities between 0 and 1 and positive thinning')
+    chain = np.asarray(chain).reshape(len(chain), -1)
+    phi, nmin = samp_size_calc_raftery(q, r, s)
+    if len(chain) < nmin:
+        raise ValueError('The chain needs at least {} samples'.format(nmin))
+    rows = []
+    for values in chain.T:
+        binary = (values <= np.quantile(values, q)).astype(int)
+        if np.unique(binary).size < 2:
+            raise ValueError('The diagnostic needs a nonconstant chain')
+        for k in range(thin, len(binary) - 2, thin):
+            states = binary[::k]
+            if len(states) < 4:
+                raise ValueError('Too few transitions for this quantile')
+            table = np.zeros((2, 2, 2))
+            np.add.at(table, (states[:-2], states[1:-1], states[2:]), 1)
+            expected = np.zeros_like(table)
+            for middle in range(2):
+                sub = table[:, middle, :]
+                if sub.sum():
+                    expected[:, middle, :] = np.outer(sub.sum(axis=1), sub.sum(axis=0)) / sub.sum()
+            positive = table > 0
+            g2 = 2 * np.sum(table[positive] * np.log(table[positive] / expected[positive]))
+            if g2 - 2 * np.log(len(states) - 2) < 0:
+                break
+        transitions = np.zeros((2, 2))
+        np.add.at(transitions, (states[:-1], states[1:]), 1)
+        alpha = transitions[0, 1] / transitions[0].sum()
+        beta = transitions[1, 0] / transitions[1].sum()
+        total = alpha + beta
+        if total == 0 or alpha == 0 or beta == 0:
+            raise ValueError('The chain has too few transitions between quantile states')
+        persistence = abs(1 - total)
+        burn = 0 if persistence == 0 else max(0, np.ceil(np.log(converge_eps * total / max(alpha, beta)) / np.log(persistence))) * k
+        keep = np.ceil((2 - total) * alpha * beta * phi ** 2 / (total ** 3 * r ** 2)) * k
+        rows.append([burn, burn + keep, nmin, (burn + keep) / nmin, k])
+    result = pd.DataFrame(rows, columns=['Burn-in (M)', 'Total (N)', 'Lower Bound (Nmin)',
+                                         'Dependence Factor (I)', 'Thinning (k)'])
+    if print_:
+        print(result)
+    return result
 
 
 class mcmcObject(object):
@@ -1366,12 +1252,12 @@ class mcmcObject(object):
                               print_=print_each)
                 res["Quantile"] = q[i]
                 res['Parameter'] = res.index
-                all_samples = all_samples.append(res, ignore_index=True)
+                all_samples = pd.concat([all_samples, res], ignore_index=True)
 
         maxcols = ["Max Burn-in (M)", "Max Total (N)",
                    "Max Lower Bound (Nmin)", "Max Dependence Factor (I)",
                    "Max Thinning (k)"]
-        maxvals = np.max(all_samples.iloc[:, :-2])
+        maxvals = all_samples.iloc[:, :-2].max(axis=0).to_numpy()
         finalres = pd.DataFrame(np.array(maxvals).reshape(1, 5),
                                 columns=maxcols)
         inputs = {"r": r, "s": s, "q": q}
@@ -1560,9 +1446,9 @@ class mcmcObject(object):
                 burnin = index_vals[
                         int(np.floor(np.median(bin_mat)))] + window_size
 
-            res = res.append(pd.DataFrame([[burnin, bin_i, bins, msg,
+            res = pd.concat([res, pd.DataFrame([[burnin, bin_i, bins, msg,
                                             msg_display, sub_msg]],
-                                          columns=col_names),
+                                      columns=col_names)],
                              ignore_index=True)
 
         inputs = {"eps": eps, "window_size": window_size,
@@ -1727,7 +1613,7 @@ class mcmcObject(object):
             
             self.bestRaftery(chainName, q=qq, r=rr, s=ss, converge_eps=ce,
                              thin=th, print_each=pe, print_final=pf)
-            raftmin = int(self.diagnostic_results[chainName + "_Raftery"]["Max Total (N)"].values)
+            raftmin = int(self.diagnostic_results[chainName + "_Raftery"]["Max Total (N)"].iloc[0])
             initial_len = self.chains[chainName].shape[0]
             iters_to_go = raftmin - initial_len
             
@@ -1912,7 +1798,7 @@ class mcmcObject(object):
         fig, ax = plt.subplots(nrows=1, ncols=nparam, figsize=figsize,
                                sharey=True, squeeze=False)
         for i in range(nparam):
-            sns.kdeplot(trace[:, i], ax=ax[0, i], shade=True)
+            sns.kdeplot(x=trace[:, i], ax=ax[0, i], fill=True)
             if i == 0:
                 ax[0, i].set_ylabel("Density")
             ax[0, i].set_xlabel(''.join(["Value for Parameter ", 
@@ -2063,4 +1949,4 @@ class mcmcObject(object):
             self.diagnostic_results[chainName + "_pacf"] = allacf
         else:
             self.diagnostic_results[chainName + "_acf"] = allacf
-                    
+

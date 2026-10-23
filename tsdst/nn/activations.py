@@ -122,7 +122,7 @@ def sigmoid_der(x):
 
 
 def sigmoid_scale(x, mu=0, scale=1):
-    return 1.0/(1.0 + np.exp(-((x-mu)/s)))
+    return 1.0/(1.0 + np.exp(-((x-mu)/scale)))
 
 
 def sigmoid_scale_der(x, mu=0, scale=1):

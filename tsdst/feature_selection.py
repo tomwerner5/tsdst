@@ -2,17 +2,14 @@ import numpy as np
 import os
 import pandas as pd
 
-from datetime import datetime
 from sklearn.model_selection import StratifiedKFold
-from time import mktime
-from timeit import default_timer as dt
+from sklearn.base import clone
 
 from .distributions import (likelihood_bernoulli, likelihood_poisson,
                             likelihood_gaussian)
 from .metrics import aicCalc
 from .parallel import p_prog_simp
 #from .tmath import percentIncrease, powerset
-from .utils import updateProgBar, print_time
 
 
 def naiveVarDrop(X, searchCols, tol=0.0001, standardize=False, asList=False,
@@ -365,7 +362,7 @@ def _calcForwardAICs(X, Y, model, metric, family):
         The AIC (or variant) score.
 
     """
-    mod = model.fit(X, Y)
+    mod = clone(model).fit(X, np.asarray(Y).ravel())
 
     ss = X.shape[0]
     ncoefs = X.shape[1]
@@ -383,343 +380,110 @@ def _calcForwardAICs(X, Y, model, metric, family):
     else:
         raise ValueError("Not a valid family")
 
-    loglike = nllf(y_true=Y, y_score=y_pred, neg=False)
+    loglike = nllf(np.asarray(Y).ravel(), y_pred, neg=False)
 
     score = aicCalc(loglike, ncoefs, sample_size=ss, c=2, metric=metric)
     return score
 
 
-def _doParallelForward(save_path, save_name, save_ext, metric, model,
-                      target_var, new_predictor, use_probabilities,
-                      mod_cols, family, Yprob=None,
-                      serialize_flavor='feather'):
-    """
-    A helper function to lessen the load on memory when computing in parallel.
-
-    Parameters
-    ----------
-    save_path : str
-        Path to temporary saved data.
-    save_name : str
-        Name of temporary data.
-    save_ext : str
-        The name of the temporary file extension.
-    metric : str
-        The AIC metric to be used, for example, aic, aicc, bic, ebic, hastie, 
-        or kwano.
-    model : sklearn, or similar
-        Any model that has a fit and predict method.
-    target_var : str
-        The column containing the target (or response) variable.
-    new_predictor : str
-        The column name of the most recently added predictor.
-    use_probabilities : bool
-        Whether or not to use predicted probabilities as the only other feature
-        in the set, or to use the actual features in performing the forward 
-        selection.
-    mod_cols : list
-        Columns that made it into the final model.
-    family : str
-        The family of distributions to calculate log-likelihood from.
-    Yprob : numpy array or pandas series, optional
-        The predicted probabilities from the current model, if applicable.
-        The default is None.
-    serialize_flavor : str
-        Which mode of downsaving data to use, currently supports 'feather' and
-        'msgpack'. Unfortunately, as of pandas 0.25.0, msgpack is no longer 
-        supported.
-        
-        Note: using feather requires pyarrow
-
-    Returns
-    -------
-    res : float
-        The AIC (or variant) result.
-
-    """
-    
-    # Note: Should probably update this to feather (as of 2019)
-    # since it is faster and better on memory in general.
-    # Since this is not long term storage, feather would be a 
-    # good choice. However, for long-term storage, parquet is 
-    # probably the best option
-
-    if serialize_flavor == 'msgpack':
-        data = pd.read_msgpack(save_path + save_name + save_ext)
-        chunks = [int(x[6:]) for x in data.keys()]
-        chunks = sorted(chunks)
-        mergedDF = pd.DataFrame()
-        for chunk in chunks:
-            mergedDF = mergedDF.append(data['chunk_'+str(chunk)])
-    elif serialize_flavor == 'feather':
-        mergedDF = pd.read_feather(save_path + save_name + save_ext)
+def _doParallelForward(save_path, save_name, save_ext, metric, model, target_var,
+                       new_predictor, use_probabilities, mod_cols, family,
+                       Yprob=None, serialize_flavor='feather'):
+    """Read a temporary dataframe and score one forward-selection candidate."""
+    if serialize_flavor not in ('feather', 'parquet'):
+        raise ValueError('Serialization must use feather or parquet')
+    data = getattr(pd, 'read_' + serialize_flavor)(save_path + save_name + save_ext)
+    columns = [new_predictor] if isinstance(new_predictor, str) else list(new_predictor)
+    if use_probabilities and Yprob is not None:
+        predictors = data.loc[:, columns].copy()
+        predictors.insert(0, 'Yprob', np.asarray(Yprob))
     else:
-        raise ValueError("{0} is not a supported serialize method.".format(serialize_flavor))
-    
-
-    Y = mergedDF.loc[:, target_var]
-
-    if use_probabilities:
-        X = pd.DataFrame({'Yprob': Yprob,
-                          new_predictor: mergedDF.loc[:, new_predictor].values
-                         }, index=mergedDF.index)
-    else:
-        X = mergedDF.loc[:, mod_cols + new_predictor]
-
-    res = _calcForwardAICs(X, Y, model, metric, family)
-
-    # For debugging purposes, to attempt to force garbage collection in parallel
-    #data = []
-    #chunks = []
-    #mergedDF = []
-    #X = []
-    #Y = []
-        
-    return res
+        predictors = data.loc[:, list(mod_cols) + columns]
+    return _calcForwardAICs(predictors, data[target_var], model, metric, family)
 
 def _prepare_for_parallel(XY, serialize_flavor='feather'):
+    """Write a temporary dataframe for process workers.
+
+    Feather and Parquet require the optional PyArrow dependency.
+    The caller must remove the returned file and directory after use.
     """
-    Utility function to setup the data for parallel processing with low
-    memory overhead.
-
-    Parameters
-    ----------
-    XY : pandas dataframe
-        The combined independent variables/features and reponse/target
-        variable.
-
-    Returns
-    -------
-    save_name : str
-        The name of the temporary data.
-    save_path : str
-        The name of the temporary file path.
-    save_ext : str
-        The name of the temporary file extension.
-    num_chunks : int
-        The number of chunks inside pandas msgpck format (determined by 
-        dataframe size).
-    serialize_flavor : str
-        Which mode of downsaving data to use, currently supports 'feather' and
-        'msgpack'. Unfortunately, as of pandas 0.25.0, msgpack is no longer 
-        supported.
-        
-        Note: using feather requires pyarrow
-
-    """
-        
-    save_path = 'forward_tmp'
-    if not os.path.isdir(save_path):
-        os.mkdir(save_path)
-    save_name = '/forward_run_' + str(int(mktime(datetime.now().timetuple())))
-    save_ext = ''
-    
-    if serialize_flavor == 'msgpack':
-        save_ext = '.msg'
-        num_chunks = int(((XY.memory_usage(index=True).sum()/(1024**3))/2) + 1)
-        pd.to_msgpack(save_path + save_name + save_ext, {
-            'chunk_{0}'.format(i):chunk for i, chunk in enumerate(np.array_split(XY, num_chunks))
-            })
-    elif serialize_flavor == 'feather':
-        save_ext = '.fth'
-        num_chunks = None
-        XY.to_feather(save_path + save_name + save_ext)
-    else:
-        raise ValueError("{0} is not a supported serialize method.".format(serialize_flavor))
-    
-    return save_name, save_path, save_ext, num_chunks
+    import tempfile
+    if serialize_flavor not in ('feather', 'parquet'):
+        raise ValueError('Serialization must use feather or parquet')
+    path = tempfile.mkdtemp(prefix='tsdst-forward-')
+    name, extension = '/data', '.feather' if serialize_flavor == 'feather' else '.parquet'
+    getattr(XY, 'to_' + serialize_flavor)(path + name + extension)
+    return name, path, extension, None
 
 
 def forwardSelection(XY, target_var, model, metric='bic', family='gaussian',
                      verbose=True, n_jobs=1, early_stop=False, perc_min=0.01,
                      stop_at_p=1000, stop_when=5, use_probabilities=False,
-                     return_type='all', serialze_flavor='feather',
-                     use_threads=True):
+                     return_type='all', serialize_flavor='feather', use_threads=True):
+    """Add the feature that gives the lowest information criterion at each step.
+
+    Stop when no candidate improves the criterion. With early_stop=True,
+    also apply the feature limit and the consecutive small-improvement limit.
+    Each candidate gets a separate estimator. Parallel workers use a temporary
+    Feather or Parquet file. The function removes that file after the search.
     """
-    A forward selection algorithm for classification only right now. Still 
-    needs some work.
-    
-    Note: it is a known bug for this function to fail when n_jobs > 1 while
-    using sypder. This is because of an issue with spyder and the p_prog_simp
-    function. I have not been able to discover why, or provide a fix.
-    If you run a script with this function from the console, it should run
-    just fine. 
-
-    Parameters
-    ----------
-    XY : pandas dataframe
-        The combined independent variables/features and reponse/target
-        variable.
-    target_var : str
-        The column containing the target (or response) variable.
-    model : sklearn, or similar
-        An unfitted model. Any model that has a fit and predict method.
-    metric : str
-        The AIC metric to be used, for example, aic, aicc, bic, ebic, hastie, 
-        or kwano.
-    family : str
-        The family of distributions to calculate log-likelihood from.
-    verbose : bool, optional
-        Output the steps and progress as it completes. The default is True.
-    n_jobs : int, optional
-        If greater than 1, perform operation in parallel. The default is 1.
-    perc_min : float, optional
-        --NOT IMPLEMENTED--. The percent change minimum for breaking early,
-        if no meanigful change in metric is detected. The default is 0.01.
-    stop_at_p : int, optional
-        The number of selections to stop at. In other words, it selects up to
-        `p` predictors, even if the optimal model is not yet found and more
-        tests could be done. The default is 1000.
-    stop_when : int, optional
-        Stop the operations when the metric no longer continues to decrease,
-        after evaluating the next stop_when columns. The default is 5.
-    use_probabilities : bool, optional
-        Whether or not to use predicted probabilities as the only other feature
-        in the set, or to use the actual features in performing the forward 
-        selection. The default is False.
-    return_type : str, optional
-        Which object to return, can be either list, model, data, or all.
-        The default is 'all'.
-    serialize_flavor : str
-        Which mode of downsaving data to use, currently supports 'feather' and
-        'msgpack'. Unfortunately, as of pandas 0.25.0, msgpack is no longer 
-        supported.
-    use_threads : bool, optional
-        Use threads instead of processes for parallel operation.f
-        
-        Note: using feather requires pyarrow
-
-    Returns
-    -------
-    list, model, data, or tuple of objects
-        Either return as list, model, data, or all. The default is 'all'.
-
-    """
-    
-    t0 = dt()
-    
-    total_possible_complexity = int(((XY.shape[1]-1)**2) - ((XY.shape[1]-1)*((XY.shape[1]-1) - 1)/2))
-    
-    if early_stop:
-        if stop_at_p >= (XY.shape[1] - 1):
-            complexity = total_possible_complexity
-            stop_at_p = XY.shape[1] - 1
-        else:
-            complexity = np.sum((XY.shape[1] - 1) - np.arange(0, stop_at_p))
-    else:
-        complexity = total_possible_complexity
-        stop_at_p = XY.shape[1] - 1
-    
-    
-    if verbose:
-        print_time("Problem Complexity: " + str(complexity) + " Iterations Needed, " +
-                   str(total_possible_complexity) + " Possible...",
-                   t0, te=dt(), backsn=True)
-    
-    # Use this for an exhaustive search
-    #all_combos = list(powerset(X.columns))
-    final_mod_cols = []
-    leftover_cols = [x for x in XY.columns if x != target_var]
-    currentScore = np.inf
-    #early_stop_counter = 0
-    loop_counter = 0
-    
+    if target_var not in XY or n_jobs < 1:
+        raise ValueError('Supply a target column and a positive job count')
+    selected, remaining = [], [column for column in XY if column != target_var]
+    best, small_steps = np.inf, 0
+    arguments = None
     if n_jobs > 1:
-        if verbose:
-            print_time("\nPreparing Parallel Operation...", t0, te=dt())
-            
-        save_name, save_path, save_ext, num_chunks = _prepare_for_parallel(XY)
-        arg = {'save_path': save_path,
-               'save_name': save_name,
-               'save_ext': save_ext,
-               'metric': metric,
-               'model': model,
-               'target_var': target_var,
-               'family': family,
-               'use_probabilities': use_probabilities,
-               'mod_cols': final_mod_cols,
-               'Yprob': None
-              }
-    
-    for i in range(XY.shape[1] - 1):
-        scores = []
-        if use_probabilities and i > 1:
-            # create current model and probability array
-            initial_fit = model.fit(XY.loc[:, final_mod_cols], XY.loc[:, target_var])
-            Yprob = initial_fit.predict_proba(XY.loc[:, final_mod_cols])[:, 1]
-            #print('\nprob gen step: ', Yprob.shape, "\n")
+        name, path, extension, _ = _prepare_for_parallel(XY, serialize_flavor)
+        arguments = dict(save_path=path, save_name=name, save_ext=extension,
+                         metric=metric, model=model, target_var=target_var, family=family,
+                         use_probabilities=use_probabilities, serialize_flavor=serialize_flavor)
+    try:
+        limit = min(len(remaining), stop_at_p) if early_stop else len(remaining)
+        for step in range(limit):
+            probability = None
+            if use_probabilities and len(selected) > 1:
+                previous = clone(model).fit(XY[selected], XY[target_var])
+                probability = previous.predict_proba(XY[selected])[:, 1]
             if n_jobs > 1:
-                arg['Yprob'] = Yprob
-        
-        if n_jobs > 1:
+                scores = p_prog_simp({**arguments, 'mod_cols': selected.copy(), 'Yprob': probability},
+                         [{'new_predictor': [column]} for column in remaining],
+                         _doParallelForward, n_jobs=n_jobs, verbose=verbose, use_threads=use_threads)
+                for score in scores:
+                    if isinstance(score, Exception):
+                        raise score
+            else:
+                scores = []
+                for column in remaining:
+                    predictors = XY[selected + [column]]
+                    if probability is not None:
+                        predictors = pd.DataFrame({'Yprob': probability, column: XY[column]}, index=XY.index)
+                    scores.append(_calcForwardAICs(predictors, XY[target_var], model, metric, family))
+            winner = int(np.argmin(scores))
+            current = scores[winner]
+            if selected and current >= best:
+                break
+            improvement = (best-current)/max(abs(best), 1) if np.isfinite(best) else np.inf
+            small_steps = small_steps + 1 if improvement < perc_min else 0
+            selected.append(remaining.pop(winner))
+            best = current
             if verbose:
-                print_time("\nPerforming " + str(i + 1) + " of " + str(stop_at_p) + " Steps...",
-                           t0, te=dt(), backsn=True)
-            loop_arg = [{'new_predictor': [col]} for col in leftover_cols]
-            scores = p_prog_simp(arg, loop_arg, _doParallelForward, n_jobs,
-                                 use_threads=use_threads)
-            #return scores
-            if verbose:
-                loop_counter += len(loop_arg)
-                updateProgBar(loop_counter, complexity, t0)
-        else:
-            for k, col in enumerate(leftover_cols):
-                if use_probabilities and i > 1:
-                    #print('loop step: ', XY.loc[:, col].values.shape, "\n")
-                    XY_prob = pd.DataFrame({'Yprob': Yprob, col: XY.loc[:, col].values}, index=XY.index)
-                    score = _calcForwardAICs(XY_prob, XY.loc[:, target_var],
-                                             model, metric, family)
-                else:
-                    score = _calcForwardAICs(XY.loc[:, final_mod_cols + [col]], XY.loc[:, target_var],
-                                             model, metric, family)
-                scores.append(score)
-            
-                if verbose:
-                    loop_counter += 1
-                    updateProgBar(loop_counter, complexity, t0)
-        
-        minScore = np.min(scores)
-        if minScore > currentScore:
-            print("\nNo further imporovement in the model. Breaking...")
-            break
-        else:
-            currentScore = minScore
-        
-        minScoreLoc = np.where(minScore == np.array(scores))[0][0]
-        final_mod_cols.append(leftover_cols[minScoreLoc])
-        del leftover_cols[minScoreLoc]
-        
-        # could be useful if I wanted to do something like accuracy,
-        # but for AIC/BIC, this isn't necessary
-        #if np.abs(percentIncrease(minScore, prev_minScore)) < perc_min:
-        #    early_stop_counter += 1
-        #else:
-        #    early_stop_counter = 0
-        #
-        #if early_stop_counter >= stop_when:
-        #    print('Stopped Early')
-        #    break
-        #if i >= stop_at_p:
-        #    print('Stopped at ', str(i), ' selected predictors')
-        #    break
-
-    if n_jobs > 1:
-        file_ = save_path + save_name + save_ext
-        try:
-            os.remove(file_)
-        except FileNotFoundError:
-            print('Could Not find file ', file_, 'Continuing...')
-            
+                print('Selected {}: {} = {:.6g}'.format(selected[-1], metric, best))
+            if early_stop and small_steps >= stop_when:
+                break
+    finally:
+        if arguments is not None:
+            os.remove(path + name + extension)
+            os.rmdir(path)
     if return_type == 'list':
-        return final_mod_cols
-    elif return_type == 'model':
-        return model.fit(XY.loc[:, final_mod_cols], XY.loc[:, target_var])
-    elif return_type == 'data':
-        return XY.loc[:, final_mod_cols]
-    else:
-        return final_mod_cols, model.fit(XY.loc[:, final_mod_cols],
-                                         XY.loc[:, target_var]), XY.loc[:, final_mod_cols]
+        return selected
+    if return_type == 'data':
+        return XY[selected].copy()
+    fitted = clone(model).fit(XY[selected], XY[target_var])
+    if return_type == 'model':
+        return fitted
+    return selected, fitted, XY[selected].copy()
 
 ## TODO: import vif from modeling and incorporate a vif drop  
 def vifDrop():
-    return 0
+    """Report that VIF-based feature removal is not implemented."""
+    raise NotImplementedError('Use modeling.vif to inspect variance inflation factors')

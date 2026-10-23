@@ -1,5 +1,5 @@
-import os
 from . import distributions
+from . import eda
 from . import estimators
 from . import feature_selection
 from . import mcmc
@@ -13,9 +13,10 @@ from . import tmath
 from . import utils
 from . import nn
 
-__version__ = '1.0.11'
+__version__ = '2.0.0'
 
 __all__ = ['distributions',
+           'eda',
            'estimators',
            'feature_selection',
            'mcmc',

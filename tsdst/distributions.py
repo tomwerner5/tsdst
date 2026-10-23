@@ -505,7 +505,7 @@ def dwrap(data, params, disttype, funct, log=False):
                 return normal.sf(x=data, loc=mu, scale=sigma)
         elif disttype == "inv-cdf":
             if log:
-                return normal.logppf(q=data, loc=mu, scale=sigma)
+                return np.log(normal.ppf(q=data, loc=mu, scale=sigma))
             else:
                 return normal.ppf(q=data, loc=mu, scale=sigma)
         else:
@@ -855,7 +855,7 @@ def exponential_mle(data, censored):
     nf = f.size
     rate = nf/(np.sum(f) + np.sum(c))
     se = rate / np.sqrt(nf)
-    params_ci = (rate + np.array([-1, 1])*norm.ppf(1-(1-0.95)/2)*se)
+    params_ci = (rate + np.array([-1, 1])*normal.ppf(1-(1-0.95)/2)*se)
     return [rate, se, params_ci]
 
 
@@ -1454,11 +1454,11 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
     gshape = 0.01
     gscale = 100.0
     
-    xly_1 = xlogy(shape - 1.0, fails/scale)
+    xly_1 = xlogy(shape_fail - 1.0, fails/scale)
     xly_2 = xlogy(gshape - 1.0, scale)
     
     if fails.shape[0] != 0:
-        fail_like = np.sum((np.log(shape_fail) - np.log(scale) + xly_1 - (fails/scale)**shape))
+        fail_like = np.sum((np.log(shape_fail) - np.log(scale) + xly_1 - (fails/scale)**shape_fail))
     else:
         fail_like = 0
         

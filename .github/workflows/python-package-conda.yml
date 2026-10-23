@@ -35,7 +35,7 @@ jobs:
     #  run: |
     #    conda install pytest
     #    pytest
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v7
     - name: publish-to-conda
       uses: tomwerner5/conda-package-publish-action@master
       with:

@@ -3,10 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-from datetime import datetime
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
-from time import mktime
 from timeit import default_timer as dt
 
 from .feature_selection import dropHighCorrs, getHighCorrs, naiveVarDrop
@@ -45,14 +43,14 @@ def calcAICsLasso(penalty, Xtrain, Ytrain, sample_size, unreg_full_mod=None,
         A list containing the AIC values.
 
     """
-    cur_mod_reg = LogisticRegression(C=penalty, max_iter=10000, penalty="l1",
+    cur_mod_reg = LogisticRegression(C=penalty, max_iter=10000, l1_ratio=1,
                                      solver='liblinear',
                                      random_state=random_state,
-                                     n_jobs=1).fit(Xtrain, Ytrain)
+                                     ).fit(Xtrain, Ytrain)
     Yprob = cur_mod_reg.predict_proba(Xtrain)[:, 1]
     Ypred = cur_mod_reg.predict(Xtrain)
     mod_coef = np.concatenate((cur_mod_reg.intercept_,
-                               np.squeeze(cur_mod_reg.coef_)))
+                               cur_mod_reg.coef_.ravel()))
     nzc = sum((1 if coef != 0 else 0 for coef in mod_coef))
     loglike = np.sum(Ytrain*np.log(Yprob) + (1 - Ytrain)*np.log(1 - Yprob))
     
@@ -75,65 +73,13 @@ def calcAICsLasso(penalty, Xtrain, Ytrain, sample_size, unreg_full_mod=None,
 def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
                                 unreg_full_mod, random_state, target_var,
                                 cur_pred_list, penalty):
+    """Read a Feather file and evaluate one L1 penalty.
+
+    num_chunks is unused. The reader loads one dataframe.
     """
-    Utility function for QuickAnalysis. Not to be used externally.
-
-    Parameters
-    ----------
-    save_path : str
-        The directory path to save temporary files to.
-    save_name : str
-        The name of the temporary file to save.
-    num_chunks : int
-        The number of chunks for the pandas msgpacks.
-    sample_size : int
-        The number of observations.
-    unreg_full_mod : sklearn object, or similar
-        Unregularized full model.
-    random_state : int
-        Random seed for the process.
-    target_var : str
-        The name of the target variable.
-    cur_pred_list : list
-        The list of current predictors in the model.
-    penalty : float
-        The strength of the L1 penalty.
-
-    Returns
-    -------
-    res : tuple
-        Tuple of results (non-zero coefficients and aic values).
-
-    """
-    # Note: Should probably update this to feather (as of 2019)
-    # since it is faster and better on memory in general.
-    # Since this is not long term storage, feather would be a 
-    # good choice. However, for long-term storage, parquet is 
-    # probably the best option
-    
-    #data = pd.read_msgpack(save_path + save_name + '.msg')
-    #chunks = [int(x[6:]) for x in data.keys()]
-    #chunks = sorted(chunks)
-    #mergedDF = pd.DataFrame()
-    #for chunk in chunks:
-    #    mergedDF = mergedDF.append(data['chunk_'+str(chunk)])
-    mergedDF = pd.read_feather(save_path + save_name + '.fth')
-    
-    Xtrain = mergedDF.loc[:, cur_pred_list]
-    Ytrain = mergedDF.loc[:, target_var]
-    
-    res = calcAICsLasso(penalty=penalty,
-                        Xtrain=Xtrain,
-                        Ytrain=Ytrain,
-                        sample_size=sample_size,
-                        unreg_full_mod=unreg_full_mod,
-                        random_state=random_state)
-    
-    # For debugging purposes, to attempt to force garbage collection in parallel
-    mergedDF = []
-    Xtrain = []
-    Ytrain = []
-    return res
+    data = pd.read_feather(save_path + save_name + '.fth')
+    return calcAICsLasso(penalty, data[cur_pred_list], data[target_var], sample_size,
+                         unreg_full_mod, random_state)
 
 
 class QuickAnalysis(object):
@@ -264,123 +210,49 @@ class QuickAnalysis(object):
         sorted_corrs_with_y = []
     
     def genHighCorrs(self, corr_cutoff):
-        """
-        Generate a list of variables that are highly correlated with one
-        another.
-
-        Parameters
-        ----------
-        corr_cutoff : float
-            Cutoff value to determine high correlations.
-
-        Returns
-        -------
-        None.
-
-        """
-        self.highCorr = getHighCorrs(self.corr_mat, corr_cutoff)
+        """Find correlated predictors and keep the response out of removal decisions."""
+        self.highCorr = getHighCorrs(self.corr_mat.loc[self.cur_pred_list, self.cur_pred_list], corr_cutoff)
     
-    def calcAICs(self, num_cs, try_parallel, n_jobs, random_state, remove_msg,
-                 chunk):
+    def calcAICs(self, num_cs, try_parallel, n_jobs, random_state, remove_msg, chunk):
+        """Evaluate all penalty values and store their information criteria.
+
+        Parallel workers read a temporary Feather file. If remove_msg=True,
+        remove the file and its directory after the evaluation.
+        Set chunk=True to submit at most n_jobs penalties in each batch.
         """
-        Calculate AIC values for the models to prepare for comparison.
-
-        Parameters
-        ----------
-        num_cs : int, optional
-            number of penalty values to test (i.e. number of models to evaluate
-            during AIC calculations). 
-        try_parallel : bool
-            Whether to try running the operation in parallel.
-        n_jobs : int
-            Number of parallel processes to run.
-        random_state : int
-            Random seed for the process.
-        remove_msg : bool
-            Remove the temporary pandas msgpacks once calculations are
-            complete.
-        chunk : bool
-            Break the operation into chunks.
-
-        Returns
-        -------
-        None.
-
-        """
-        nonzero_coefs = []
-        aics = np.zeros(shape=(num_cs, 6))
-        
-        res = None
-        
+        import tempfile
+        if num_cs != len(self.reduction) or n_jobs < 1:
+            raise ValueError('The penalty count must match reduction and n_jobs must be positive')
         if try_parallel:
-            num_chunks = int(((self.train.memory_usage(index=True).sum()/(1024**3))/2) + 1)
-            
-            save_path = 'qr_tmp'
-            if not os.path.isdir(save_path):
-                os.mkdir(save_path)
-            save_name = '/qr_run_' + str(int(mktime(datetime.now().timetuple())))
-            
-            #pd.to_msgpack(save_path + save_name + '.msg', {
-            #        'chunk_{0}'.format(i):chunk for i, chunk in enumerate(np.array_split(self.train, num_chunks))
-            #                                              })
-            temp_train = self.train.copy(deep=True)
-            temp_train.to_feather(save_path + save_name + '.fth')
-            
-            size = self.train.shape[0]
-            arr = {'save_path': save_path,
-                   'save_name': save_name,
-                   'num_chunks': num_chunks,
-                   'sample_size': size,
-                   'unreg_full_mod': None,
-                   'random_state': random_state,
-                   'target_var': self.target_var,
-                   'cur_pred_list': list(self.cur_pred_list),
-                  }
-            
-            if chunk:
-                res = []
-                num_chunks = int((num_cs/n_jobs) + 1)
-                
-                for chunk in range(num_chunks):
-                    loop_arr = [{'penalty': red} for red in self.reduction[chunk*n_jobs:((chunk+1)*n_jobs)]]
-                    #temp_jobs = len(loop_arr)
-                    new_res = p_prog_simp(args=arr, loop_args=loop_arr,
-                                  function=parallel_AIC_data_retriever,
-                                  n_jobs=n_jobs)
-                res = res + new_res
-            else:
-                
-                loop_arr = [{'penalty': red} for red in self.reduction]
-
-                res = p_prog_simp(args=arr, loop_args=loop_arr,
-                                  function=parallel_AIC_data_retriever,
-                                  n_jobs=n_jobs)
-
-            if remove_msg:
-                #file_ = save_path + save_name + '.msg'
-                file_ = save_path + save_name + '.fth'
-                try:
-                    os.remove(file_)
-                except FileNotFoundError:
-                    print('Could Not find file ', file_, 'Continuing...')
-            
-            arr = []
-            loop_arr = []
-        
-        else: 
-            res = [calcAICsLasso(penalty=red,
-                                 Xtrain=self.train.loc[:, self.cur_pred_list],
-                                 Ytrain=self.train.loc[:, self.target_var],
-                                 sample_size=self.train.shape[0],
-                                 unreg_full_mod=None,
-                                 random_state=random_state) for red in self.reduction]
-        
-        for i, re in enumerate(res):
-            nonzero_coefs.append(re[0])
-            aics[i, :] = re[1]
-
-        self.aics = aics
-        self.nonzero_coefs = list(nonzero_coefs)
+            path = tempfile.mkdtemp(prefix='tsdst-quick-')
+            name = '/data'
+            filename = path + name + '.fth'
+            try:
+                self.train.to_feather(filename)
+                args = dict(save_path=path, save_name=name, num_chunks=None,
+                             sample_size=len(self.train), unreg_full_mod=None,
+                             random_state=random_state, target_var=self.target_var,
+                             cur_pred_list=list(self.cur_pred_list))
+                results = []
+                size = n_jobs if chunk else num_cs
+                for start in range(0, num_cs, size):
+                    tasks = [{'penalty': value} for value in self.reduction[start:start+size]]
+                    results.extend(p_prog_simp(args, tasks, parallel_AIC_data_retriever,
+                                               n_jobs=n_jobs, verbose=False))
+            finally:
+                if remove_msg:
+                    if os.path.exists(filename):
+                        os.remove(filename)
+                    os.rmdir(path)
+        else:
+            results = [calcAICsLasso(value, self.train[self.cur_pred_list], self.train[self.target_var],
+                                     len(self.train), random_state=random_state)
+                       for value in self.reduction]
+        for result in results:
+            if isinstance(result, Exception):
+                raise result
+        self.nonzero_coefs = [result[0] for result in results]
+        self.aics = np.asarray([result[1] for result in results])
     
     def plotAICs(self):
         """
@@ -434,7 +306,7 @@ class QuickAnalysis(object):
 
         for i, parm in enumerate(num_params):
             cur_mod_reg = LogisticRegression(C=self.opt_c, max_iter=10000,
-                                             penalty="l1", solver='liblinear',
+                                             l1_ratio=1, solver='liblinear',
                                              random_state=random_state)
             # Cross-Val fully reduced model
             cols_to_include = list(coef_ord_red.index[0:parm])
@@ -522,7 +394,7 @@ class QuickAnalysis(object):
         if self.Ytest is None:
             print("Run QuickAnalysis first")
         else:
-            confmat = prettyConfMat(self.Ytest, self.Ytest_pred, print_=print_)
+            confmat = prettyConfMat(self.Ytest, self.Ypred_test, print_=print_)
         if print_:
             print(confmat)
         return confmat
@@ -552,7 +424,7 @@ class QuickAnalysis(object):
                                 self.train.loc[:, self.target_var],
                                 cv_iterations=cv_iterations,
                                 model=LogisticRegression(C=penalty,
-                                                         penalty="l1",
+                                                         l1_ratio=1,
                                                          solver="liblinear",
                                                          max_iter=10000,
                                                          random_state=random_state),
@@ -560,7 +432,7 @@ class QuickAnalysis(object):
         self.steps[name] = {
                 'crossval': mod_crossval,
                 'model': LogisticRegression(C=penalty,
-                                            penalty="l1",
+                                            l1_ratio=1,
                                             solver="liblinear",
                                             max_iter=10000,
                                             random_state=random_state).fit(self.train.loc[:, self.cur_pred_list],
@@ -922,7 +794,7 @@ class QuickAnalysis(object):
         remove_msg : bool, optional
             Remove messagepacks. The default is True.
         chunk : bool, optional
-            Chunk msgpacks? The default is False.
+            Evaluate penalties in batches? The default is False.
 
         Returns
         -------

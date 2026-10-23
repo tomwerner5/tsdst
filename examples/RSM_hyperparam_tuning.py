@@ -29,7 +29,7 @@ class lm(LinearRegression):
             if isinstance(X, pd.DataFrame):
                 self.fit_data_labels = X.columns.astype(str)
             else:
-                self.fit_data_labels = ['x'+str(i) for i in range(1, X.shape[1]+1)]
+                self.fit_data_labels = [f'x{i}' for i in range(1, X.shape[1]+1)]
         else:
             self.fit_data_labels = fit_data_labels
         
@@ -170,7 +170,7 @@ class lm(LinearRegression):
 
 
 class RSMSearchCV(object):
-    """Response Surface Methodolgy Hyperparameter tuning.
+    """Response Surface Methodology Hyperparameter tuning.
 
     This performs a grid search that searches through the hyperparameter
     space using a response surface methodology.
@@ -255,7 +255,7 @@ class RSMSearchCV(object):
         self.transformed_hyperparams = self.scaler.transform(self.hyperparams)
 
     def _calculate_regression(self, eigen_thres=0.1):
-        # eigenthres sets the threshold for detecting a stationary ridge.
+        # eigen_thres sets the threshold for detecting a stationary ridge.
         # set to 0 to ignore canonical analysis
         self.model = lm().fit(self.fit_data,
                               self.surface_mean,
@@ -323,6 +323,7 @@ class RSMSearchCV(object):
         
         # should return self, otherwise for debuging
         return self.model
+        # return self
     
     def _get_stars(self, p_value):
         if p_value >= 0.1:
@@ -356,24 +357,26 @@ class RSMSearchCV(object):
         
         lm_summary = self.model.summary(print_=False)
         
-        summary = (lm_summary +
-                    '\n\nStationary point of response surface:\n')
+        summary = f'{lm_summary}\n\nStationary point of response surface:\n'
         
         stat_point_df = pd.DataFrame(self.stationary_points.reshape(1, -1),
                                      columns=self.fit_data_labels[:self.num_hyperparams]).to_string(index=False)
         stat_point_df_encoded = pd.DataFrame(self.stationary_points_encoded.reshape(1, -1),
-                                             columns=['x' + str(i) for i in range(self.num_hyperparams)]).to_string(index=False)
+                                             columns=[f'x{i}' for i in range(self.num_hyperparams)]).to_string(index=False)
         eigen_vectors_df = pd.DataFrame(self.eigen_vectors_B,
-                                        index=['x' + str(i) for i in range(self.num_hyperparams)],
-                                        columns=['V' + str(i) for i in range(self.num_hyperparams)]).to_string()
+                                        index=[f'x{i}' for i in range(self.num_hyperparams)],
+                                        columns=[f'V{i}' for i in range(self.num_hyperparams)]).to_string()
         
-        summary += (stat_point_df_encoded +
-                    '\n\nStationary point in original units:\n' +
-                    stat_point_df +
-                    '\n\nEigen Analysis:\nnumpy.linalg.eig() decomposition\nvalues\n' +
-                    str(self.eigen_values_B) +
-                    '\n\nvectors\n' +
-                    eigen_vectors_df)
+        # summary += (stat_point_df_encoded +
+        #             '\n\nStationary point in original units:\n' +
+        #             stat_point_df +
+        #             '\n\nEigen Analysis:\nnumpy.linalg.eig() decomposition\nvalues\n' +
+        #             str(self.eigen_values_B) +
+        #             '\n\nvectors\n' +
+        #             eigen_vectors_df)
+        summary += (f'{stat_point_df_encoded}\n\nStationary point in original units:\n'
+                    f'{stat_point_df}\n\nEigen Analysis:\nnumpy.linalg.eig() decomposition\nvalues\n'
+                    f'{self.eigen_values_B}\n\nvectors\n{eigen_vectors_df}')
         
         if print_:
             print(summary)

@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 
 from scipy.special import rel_entr
+from scipy.stats import f as f_distribution
 from sklearn.metrics import confusion_matrix, roc_auc_score
-from statsmodels.tools import add_constant
 
 from .distributions import (glm_likelihood_bernoulli, glm_likelihood_poisson,
                             glm_likelihood_gaussian)
-from .utils import one_hot_decode, decision_boundary_1D
+from .utils import one_hot_decode
 
 
 def top_20p(y_true, y_score):
@@ -251,7 +251,7 @@ def conf_mat_metrics(y_true, y_pred, conf_metric='all'):
         interest.
 
     """
-    confMat = confusion_matrix(y_true, y_pred)
+    confMat = confusion_matrix(y_true, y_pred, labels=[0, 1])
     metrics = {'Sens/Recall': 0,
                'Specificity': 0,
                'ppv': 0,
@@ -259,8 +259,8 @@ def conf_mat_metrics(y_true, y_pred, conf_metric='all'):
                'Conf_Mat': 0}
     tn = confMat[0, 0]
     tp = confMat[1, 1]
-    fn = confMat[0, 1]
-    fp = confMat[1, 0]
+    fp = confMat[0, 1]
+    fn = confMat[1, 0]
     tnfp = tn + fp
     tpfn = tp + fn
     tpfp = tp + fp
@@ -282,7 +282,7 @@ def conf_mat_metrics(y_true, y_pred, conf_metric='all'):
     if conf_metric == 'all':
         return metrics
     else:
-        return metrics[conf_metric]     
+        return metrics[{'PPV': 'ppv', 'NPV': 'npv', 'Confusion Matrix': 'Conf_Mat'}.get(conf_metric, conf_metric)]
 
     
 def bias(y_true, y_pred):
@@ -516,87 +516,41 @@ def aicCalc(loglike, num_model_params, sample_size, c=2, metric="aicc"):
         raise ValueError("Not a valid method. No criteria was calculated")
         
 
-def glm_regularized_AIC(X, Y, reg_mod, unreg_mod,
-             tol=1e-6, method="kawano", family="binomial"):
+def glm_regularized_AIC(X, Y, reg_mod, unreg_mod, tol=1e-6,
+                        method='kawano', family='binomial'):
+    """Calculate AIC with active coefficients or a Fisher information correction.
+
+    The intercept participates in the likelihood and the parameter count.
+    The Kawano correction compares the two models on the active columns.
     """
-    Calculate AIC for a Generalized Linear Model with regularization.
-    
-    See 'AIC for the Lasso in GLMs', Y. Ninomiya and S. Kawano (2016)
-
-    Parameters
-    ----------
-    X : numpy array or pandas dataframe
-        Feature or design matrix.
-    Y : numpy array or pandas series
-        Target or response variable.
-    reg_mod : sklearn, or similar
-        The regularized model.
-    unreg_mod : sklearn, or similar
-        The unregularized model.
-    tol : float, optional
-        Tolerance cutoff for counting non-zero coefficients. The default is
-        1e-6.
-    method : str, optional
-        The method for calculating the AIC. Either `kawano` or `Hastie`.
-        The default is "kawano".
-    family : str, optional
-        The type of generalised linear model. The default is "binomial".
-
-    Raises
-    ------
-    ValueError
-        Raised if an invalid family is picked.
-
-    Returns
-    -------
-    aic : float
-        The calculated AIC.
-
-    """
-    # requires predict_proba method for logreg, and predict method for others, for poisson, predict output should be lambda, i.e. it should already be exponentiated
-    if isinstance(X, pd.DataFrame):
-        X = X.values
-    if isinstance(Y, pd.DataFrame or pd.Series):
-        Y = Y.values
-    aic = None
-    if family == "binomial":
-        nllf = glm_likelihood_bernoulli
-        unreg_prob = unreg_mod.predict_proba(X)[:, 1]
-        reg_prob = reg_mod.predict_proba(X)[:, 1]
-        y_mat_unreg = np.diag(unreg_prob * (1 - unreg_prob))
-        y_mat_reg = np.diag(reg_prob * (1 - reg_prob))
-    elif family == "poisson":
-        nllf = glm_likelihood_poisson
-        unreg_pred = unreg_mod.predict(X)
-        reg_pred = reg_mod.predict(X)
-        y_mat_unreg = np.diag(unreg_prob)
-        y_mat_reg = np.diag(reg_prob)
-    elif family == "gaussian":
-        nllf = glm_likelihood_gaussian
-        unreg_pred = unreg_mod.predict(X)
-        reg_pred = reg_mod.predict(X)
-        y_mat_unreg = np.diag(unreg_pred)
-        y_mat_reg = np.diag(reg_pred)
+    original_X = X
+    X, Y = np.asarray(X, dtype=float), np.asarray(Y).ravel()
+    design = np.column_stack([np.ones(len(X)), X])
+    beta = np.r_[np.asarray(reg_mod.intercept_).ravel(), np.asarray(reg_mod.coef_).ravel()]
+    active = np.abs(beta) > tol
+    active[0] = True
+    if family == 'binomial':
+        nll = glm_likelihood_bernoulli(beta, design, Y, lamb=0)
+        p, p0 = reg_mod.predict_proba(original_X)[:, 1], unreg_mod.predict_proba(original_X)[:, 1]
+        weights, weights0 = p * (1 - p), p0 * (1 - p0)
+    elif family == 'poisson':
+        nll = glm_likelihood_poisson(beta, design, Y, lamb=0)
+        weights, weights0 = reg_mod.predict(original_X), unreg_mod.predict(original_X)
+    elif family == 'gaussian':
+        nll = glm_likelihood_gaussian(beta, design, Y, lamb=0)
+        weights = weights0 = np.ones(len(X))
     else:
-        raise ValueError("Not a valid family")
-    
-    reg_mod_coef = np.concatenate((reg_mod.intercept_, np.squeeze(reg_mod.coef_)))
-    nonzero_idx = np.where([True if np.abs(coef) > tol else False for coef in reg_mod_coef])[0]
-    if method == "kawano":
-        X_nz = add_constant(X[:, nonzero_idx], prepend=True)
-        
-        j22 = np.linalg.multi_dot([X_nz.T, y_mat_reg, X_nz])
-        j22_2 = np.linalg.multi_dot([X_nz.T, y_mat_unreg, X_nz])
-        
-        negloglike = nllf(reg_mod_coef, X, Y, lamb=0, l_norm=0)
-        aic = 2*negloglike + np.sum(np.diag(np.linalg.inv(j22).dot(j22_2)))
+        raise ValueError('Family must be binomial, poisson, or gaussian')
+    if method == 'kawano':
+        selected = design[:, active]
+        fisher = selected.T @ (weights[:, None] * selected)
+        fisher0 = selected.T @ (weights0[:, None] * selected)
+        degrees = np.trace(np.linalg.pinv(fisher) @ fisher0)
+    elif method == 'hastie':
+        degrees = active.sum()
     else:
-        # Tibshirani, Hastie, Zou 2007, On the degrees of freedom on the lasso
-        negloglike = nllf(reg_mod_coef, X, Y, lamb=0, l_norm=0)
-        # Not 100% sure on this calculation. should it be 2*len(nonzero_idx),
-        #the count of nonzero columns, or 2*mean(non_zero_idx)?
-        aic = 2*negloglike + 2*len(nonzero_idx)
-    return aic
+        raise ValueError('Method must be kawano or hastie')
+    return 2 * (nll + degrees)
 
 
 def js_div(px, py):
@@ -736,14 +690,15 @@ def HotellingsTwoSampleMVTtest(mu1, mu2, cov1, cov2, n1, n2, pval=True):
         m = (n1 + n2 - p - 1)
         
         f = (m/((n1 + n2 - 2)*p))*t2
-        pv = f.sf(f, dfn=p, dfd=m) 
+        pv = f_distribution.sf(f, dfn=p, dfd=m)
         return pv
     else:
         return t2
     
 
 def accuracy(y_true, y_pred):
-    if y_true.shape[1] != 1:
-        return np.mean(one_hot_decode(y_true) == one_hot_decode(y_pred))
-    else:
-        return np.mean(y_true == decision_boundary_1D(y_pred))
+    """Return accuracy for labels, binary scores, or one-hot arrays."""
+    truth, prediction = np.asarray(y_true), np.asarray(y_pred)
+    if truth.ndim == 2 and truth.shape[1] > 1:
+        return np.mean(one_hot_decode(truth) == one_hot_decode(prediction))
+    return np.mean(truth.ravel() == (prediction.ravel() >= 0.5))

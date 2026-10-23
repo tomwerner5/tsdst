@@ -10,6 +10,7 @@ This documentation covers all the functions, classes, and methods contained in t
    :caption: Contents:
 
    API Pages  <api>
+   Automatic EDA <eda>
 
 
 Indices and tables
