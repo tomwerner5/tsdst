@@ -1,5 +1,5 @@
 Automatic exploratory data analysis
-==================================
+===================================
 
 Use ``tsdst.eda`` to explore a dataset without a response variable.
 This module builds on the type rules, correlation checks, and plots in
@@ -76,7 +76,7 @@ Use the alerts to review the data. Constants, unique values, strong
 correlations, and outliers can be useful. The alerts do not remove features.
 
 Compare an optional response
----------------------------
+----------------------------
 
 If you have a response variable, supply its column name, a separate Series,
 or a one-dimensional array. A Series must have the same index as the features.
@@ -133,6 +133,8 @@ API
 ---
 
 .. autofunction:: tsdst.eda.auto_eda
+   :no-index:
 
 .. autoclass:: tsdst.eda.EDAReport
    :members: to_html, to_file
+   :no-index:

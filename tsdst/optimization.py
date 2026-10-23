@@ -78,14 +78,20 @@ def signIntervals(fun, lower=-50, upper=50, step=0.01, fun_args=None,
 
 
 def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
-    """
-    Brent Method for Roots
+    r"""Brent Method for Roots
 
-    This function works well with signIntervals. For example, if the function
-    "func" is x^2 - 5, the following code snippet will return both roots:
-        bds = signIntervals(easy)
-        for i in bds:
-            Brent_1DRoot(easy, opt={'bounds': i})
+    Use signIntervals to locate intervals that bracket a root. For example:
+
+    .. code-block:: python
+
+        from tsdst.optimization import signIntervals, Brent_1DRoot
+
+        def objective(x):
+            return x**2 - 5
+
+        bounds = signIntervals(objective)
+        roots = [Brent_1DRoot(objective, opt={'bounds': interval}, print_=False)['root']
+                 for interval in bounds]
 
     Parameters
     ----------
@@ -109,7 +115,6 @@ def Brent_1DRoot(fun, opt=None, print_=True, fun_args=None):
     -------
     final_res : dict
         A dictionary containing the results.
-
     """
     if fun_args is None:
         fun_args = {}

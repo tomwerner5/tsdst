@@ -28,7 +28,7 @@ General Functions
 ~~~~~~~~~~~~~~~~~
 
 This section includes approximations about the normal distribution, as well as
-calculations for the poison-binomial distribution.
+calculations for the Poisson-binomial distribution.
 
 ``dwrap`` supports the normal, exponential, Weibull, lognormal, and gamma
 distributions. Each supports ``pdf``, ``cdf``, ``sf``, ``inv-cdf``,
@@ -379,8 +379,6 @@ Initializers
     nn.initializers.random_normal
     nn.initializers.xavier_normal
     nn.initializers.xavier_uniform
-    nn.initializers.lecun_uniform
-    nn.initializers.lecun_normal
 
 Model
 ~~~~~
@@ -400,3 +398,173 @@ Optimizers
 
     nn.optimizers.adam
     nn.optimizers.gradient_descent
+
+Additional distribution functions
+---------------------------------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    distributions.ap_poisson_lasso
+
+Additional estimators
+---------------------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    estimators.LogReg
+
+Additional MCMC tools
+---------------------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    mcmc.lag
+    mcmc.adjust_matrix
+    mcmc.mbmc
+    mcmc.mobmc
+    mcmc.msvec
+    mcmc.mcse_multi
+
+Metrics
+-------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    metrics.top_20p
+    metrics.top_20p_score
+    metrics.auc_score
+    metrics.cox_snell_r2
+    metrics.nagelkerke_r2
+    metrics.tjur_r2
+    metrics.mcfadden_r2
+    metrics.number_of_nonzero_coef
+    metrics.conf_mat_metrics
+    metrics.bias
+    metrics.rpmse
+    metrics.r2
+    metrics.lr_sd_fromModel
+    metrics.lr_sd_fromPrediction
+    metrics.adj_r2
+    metrics.aicCalc
+    metrics.glm_regularized_AIC
+    metrics.js_div
+    metrics.kl_div
+    metrics.HellingerDistanceMVN
+    metrics.HellingerDistanceUN
+    metrics.HotellingsTwoSampleMVTtest
+    metrics.accuracy
+
+Additional modeling tools
+-------------------------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    modeling.scoreModel_legacy
+    modeling.GenerateRegCov
+    modeling.predict
+    modeling.corrmat_validity_check
+    modeling.BPCA_initmodel
+    modeling.BPCA_dostep
+
+Optimization
+------------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    optimization.sign
+    optimization.signIntervals
+    optimization.Brent_1DRoot
+    optimization.AdaptiveNMorBrent
+    optimization.max_like
+
+Parallel tasks
+--------------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    parallel.p_prog_simp
+    parallel.p_prog_simp_memorySafe
+
+Quick analysis
+--------------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    quick_analysis.calcAICsLasso
+    quick_analysis.parallel_AIC_data_retriever
+    quick_analysis.QuickAnalysis
+
+Sampling
+--------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    sampling.downSample
+    sampling.genRandSampFromDF
+    sampling.latinHypercube1D
+
+Mathematical tools
+------------------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    tmath.custom_abs
+    tmath.powerset
+    tmath.percentIncrease
+    tmath.rank
+    tmath.cov2cor
+    tmath.mann_whitney
+    tmath.biserial_rank_corr
+    tmath.corr
+    tmath.mode_histogram
+    tmath.mode_kde
+    tmath.norm
+    tmath.norm_der
+    tmath.mahalanobis
+    tmath.scaling
+
+Utilities
+---------
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    utils.dsn_getTable
+    utils.dsn_saveTable
+    utils.pretty_print_time
+    utils.checkDir
+    utils.print_message_with_time
+    utils.print_time
+    utils.save_checkpoint
+    utils.updateProgBar
+    utils.move_columns_to_end
+    utils.keywordSearch
+    utils.toFrame
+    utils.inferFeatureType
+    utils.reshape_to_vector
+    utils.decision_boundary_1D
+    utils.decision_boundary
+    utils.one_hot_encode
+    utils.one_hot_decode
+    utils.sample

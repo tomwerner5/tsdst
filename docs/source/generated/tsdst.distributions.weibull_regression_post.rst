@@ -1,0 +1,6 @@
+tsdst.distributions.weibull\_regression\_post
+=============================================
+
+.. currentmodule:: tsdst.distributions
+
+.. autofunction:: weibull_regression_post

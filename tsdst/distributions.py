@@ -334,7 +334,12 @@ def dpoibin_exact(k, p, cdf=False):
 
 
 def dwrap(data, params, disttype, funct, log=False, *, log_p=False):
-    """Evaluate a distribution with separate log input and output options.
+    r"""Evaluate a distribution with separate log input and output options.
+
+    This wrapper began as a way to evaluate common density and probability
+    formulas through an R-like interface. Direct formulas were useful for
+    performance comparisons in the original implementation. It now uses SciPy
+    distributions for consistent parameter, support, and logarithmic-tail behavior.
 
     Parameters
     ----------
@@ -395,6 +400,11 @@ def dwrap(data, params, disttype, funct, log=False, *, log_p=False):
     For quantiles, R uses ``log.p`` for the input scale. This wrapper uses
     ``log_p`` for that purpose and keeps ``log`` as the output switch.
     Both switches can be used together.
+
+    Left truncation conditions on survival past the supplied cutoff. It can
+    answer a future failure-probability question given survival to that time.
+    A right-censored observation itself contributes a survival probability at
+    its censoring time; that is distinct from a conditional truncated CDF.
 
     Sum log densities to obtain the log likelihood for independent
     observations. Negate that sum to obtain the negative log likelihood.
@@ -715,7 +725,7 @@ def likelihood_gaussian(y_true, y_score, neg=True, log=True, sigma=None):
 
 def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
                             log=True):
-    """The likelihood for a gaussian regression model with a penalty
+    r"""The likelihood for a gaussian regression model with a penalty
     term (can accept any norm, default is 1 for L1).
     
     Parameters
@@ -725,15 +735,20 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
     X : numpy array (numeric)
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
-    Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+    Y : numpy.ndarray
+        Real-valued Gaussian response observations.
     lamb : int, optional
         The size of the penalty (lambda). Note this is the inverse of the
         common sklearn parameter C (i.e. C=1/lambda. The default is 1.
     l_p : int, optional
         The mathematical norm to be applied to the coefficients.
         The default is 1, representing an L1 penalty.
+    sigma : float, optional
+        Positive noise standard deviation used in the likelihood evaluation.
+        If None, use sqrt(RSS/(n-p)), with p equal to the coefficient count.
+        This is a residual standard-error estimate, rather than the Gaussian
+        maximum-likelihood estimate sqrt(RSS/n).
+
     neg : bool, optional
         Return negative likelihood. The default is True.
     log : bool, optional
@@ -758,15 +773,15 @@ def glm_likelihood_gaussian(parms, X, Y, lamb=1, l_p=1, sigma=None, neg=True,
     >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
     >>> Y = np.random.normal(size=100)
     >>> 
-    >>> glm_likelihood_gaussian(params, X, Y, lamb=1, l_p=1)
-    360.17670995853115
+    >>> round(float(glm_likelihood_gaussian(params, X, Y, lamb=1, l_p=1)), 5)
+    360.17671
     """
     #intercept = parms[0]
     betas = parms[1:]
     
     mu = X.dot(parms)
     if sigma is None:
-        # The MLE estimate of sigma (df is nobs - num_params (including intercept))
+        # Residual standard error uses n-p df, with the intercept included in p.
         sigma = np.sqrt(np.sum((Y - mu)**2)/(Y.shape[0] - len(parms)))
 
     # intercept does not get penalized
@@ -815,36 +830,20 @@ def exponential_mle(data, censored):
 
 
 def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
-    """The posterior density for a logistic regression model with an L1 penalty
-    term.
+    r"""Evaluate the binary logistic posterior with Laplace coefficient priors.
     
     Parameters
     ----------
-    parms : numpy array (numeric)
-        The coefficients (including intercept, which is first)
+    parms : numpy.ndarray
+        Intercept followed by the regression slopes. The coefficient-prior
+        scale is supplied separately through l_scale.
     X : numpy array (numeric)
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
-    Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+    Y : numpy.ndarray
+        Binary response values, encoded as zero or one.
     l_scale : float, optional
-        The value of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, 
-        because it can be shown that this is the MAP estimate where
-        a laplace prior is equivalent to performing lasso regression.
-        lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn).
-        
-        I find that when scale == C, you get more similar results to
-        the model output in sklearn, and based on
-        my research into their implementation, I think it is because the
-        sklearn implementation actually scales lambda by 1/2 (see the user
-        guide here for more details:
-        https://scikit-learn.org/stable/modules/linear_model.html),
-        but i'm not 100% sure on this. This parameterization is similar to
-        scale = stddev/lambda or scale = stddev*C, where they set stddev to
-        1 instead of 2. The default value is 1.
+        Positive Laplace scale for the slopes. The default is 0.5.
     neg : bool, optional
         Return negative density. The default value is False.
     log : bool, optional
@@ -873,8 +872,18 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
     >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
     >>> Y = np.round(np.random.uniform(low=0, high=1, size=100))
     >>> 
-    >>> posterior_logreg_lasso(params, X, Y)
-    -400.881783704988
+    >>> round(float(posterior_logreg_lasso(params, X, Y)), 5)
+    -400.88178
+
+    Notes
+    -----
+    The intercept prior is normal with mean zero and standard deviation 10.
+    Slopes have Laplace priors centered at zero with scale l_scale.
+
+    A Laplace slope prior contributes abs(beta)/scale to the negative log
+    posterior, which gives the L1 MAP relationship. The mapping to an external
+    estimator's penalty depends on its likelihood normalization and intercept
+    convention; scale = 2*C is this project's fitting convention.
     """
     n_mu = 0
     n_sigma = 10
@@ -902,41 +911,19 @@ def posterior_logreg_lasso(parms, X, Y, l_scale=0.5, neg=False, log=True):
 
 
 def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
-    """The posterior density for a logistic regression model with an L1 penalty
-    term. However, unlike the posterior_logreg_lasso function, this is made to
-    adaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
-    in the parms variable, at the end of the array.
+    r"""Evaluate the binary logistic posterior with a learned Laplace prior scale.
     
     Parameters
     ----------
-    parms : numpy array (numeric)
-        The model coefficients (including intercept, which is first, and the
-        scale of the laplace distribution, which is last)
+    parms : numpy.ndarray
+        Intercept and slopes, followed by log coefficient-prior scale.
     X : numpy array (numeric)
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
-    Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+    Y : numpy.ndarray
+        Binary response values, encoded as zero or one.
     l_scale : float, optional
-        ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
-        EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
-        The value of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, 
-        because it can be shown that this is the MAP estimate where
-        a laplace prior is equivalent to performing lasso regression.
-        lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn).
-        
-        I find that when scale == C, you get more similar results to
-        the model output in sklearn, and based on
-        my research into their implementation, I think it is because the
-        sklearn implementation actually scales lambda by 1/2 (see the user
-        guide here for more details:
-        https://scikit-learn.org/stable/modules/linear_model.html),
-        but i'm not 100% sure on this. This parameterization is similar to
-        scale = stddev/lambda or scale = stddev*C, where they set stddev to
-        1 instead of 2. The default value is 1.
+        Unused compatibility argument. The actual prior scale is exp(parms[-1]).
     neg : bool, optional
         Return negative density. The default value is False.
     log : bool, optional
@@ -966,8 +953,20 @@ def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     >>> X = np.hstack((np.repeat(1, 100).reshape(-1, 1), X))
     >>> Y = np.round(np.random.uniform(low=0, high=1, size=100))
     >>> 
-    >>> ap_logreg_lasso(params, X, Y)
-    -395.3461032130849
+    >>> round(float(ap_logreg_lasso(params, X, Y)), 5)
+    -395.3461
+
+    Notes
+    -----
+    The intercept prior is normal with standard deviation 1. Slopes have
+    Laplace priors with scale exp(parms[-1]). That positive scale has an
+    exponential prior with mean 0.38, and parms[-1] supplies its log-scale
+    Jacobian.
+
+    A Laplace slope prior contributes abs(beta)/scale to the negative log
+    posterior, which gives the L1 MAP relationship. The mapping to an external
+    estimator's penalty depends on its likelihood normalization and intercept
+    convention; scale = 2*C is this project's fitting convention.
     """
     n_mu = 0
     n_sigma = 1
@@ -1002,40 +1001,20 @@ def ap_logreg_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
 
 
 def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
-    """The posterior density for a poisson regression model with an L1 penalty
-    term. However, unlike the poisson_regression function, this is made to
-    adaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
-    in the parms variable, at the end of the array.
+    r"""Evaluate the Poisson posterior with a learned normal-prior standard deviation.
     
     Parameters
     ----------
-    parms : numpy array (numeric)
-        The model coefficients (including intercept, which is first, and the
-        scale of the laplace distribution, which is last)
+    parms : numpy.ndarray
+        Intercept and slopes, followed by the log normal-prior standard deviation.
     X : numpy array (numeric)
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
         The response value (should be an integer >= 0).
     l_scale : float, optional
-        ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
-        EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
-        The value of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, 
-        because it can be shown that this is the MAP estimate where
-        a laplace prior is equivalent to performing lasso regression.
-        lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn).
-        
-        I find that when scale == C, you get more similar results to
-        the model output in sklearn, and based on
-        my research into their implementation, I think it is because the
-        sklearn implementation actually scales lambda by 1/2 (see the user
-        guide here for more details:
-        https://scikit-learn.org/stable/modules/linear_model.html),
-        but i'm not 100% sure on this. This parameterization is similar to
-        scale = stddev/lambda or scale = stddev*C, where they set stddev to
-        1 instead of 2. The default value is 1.
+        Unused compatibility argument. The prior standard deviation is learned
+        as exp(parms[-1]).
     neg : bool, optional
         Return negative density. The default value is False.
     log : bool, optional
@@ -1045,11 +1024,17 @@ def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
+
+    Notes
+    -----
+    The intercept prior is normal with standard deviation 10. Slopes have
+    normal priors. Their learned positive standard deviation has an exponential
+    prior with mean 0.38, and the final log-scale parameter supplies the Jacobian.
+    The conditional count mean is exp(X @ parms[:-1]).
     """
     n_sigma = 10
     l_loc = 0
-    # assuming an exponential prior for the scale parameter of the laplace
-    # mean/scale of 0.38 seemed to work well for these experiments
+    # Exponential prior on the learned normal-prior standard deviation.
     l_scale_rate = 1/0.38
     
     intercept = parms[0]
@@ -1068,7 +1053,7 @@ def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
     
     # exponential prior for scale parameter
     scale_prior = np.log(l_scale_rate) - l_scale_rate * l_scale
-    # post = likelihood + laplace prior + jacobian for laplace scale + laplace scale prior
+    # Combine likelihood, coefficient prior, scale prior, and log-scale Jacobian.
     
     post = like + parm_prior + int_prior + parms[-1] + scale_prior
     
@@ -1082,42 +1067,21 @@ def ap_poisson_lasso(parms, X, Y, l_scale=None, neg=False, log=True):
 
 
 def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
-    """
-    The posterior density for a poisson regression model with an L1 penalty
-    term. However, unlike the poisson_regression function, this is made to
-    adaptively learn the optimal L1 penalty. Therefore, the L1 penalty is
-    in the parms variable, at the end of the array. This function also attempts
-    to adaptively account for over-dispersion.
+    r"""Evaluate the generalized Poisson posterior with a learned normal-prior scale.
     
     Parameters
     ----------
-    parms : numpy array (numeric)
-        The model coefficients (including intercept, which is first, and the
-        scale of the laplace distribution, which is last)
+    parms : numpy.ndarray
+        Intercept and slopes, followed by log normal-prior standard deviation
+        and delta on 0 <= delta < 1.
     X : numpy array (numeric)
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
         The response value (should be an integer >= 0).
     l_scale : float, optional
-        ---THIS IS NOT USED. ONLY HERE FOR CONVENIENCE OF THE USER WHEN
-        EXPERIMENTING BETWEEN THE ADAPTIVE AND NON-ADAPTIVE VERSIONS--- 
-        The value of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, 
-        because it can be shown that this is the MAP estimate where
-        a laplace prior is equivalent to performing lasso regression.
-        lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn).
-        
-        I find that when scale == C, you get more similar results to
-        the model output in sklearn, and based on
-        my research into their implementation, I think it is because the
-        sklearn implementation actually scales lambda by 1/2 (see the user
-        guide here for more details:
-        https://scikit-learn.org/stable/modules/linear_model.html),
-        but i'm not 100% sure on this. This parameterization is similar to
-        scale = stddev/lambda or scale = stddev*C, where they set stddev to
-        1 instead of 2. The default value is 1.
+        Unused compatibility argument. The normal-prior standard deviation is
+        exp(parms[-2]).
     neg : bool, optional
         Return negative density. The default value is False.
     log : bool, optional
@@ -1127,13 +1091,20 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
+
+    Notes
+    -----
+    The conditional count mean is exp(X @ parms[:-2]); theta = mean*(1-delta)
+    is used in the probability formula. Slopes have normal priors, and their
+    standard deviation has an exponential prior with mean 0.38 and its log-scale
+    Jacobian. The intercept prior is normal with standard deviation 10.
+    Delta has a uniform prior over its support in this adaptive branch.
     """
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
     # to both the normal mu parameter and the laplace location parameter
     l_loc = 0
-    # assuming an exponential prior for the scale parameter of the laplace
-    # mean/scale of 0.38 seemed to work well for these experiments
+    # Exponential prior on the learned normal-prior standard deviation.
     l_scale_rate = 1/0.38
     
     intercept = parms[0]
@@ -1160,7 +1131,7 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
     
     # exponential prior for scale parameter
     scale_prior = np.log(l_scale_rate) - l_scale_rate * l_scale
-    # post = likelihood + laplace prior + jacobian for laplace scale + laplace scale prior
+    # Combine likelihood, coefficient prior, scale prior, and log-scale Jacobian.
     
     post = like + parm_prior + int_prior + parms[-2] + scale_prior
     
@@ -1174,36 +1145,20 @@ def ap_poisson_lasso_od(parms, X, Y, l_scale=None, neg=False, log=True):
 
 
 def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
-    """The posterior density for a poisson regression model with an L1 penalty
-    term.
+    r"""Evaluate the Poisson posterior with normal coefficient priors.
     
     Parameters
     ----------
-    parms : numpy array (numeric)
-        The model coefficients (including intercept, which is first, and the
-        scale of the laplace distribution, which is last)
+    parms : numpy.ndarray
+        Intercept followed by the regression slopes. No extra distribution
+        parameter is included in this fixed-scale, ordinary Poisson branch.
     X : numpy array (numeric)
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
         The response value (should be an integer >= 0).
     l_scale : float, optional
-        The value of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, 
-        because it can be shown that this is the MAP estimate where
-        a laplace prior is equivalent to performing lasso regression.
-        lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn).
-        
-        I find that when scale == C, you get more similar results to
-        the model output in sklearn, and based on
-        my research into their implementation, I think it is because the
-        sklearn implementation actually scales lambda by 1/2 (see the user
-        guide here for more details:
-        https://scikit-learn.org/stable/modules/linear_model.html),
-        but i'm not 100% sure on this. This parameterization is similar to
-        scale = stddev/lambda or scale = stddev*C, where they set stddev to
-        1 instead of 2. The default value is 1.
+        Positive normal-prior standard deviation for the slopes. The default is 1.
     neg : bool, optional
         Return negative density. The default value is False.
     log : bool, optional
@@ -1213,6 +1168,12 @@ def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
+
+    Notes
+    -----
+    Despite the historical lasso name, this branch currently evaluates
+    normal coefficient priors. The intercept prior is normal with standard
+    deviation 10. The conditional count mean is exp(X @ parms).
     """
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
@@ -1244,39 +1205,19 @@ def posterior_poisson_lasso(parms, X, Y, l_scale=1, neg=False, log=True):
 
 
 def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
-    """The posterior density for a poisson regression model with an L1 penalty
-    term. This function also attempts to adaptively account for over-dispersion.
-    
-    Uses a generalized poisson model for the dispersion calculation. See
-    https://journals.sagepub.com/doi/pdf/10.1177/1536867X1201200412
+    r"""Evaluate the generalized Poisson posterior with fixed-scale Laplace priors.
     
     Parameters
     ----------
-    parms : numpy array (numeric)
-        The model coefficients (including intercept, which is first, and the
-        scale of the laplace distribution, which is last)
+    parms : numpy.ndarray
+        Intercept and slopes, followed by delta on 0 <= delta < 1.
     X : numpy array (numeric)
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
     Y : numpy array or pandas dataframe
         The response value (should be an integer >= 0).
     l_scale : float, optional
-        The value of the scale parameter in the Laplace distribution.
-        A common choice for the laplace prior is scale = 2/lambda, 
-        because it can be shown that this is the MAP estimate where
-        a laplace prior is equivalent to performing lasso regression.
-        lambda is the L1 penalty, or scale = 2*C (where C is the penalty term
-        in sklearn).
-        
-        I find that when scale == C, you get more similar results to
-        the model output in sklearn, and based on
-        my research into their implementation, I think it is because the
-        sklearn implementation actually scales lambda by 1/2 (see the user
-        guide here for more details:
-        https://scikit-learn.org/stable/modules/linear_model.html),
-        but i'm not 100% sure on this. This parameterization is similar to
-        scale = stddev/lambda or scale = stddev*C, where they set stddev to
-        1 instead of 2. The default value is 1.
+        Positive Laplace scale for the regression slopes. The default is 1.
     neg : bool, optional
         Return negative density. The default value is False.
     log : bool, optional
@@ -1286,6 +1227,24 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
     -------
     float
         The posterior density (height of the posterior density)
+
+    Notes
+    -----
+    The conditional count mean is exp(X @ parms[:-1]). The probability
+    formula uses theta = mean*(1-delta). The intercept prior is normal with
+    standard deviation 10. The existing delta prior term is evaluated as
+    normal_logpdf(exp(delta), mean=0, sd=0.4), restricted to its stated support.
+    Delta itself is sampled directly; this term is not a normal prior on delta.
+
+    A Laplace slope prior contributes abs(beta)/scale to the negative log
+    posterior, which gives the L1 MAP relationship. The mapping to an external
+    estimator's penalty depends on its likelihood normalization and intercept
+    convention; scale = 2*C is this project's fitting convention.
+
+    References
+    ----------
+    The generalized Poisson parameterization was described in the original notes:
+    https://journals.sagepub.com/doi/pdf/10.1177/1536867X1201200412
     """
     n_sigma = 10
     # I think in pretty much every case you want this zero, so l_loc applies
@@ -1320,8 +1279,7 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
     # Normal prior on beta
     #coef_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)
     
-    ## prior on delta
-    # normal
+    # Existing prior term evaluated on exp(delta), with delta sampled directly.
     delta_prior = (-0.5*np.log(2.0*np.pi) - np.log(0.4) - (((np.exp(delta) - 0)**2) / (2.0*(0.4**2))))
     
     # jacobian on custom delta transform
@@ -1345,44 +1303,29 @@ def posterior_poisson_lasso_od(parms, X, Y, l_scale=1, neg=False, log=True):
 
 def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
                             log=True):
-    """The posterior density for a weibull regression model with an L1 penalty
-    term. 
+    r"""Evaluate the posterior for covariate-dependent Weibull shape and a shared scale.
     
     Parameters
     ----------
-    parms : numpy array (numeric)
-        The model coefficients (including intercept, which is first, and the
-        scale of the laplace distribution, which is last)
+    parms : numpy.ndarray
+        Intercept and shape-regression coefficients, followed by log Weibull
+        scale. The last value is a distribution-scale parameter; l_scale is the
+        separate coefficient-prior scale argument.
     X : numpy array (numeric)
         The independent variables (or feature matrix), where the first column
         is a dummy column of 1's (for the intercept).
-    Y : numpy array or pandas dataframe
-        The response value (should be 0 or 1, but could be float as well if 
-        you're willing to deal with those consequences).
+    Y : numpy.ndarray
+        Positive event or right-censoring times, one per feature row.
     status : numpy array (int, bool) or None
         Indicates status used for censoring, in this case, right censoring.
         An array of 1's and 0's, such that a 1 indicates an event, and 0 is the
         censored observation. If None, it will assume there are no censored
         events. Default is None.
     l_scale : float, optional
-        The value of the scale parameter in the Laplace distribution.
-        
-        A common choice for the laplace prior is scale = 2/lambda, or
-        scale = 2*C, where lambda is the L1 penalty (regularization strength)
-        and C is the inverse penalty/strength. This is because it can be shown
-        that this is the MAP estimate where a laplace prior is equivalent
-        to performing lasso regression.
-        
-        I find that when scale == C, you get more similar results to
-        the model output in sklearn, and based on
-        my research into their implementation, I think it is because the
-        sklearn implementation actually scales lambda by 1/2 (see the user
-        guide here for more details:
-        https://scikit-learn.org/stable/modules/linear_model.html),
-        but i'm not 100% sure on this, and it deserves more exploration.
-        This parameterization is similar to scale = variance/lambda or
-        scale = variance*C, where they set variance to 1 instead of 2.
-        The default value is 1.
+        Positive Laplace coefficient-prior scale. The default is 1.
+        A slope contributes abs(beta)/l_scale to the negative log posterior.
+        The estimator sets this scale to 2*C. Matching an external L1 penalty
+        also requires matching likelihood and intercept conventions.
     neg : bool, optional
         Return negative density. The default value is False.
     log : bool, optional
@@ -1392,6 +1335,21 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
     -------
     float
         The posterior density (height of the posterior density)
+
+    Notes
+    -----
+    The coefficient vector is sampled on the real line. Shape is
+    exp(X @ parms[:-1]), which enforces positivity. Weibull scale is
+    exp(parms[-1]). The intercept has a normal prior with standard deviation
+    10, the slopes have Laplace priors with scale l_scale, and the positive
+    Weibull scale has a Gamma prior with shape 0.01 and scale 100.
+    The final parms[-1] contribution is the log-scale Jacobian for that Gamma
+    prior. No extra shape-link Jacobian is required because the coefficient
+    priors are defined on the sampled coefficients themselves.
+
+    Events contribute a Weibull log density. Right-censored times contribute
+    log survival. The event mask is applied to the matching observation shapes
+    in both density terms.
     """
     l_loc = 0
     n_sigma = 10
@@ -1434,7 +1392,7 @@ def weibull_regression_post(parms, X, Y, status=None, l_scale=1, neg=False,
     parm_prior = np.sum(-np.log(2*l_scale) - (np.abs(betas - l_loc)/l_scale))
     # Normal prior
     #parm_prior = np.sum(-0.5*np.log(2.0*np.pi) - np.log(l_scale) - 0.5*((betas-l_loc)/l_scale)**2)
-    # assuming uniform for over dispersion prior
+    # The final log-scale term is the Jacobian for the Weibull scale prior.
     post = fail_like + cens_like + parm_prior + int_prior + scale_prior + parms[-1]
     
     if not log:

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tsdst.sampling &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=062ca7a5" />
+    <script src="../../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../eda.html">Automatic EDA</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary">
+<form action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <h1>Source code for tsdst.sampling</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">shuffle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">timeit</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">dt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_time</span><span class="p">,</span> <span class="n">updateProgBar</span>
+
+
+<div class="viewcode-block" id="downSample">
+<a class="viewcode-back" href="../../generated/tsdst.sampling.downSample.html#tsdst.sampling.downSample">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">downSample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target_var</span><span class="p">,</span> <span class="n">majority</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">minority</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bal</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+               <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    In a low base-rate classification problem, it is sometimes advantageous to downsample</span>
+<span class="sd">    the majority class until the classes are balanced (or close enough). This </span>
+<span class="sd">    is done by randomly removing a proportion of observations from only the</span>
+<span class="sd">    majority class.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pandas dataframe</span>
+<span class="sd">        The design or feature matrix (with response).</span>
+<span class="sd">    target_var : str</span>
+<span class="sd">        The target or response variable.</span>
+<span class="sd">    majority : int, optional</span>
+<span class="sd">        Value of the majority class. The default is 0.</span>
+<span class="sd">    minority : int, optional</span>
+<span class="sd">        Value of the minority class. The default is 1.</span>
+<span class="sd">    bal : float, optional</span>
+<span class="sd">        The class balance after downsampling. The default is 0.5.</span>
+<span class="sd">    random_state : int, optional</span>
+<span class="sd">        The random seed for the process. The default is 123.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    data_sub : pandas dataframe</span>
+<span class="sd">        The downsampled data.</span>
+
+<span class="sd">    """</span>
+    <span class="n">data_min</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">target_var</span><span class="p">]</span> <span class="o">==</span> <span class="n">minority</span><span class="p">]</span>
+    <span class="n">data_maj</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">target_var</span><span class="p">]</span> <span class="o">==</span> <span class="n">majority</span><span class="p">]</span>
+
+    <span class="n">samp_size_train</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_min</span><span class="p">)</span><span class="o">/</span><span class="n">bal</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_min</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">random_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_maj</span><span class="p">)),</span> <span class="n">samp_size_train</span><span class="p">,</span>
+                           <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">data_maj</span> <span class="o">=</span> <span class="n">data_maj</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>
+    
+    <span class="n">data_sub</span> <span class="o">=</span> <span class="n">shuffle</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="n">data_min</span><span class="p">,</span> <span class="n">data_maj</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                       <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">data_sub</span></div>
+
+
+
+<div class="viewcode-block" id="genRandSampFromDF">
+<a class="viewcode-back" href="../../generated/tsdst.sampling.genRandSampFromDF.html#tsdst.sampling.genRandSampFromDF">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">genRandSampFromDF</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sampSize</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Creates a Random sample of observations (rows) from a Dataframe (data). If replace=True,</span>
+<span class="sd">    this function can be used for bootstrap samples. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pandas dataframe</span>
+<span class="sd">        The design or feature matrix (with response).</span>
+<span class="sd">    sampSize : int</span>
+<span class="sd">        Number of somples to return.</span>
+<span class="sd">    replace : bool, optional</span>
+<span class="sd">        Sample with replacement. The default is False.</span>
+<span class="sd">    random_state : int, optional</span>
+<span class="sd">        The random seed for the process. The default is None.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rand : pandas dataframe</span>
+<span class="sd">        The randomly sampled data.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">random_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">sampSize</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="n">replace</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+        <span class="n">rand</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rand</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">rand</span></div>
+
+
+
+<div class="viewcode-block" id="latinHypercube1D">
+<a class="viewcode-back" href="../../generated/tsdst.sampling.latinHypercube1D.html#tsdst.sampling.latinHypercube1D">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">latinHypercube1D</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sampleSize</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shuffle_after</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">sort_</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_method</span><span class="o">=</span><span class="s2">"quicksort"</span><span class="p">,</span> <span class="n">sort_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">stratified</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bin_placement</span><span class="o">=</span><span class="s2">"random"</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Creates a sample from a Dataframe (data). If replace=True,</span>
+<span class="sd">    this function can be used for bootstrap samples. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : numpy array or pandas dataframe</span>
+<span class="sd">        The design or feature matrix (with response).</span>
+<span class="sd">    sampleSize : int</span>
+<span class="sd">        The number of samples to return.</span>
+<span class="sd">    random_state : int, optional</span>
+<span class="sd">        The random seed of the process. The default is None.</span>
+<span class="sd">    shuffle_after : bool, optional</span>
+<span class="sd">        Shuffle the results after being sampled. The default is True.</span>
+<span class="sd">    sort_ : bool, optional</span>
+<span class="sd">        Sort the data (only set to False if sending presorted data).</span>
+<span class="sd">        The default is True.</span>
+<span class="sd">    sort_method : str, optional</span>
+<span class="sd">        Numpy sort method. The default is "quicksort".</span>
+<span class="sd">    sort_cols : list, optional</span>
+<span class="sd">        The columns to include in the sorting. The default is None.</span>
+<span class="sd">    stratified : bool, optional</span>
+<span class="sd">        Create a stratified sample. The default is True.</span>
+<span class="sd">    bin_placement : str, optional</span>
+<span class="sd">        Method for placing the edges on the sampling bins.</span>
+<span class="sd">        The default is "random".</span>
+<span class="sd">    verbose : bool, optional</span>
+<span class="sd">        Print the results of the process. The default is False.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Raised if invalid bin_placement is passed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    LHC : pandas dataframe or numpy array</span>
+<span class="sd">        The samples.</span>
+
+<span class="sd">    """</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="c1"># Initialize time for printing</span>
+        <span class="n">t0</span> <span class="o">=</span> <span class="n">dt</span><span class="p">()</span>
+        <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Initializing..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+    
+    <span class="c1"># Initialize</span>
+    <span class="n">sortedData</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="c1"># Check if DataFrame for convenience later</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="kc">True</span>
+   
+    <span class="k">if</span> <span class="n">sort_</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Sorting..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+
+        <span class="c1"># Convert to DataFrame, if not already (for easy</span>
+        <span class="c1"># column sorting control)</span>
+        <span class="c1"># TODO: see if column control could be equally as easy without</span>
+        <span class="c1"># converting to DF</span>
+        <span class="k">if</span> <span class="n">df</span><span class="p">:</span>
+            <span class="n">sortedData</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sortedData</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sort_cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sortedData</span> <span class="o">=</span> <span class="n">sortedData</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">sort_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">sort_method</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sortedData</span> <span class="o">=</span> <span class="n">sortedData</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sortedData</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">sort_method</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">random_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_state</span><span class="p">)</span>
+        
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Shaping..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">sortedData</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sortedData</span> <span class="o">=</span> <span class="n">sortedData</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sortedData</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">sortedData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="n">sortedData</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">LHC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">sampleSize</span><span class="p">,</span> <span class="n">cols</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">sortedData</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">splits</span> <span class="o">=</span> <span class="n">sampleSize</span>
+    
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Creating the bins..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+    
+    <span class="k">if</span> <span class="n">stratified</span><span class="p">:</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">rows</span><span class="o">/</span><span class="n">sampleSize</span><span class="p">))</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">rows</span><span class="o">/</span><span class="n">sampleSize</span><span class="p">))</span>
+        <span class="n">rem</span> <span class="o">=</span> <span class="n">rows</span> <span class="o">%</span> <span class="n">sampleSize</span>
+        <span class="k">if</span> <span class="n">rem</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rem2</span> <span class="o">=</span> <span class="n">sampleSize</span> <span class="o">-</span> <span class="n">rem</span>
+            <span class="k">if</span> <span class="n">bin_placement</span> <span class="o">==</span> <span class="s2">"random"</span><span class="p">:</span>
+                <span class="n">f_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">((</span><span class="n">high</span><span class="p">,</span> <span class="n">low</span><span class="p">),</span> <span class="p">(</span><span class="n">rem</span><span class="p">,</span> <span class="n">rem2</span><span class="p">))</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">f_array</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">bin_placement</span> <span class="o">==</span> <span class="s2">"spaced"</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rem</span> <span class="o">&gt;</span> <span class="n">rem2</span><span class="p">:</span>
+                    <span class="n">r1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">high</span><span class="p">,</span> <span class="n">rem</span><span class="p">)</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">end</span> <span class="o">=</span> <span class="n">rem</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">a1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">rem</span> <span class="o">/</span> <span class="n">rem2</span><span class="p">),</span>
+                                   <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)[:</span><span class="n">rem2</span><span class="p">]</span>
+                    <span class="n">f_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">low</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">r1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">rem2</span><span class="p">)</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">end</span> <span class="o">=</span> <span class="n">rem2</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">a1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">rem2</span> <span class="o">/</span> <span class="n">rem</span><span class="p">),</span>
+                                   <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)[:</span><span class="n">rem</span><span class="p">]</span>
+                    <span class="n">f_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">high</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Not a valid bin placement. Change to 'spaced' or "</span>
+                                 <span class="s2">"'random'. To order the bins from high to low, change "</span>
+                                 <span class="s2">"stratified to False"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">high</span><span class="p">,</span> <span class="n">sampleSize</span><span class="p">)</span>
+        <span class="n">splits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">f_array</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">Splits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">sortedData</span><span class="p">,</span> <span class="n">splits</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Sampling..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+       
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">dt</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Splits</span><span class="p">):</span>
+        <span class="n">LHC</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">sample</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">updateProgBar</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sampleSize</span><span class="p">,</span> <span class="n">t1</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">shuffle_after</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Shuffling..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">LHC</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">df</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Converting to DataFrame..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+        <span class="n">LHC</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">LHC</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">print_time</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Finished..."</span><span class="p">,</span> <span class="n">t0</span><span class="p">,</span> <span class="n">te</span><span class="o">=</span><span class="n">dt</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">LHC</span></div>
+
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

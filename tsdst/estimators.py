@@ -188,6 +188,7 @@ def _fit_bayesian(estimator, X, y, family, status=None):
                       algoOpts=dict(estimator.algo_options or {}), postArgs=arguments,
                       sd=estimator.retry_sd, max_tries=estimator.retry_max_tries)
     estimator.mcmc_params, estimator.prev_vals = result['parameters'], result['prev_vals']
+    # Summarize sampled parameters before calculating distribution diagnostics.
     estimator.coef_, estimator.intercept_, estimator.extra_params_sum_ = estimator._create_coefs(
         estimator.mcmc_params, estimator.param_summary, extra)
     estimator.n_iter_ = len(estimator.mcmc_params)
@@ -209,9 +210,8 @@ def _fit_bayesian(estimator, X, y, family, status=None):
 
 
 class BayesLogRegClassifier(ClassifierMixin, BaseEstimator):
-    """A Logistic Regression Classifier that uses MCMC to evaluate the parameters.
-    This objects inherits from sklearn\'s BaseEstimator and
-    LinearClassifierMixin.
+    r"""A Logistic Regression Classifier that uses MCMC to evaluate the parameters.
+    This estimator follows scikit-learn's public classifier interface.
     """
 
     def __init__(self, C=None, start=None, niter=10000, algo='rosenthal',
@@ -220,20 +220,19 @@ class BayesLogRegClassifier(ClassifierMixin, BaseEstimator):
                  has_constant=False, verbose=True,
                  over_dispersion=False, scorer=None):
         # TODO: Implement random_state for reproduceability
-        """The constructor for the BayesLogRegClassifier
+        r"""The constructor for the BayesLogRegClassifier
 
         Parameters
         ----------
         C : float, optional
-            The value for the inverse L1 penalty, or, the inverse
-            regularization strength. If None, the MCMC process
-            looks for the optimal penalty. The default is None.
-            
-            This value gets converted into the scale parameter for a laplace
-            distribution (scale = 2*C).
-        start : numpy array (float), optional
-            The starting values for the MCMC. If None, the MLE estimate is used
-            (solved with sklearn). The default is None.
+            Positive inverse regularization setting. The coefficient-prior scale is
+            2*C for Laplace priors on the slopes. If None, the posterior samples the
+            prior scale on the log scale. The default is None.
+        start : array-like, optional
+            Parameter vector on the sampled scale. The first value is the intercept.
+            Extra distribution or prior parameters follow the regression coefficients.
+            If None, initialize_weights selects a finite start. The supplied vector
+            is copied and its length and posterior support are checked.
         niter : int, optional
             The number of MCMC samples to draw. The default is 10000.
         algo : str, optional
@@ -247,33 +246,31 @@ class BayesLogRegClassifier(ClassifierMixin, BaseEstimator):
             The options to be passed to the MCMC algorithm. Include as a
             dictionary. The default is None.
         retry_sd : float, optional
-            The MCMC alorithms use a Cholesky decomposition on the covariance
-            matrix. In case the decomposition fails, the algorithms will 
-            attempt to jitter the covaraince matrix to help it be positive 
-            definite. This value determines the strength of the jittering and
-            is drawn directly from a normal distribution with zero mean and
-            retry_sd standard deviation. The default is 0.02.
+            Standard deviation of normal noise added to the starting parameters on
+            every fifth attempt after a Cholesky failure. The default is 0.02.
         retry_max_tries : int, optional
-            Number of attempts to correct the cholesky decomposition if it
-            fails. The default is 100.
-        initialize_weights : str, optional
-            Determines the method of initializing the starting model parameter
-            values (if start is None). Options are 'sklearn', 'ones', 'random',
-            or 'zeros'. The default is 'sklearn'.
+            Retry threshold after a failed Cholesky decomposition. The default is 100.
+            The wrapper retries the sampler with a perturbed start; it does not
+            directly jitter the proposal covariance matrix.
+        initialize_weights : {'sklearn', 'zeros', 'ones', 'random'}, optional
+            Initialization rule when start is None. The default is 'sklearn', which
+            uses a scikit-learn logistic fit as a warm start. The sampled prior-scale
+            extra starts at zero for the sklearn and zeros rules.
         param_summary : str, optional
-            The method used in making the final parameter summaries. Options 
-            are 'mean', 'median', 'mode_kde', 'mode_histogram', or
-            'final_sample'. The default is 'mean'.
+            Chain summary: 'mean', 'median', 'mode_kde', or 'mode_histogram'.
+            Any other value, including 'final_sample' and 'last_value', selects the
+            final sample. The default is 'mean'.
         has_constant : bool, optional
             Whether or not the data provided already has a column of ones
             as the first column in the dataset for the intercept of the model.
             If not, one is created. The default is False.
         verbose : bool, optional
-            If True, a progress bar, along with timestamps, is provided.
-            The default is True.
+            Retained estimator setting. Sampler progress is controlled by the
+            progress entry in algo_options. Sampler acceptance and retry summaries
+            may be printed independently. The default is True.
         over_dispersion : bool, optional
-            Whether or not to account for overdispersion in the model.
-            The default is False.
+            Retained argument. The binary Bernoulli posterior does not sample a
+            separate dispersion parameter. The default is False.
         scorer : function or str
             The function or string to use for the default scoring method.
             Otherwise, pass None for accuracy. The default is None.
@@ -281,7 +278,6 @@ class BayesLogRegClassifier(ClassifierMixin, BaseEstimator):
         Returns
         -------
         None.
-
         """
         self.C = C
         self.start = start
@@ -383,7 +379,26 @@ class BayesLogRegClassifier(ClassifierMixin, BaseEstimator):
         return self
     
     def fit(self, X, y):
-        """Fit the model with finite numeric features and a compatible response."""
+        r"""Fit the model
+
+        Parameters
+        ----------
+        X : numpy array
+            The feature (or design) matrix.
+        y : numpy array
+            The response variable.
+
+        Returns
+        -------
+        self
+            Updates internal attributes, such as `coef_` and `intercept_`.
+
+        Notes
+        -----
+        Exactly two target classes are required. Labels are encoded for the binary
+        likelihood, and predictions use the original class labels. With
+        has_constant=True, X must begin with a column of ones.
+        """
         return _fit_bayesian(self, X, y, 'binomial')
     
     def decision_function(self, X):
@@ -395,10 +410,30 @@ class BayesLogRegClassifier(ClassifierMixin, BaseEstimator):
 
     def predict(self, X):
         """Return the class with probability at least one half."""
+        # The linear predictor is log(p/(1-p)); zero gives probability one half.
+        # The selected class index maps back to classes_, including custom labels.
+        # The tie rule assigns probability one half to the second class.
         return self.classes_[(self.decision_function(X) >= 0).astype(int)]
     
     def predict_proba(self, X):
-        """Return binary probabilities with the logistic link."""
+        r"""Generate predicted probability.
+
+        Parameters
+        ----------
+        X : numpy array
+            Feature (or design) matrix.
+
+        Returns
+        -------
+        numpy array (float)
+            The predicted probabilities.
+
+        Notes
+        -----
+        The two columns follow ``classes_``. The second-class probability is
+        expit(intercept + X @ coefficients), matching the fitted Bernoulli link.
+        A probability of one half is assigned to the second class by predict.
+        """
         positive = expit(self.decision_function(X))
         return np.column_stack([1-positive, positive])
     
@@ -445,10 +480,8 @@ class BayesLogRegClassifier(ClassifierMixin, BaseEstimator):
 
 
 class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
-    """
-    A Poisson Regressor that uses MCMC to evaluate the parameters.
-    This objects inherits from sklearn\'s BaseEstimator and
-    LinearClassifierMixin.
+    r"""A Poisson Regressor that uses MCMC to evaluate the parameters.
+    This estimator follows scikit-learn's public regressor interface.
     """
 
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
@@ -456,21 +489,21 @@ class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
                  initialize_weights='sklearn', param_summary='mean',
                  has_constant=False, verbose=True,
                  over_dispersion=False, scorer='D2'):
-        """
-        The constructor for the BayesPoissonClassifier
+        r"""The constructor for the BayesPoissonRegressor
 
         Parameters
         ----------
         C : float, optional
-            The value for the inverse L1 penalty, or, the inverse
-            regularization strength. If None, the MCMC process
-            looks for the optimal penalty. The default is None.
-            
-            This value is gets converted into the scale parameter for a laplace
-            distribution (scale = 2*C).
-        start : numpy array (float), optional
-            The starting values for the MCMC. If None, the MLE estimate is used
-            (solved with sklearn). The default is None.
+            Positive inverse regularization setting. The default is 1. The ordinary
+            Poisson posterior uses normal coefficient priors with standard deviation
+            2*C. The fixed-C overdispersed posterior uses Laplace priors with scale
+            2*C. If None, the adaptive posterior learns a normal-prior standard
+            deviation on the log scale. These are the existing prior definitions.
+        start : array-like, optional
+            Parameter vector on the sampled scale. The first value is the intercept.
+            Extra distribution or prior parameters follow the regression coefficients.
+            If None, initialize_weights selects a finite start. The supplied vector
+            is copied and its length and posterior support are checked.
         niter : int, optional
             The number of MCMC samples to draw. The default is 10000.
         algo : str, optional
@@ -484,30 +517,29 @@ class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
             The options to be passed to the MCMC algorithm. Include as a
             dictionary. The default is None.
         retry_sd : float, optional
-            The MCMC alorithms use a Cholesky decomposition on the covariance
-            matrix. In case the decomposition fails, the algorithms will 
-            attempt to jitter the covaraince matrix to help it be positive 
-            definite. This value determines the strength of the jittering and
-            is drawn directly from a normal distribution with zero mean and
-            retry_sd standard deviation. The default is 0.02.
+            Standard deviation of normal noise added to the starting parameters on
+            every fifth attempt after a Cholesky failure. The default is 0.02.
         retry_max_tries : int, optional
-            Number of attempts to correct the cholesky decomposition if it
-            fails. The default is 100.
-        initialize_weights : str, optional
-            Determines the method of initializing the starting model parameter
-            values (if start is None). Options are 'sklearn', 'ones', 'random',
-            or 'zeros'. The default is 'sklearn'.
+            Retry threshold after a failed Cholesky decomposition. The default is 100.
+            The wrapper retries the sampler with a perturbed start; it does not
+            directly jitter the proposal covariance matrix.
+        initialize_weights : {'sklearn', 'zeros', 'ones', 'random'}, optional
+            Initialization rule when start is None. The default is 'sklearn', which
+            uses a scikit-learn Poisson fit as a warm start. Automatic dispersion
+            starts at zero. The sampled prior-scale extra starts at zero for the
+            sklearn and zeros rules.
         param_summary : str, optional
-            The method used in making the final parameter summaries. Options 
-            are 'mean', 'median', 'mode_kde', 'mode_histogram', or
-            'final_sample'. The default is 'mean'.
+            Chain summary: 'mean', 'median', 'mode_kde', or 'mode_histogram'.
+            Any other value, including 'final_sample' and 'last_value', selects the
+            final sample. The default is 'mean'.
         has_constant : bool, optional
             Whether or not the data provided already has a column of ones
             as the first column in the dataset for the intercept of the model.
             If not, one is created. The default is False.
         verbose : bool, optional
-            If True, a progress bar, along with timestamps, is provided.
-            The default is True.
+            Retained estimator setting. Sampler progress is controlled by the
+            progress entry in algo_options. Sampler acceptance and retry summaries
+            may be printed independently. The default is True.
         over_dispersion : bool, optional
             Whether or not to account for overdispersion in the model.
             The default is False.
@@ -515,7 +547,6 @@ class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
         Returns
         -------
         None.
-
         """
         self.C = C
         self.start = start
@@ -557,10 +588,13 @@ class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
         mean = np.average(y, weights=weights)
         deviance = 2*np.sum(weights[positive] * (xlogy(y[positive], y[positive]/predicted[positive]) - y[positive] + predicted[positive]))
         null = 0. if mean == 0 else 2*np.sum(weights[positive] * (xlogy(y[positive], y[positive]/mean) - y[positive] + mean))
+        # Pearson residuals divide raw residuals by sqrt of the Poisson variance function.
         residuals = (y-predicted)/np.sqrt(predicted)
         chi2 = np.sum(weights[positive]*residuals[positive]**2)
         observations = np.count_nonzero(positive)
+        # Mean-model residual df count slopes and one intercept; zero-weight rows do not count.
         degrees = observations-self.coef_.size-1
+        # The Pearson sum per residual df is an empirical variance-inflation diagnostic.
         dispersion = chi2/degrees if degrees > 0 else np.nan
         return dict(deviance_=deviance, null_deviance_=null, pearson_residuals_=residuals,
                     pearson_chi2_=chi2, model_d2_=1-deviance/null if null > 0 else np.nan,
@@ -617,7 +651,27 @@ class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
         return coefs, intercept, extra_parm
         
     def adjust_params_(self, new_param_summary):
-        """Update coefficients and sampled dispersion with the selected chain summary."""
+        r"""This method is intended to update the aggregated parameters with a new
+        summary as defined in new_param_summary. For example, if someone wanted
+        to switch from `coef_` representing the mean to `coef_` representing
+        the median, they could use this function to do so.
+
+        Parameters
+        ----------
+        new_param_summary : str
+            The method of aggregating the MCMC chain parameters (either mean,
+            median, mode_kde, mode_histogram, or last_value).
+
+        Returns
+        -------
+        self
+            Updates the `coef_`, `intercept_`, and `extra_params_sum_` attributes.
+
+        Notes
+        -----
+        This also updates ``dispersion_delta_`` and ``dispersion_estimation_`` from the
+        same selected summary. It does not run another MCMC chain.
+        """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(
             self.mcmc_params, new_param_summary, self.extra_params)
         self.dispersion_delta_ = float(self.extra_params_sum_[-1]) if self.over_dispersion else 0.
@@ -626,7 +680,26 @@ class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
         return self
     
     def fit(self, X, y):
-        """Fit the model with finite numeric features and a compatible response."""
+        r"""Fit the model
+
+        Parameters
+        ----------
+        X : numpy array
+            The feature (or design) matrix.
+        y : numpy array
+            The response variable.
+
+        Returns
+        -------
+        self
+            Updates internal attributes, such as `coef_` and `intercept_`.
+
+        Notes
+        -----
+        Responses must be nonnegative integer counts. The conditional mean uses
+        a log link. The overdispersed model samples delta on 0 <= delta < 1 and
+        uses theta = mean*(1-delta) in its generalized Poisson likelihood.
+        """
         return _fit_bayesian(self, X, y, 'poisson')
     
     def predict(self, X):
@@ -645,10 +718,8 @@ class BayesPoissonRegressor(RegressorMixin, BaseEstimator):
 
     
 class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
-    """
-    A Weibull Regressor that uses MCMC to evaluate the parameters.
-    This objects inherits from sklearn\'s BaseEstimator and
-    LinearClassifierMixin.
+    r"""A Weibull Regressor that uses MCMC to evaluate the parameters.
+    This estimator follows scikit-learn's public regressor interface.
     """
 
     def __init__(self, C=1, start=None, niter=10000, algo='rosenthal',
@@ -656,21 +727,20 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
                  initialize_weights='sklearn', param_summary='mean',
                  has_constant=False, verbose=True,
                  over_dispersion=False):
-        """
-        The constructor for the BayesWeibullClassifier
+        r"""The constructor for the BayesWeibullRegressor
 
         Parameters
         ----------
         C : float, optional
-            The value for the inverse L1 penalty, or, the inverse
-            regularization strength. If None, the MCMC process
-            looks for the optimal penalty. The default is None.
-            
-            This value is gets converted into the scale parameter for a laplace
-            distribution (scale = 2*C).
-        start : numpy array (float), optional
-            The starting values for the MCMC. If None, the MLE estimate is used
-            (solved with sklearn). The default is None.
+            Positive inverse regularization setting for the Laplace coefficient
+            prior, whose scale is 2*C. If None, this Weibull posterior uses a fixed
+            prior scale of one; it does not learn an additional penalty parameter.
+            The default is 1.
+        start : array-like, optional
+            Parameter vector on the sampled scale. The first value is the intercept.
+            Extra distribution or prior parameters follow the regression coefficients.
+            If None, initialize_weights selects a finite start. The supplied vector
+            is copied and its length and posterior support are checked.
         niter : int, optional
             The number of MCMC samples to draw. The default is 10000.
         algo : str, optional
@@ -684,30 +754,28 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
             The options to be passed to the MCMC algorithm. Include as a
             dictionary. The default is None.
         retry_sd : float, optional
-            The MCMC alorithms use a Cholesky decomposition on the covariance
-            matrix. In case the decomposition fails, the algorithms will 
-            attempt to jitter the covaraince matrix to help it be positive 
-            definite. This value determines the strength of the jittering and
-            is drawn directly from a normal distribution with zero mean and
-            retry_sd standard deviation. The default is 0.02.
+            Standard deviation of normal noise added to the starting parameters on
+            every fifth attempt after a Cholesky failure. The default is 0.02.
         retry_max_tries : int, optional
-            Number of attempts to correct the cholesky decomposition if it
-            fails. The default is 100.
-        initialize_weights : str, optional
-            Determines the method of initializing the starting model parameter
-            values (if start is None). Options are 'sklearn', 'ones', 'random',
-            or 'zeros'. The default is 'sklearn'.
+            Retry threshold after a failed Cholesky decomposition. The default is 100.
+            The wrapper retries the sampler with a perturbed start; it does not
+            directly jitter the proposal covariance matrix.
+        initialize_weights : {'sklearn', 'zeros', 'ones', 'random'}, optional
+            Initialization rule when start is None. The default is 'sklearn', which
+            uses a marginal Weibull likelihood fit with zero slopes as a warm start.
+            This retained option name does not imply a scikit-learn Weibull fit.
         param_summary : str, optional
-            The method used in making the final parameter summaries. Options 
-            are 'mean', 'median', 'mode_kde', 'mode_histogram', or
-            'final_sample'. The default is 'mean'.
+            Chain summary: 'mean', 'median', 'mode_kde', or 'mode_histogram'.
+            Any other value, including 'final_sample' and 'last_value', selects the
+            final sample. The default is 'mean'.
         has_constant : bool, optional
             Whether or not the data provided already has a column of ones
             as the first column in the dataset for the intercept of the model.
             If not, one is created. The default is False.
         verbose : bool, optional
-            If True, a progress bar, along with timestamps, is provided.
-            The default is True.
+            Retained estimator setting. Sampler progress is controlled by the
+            progress entry in algo_options. Sampler acceptance and retry summaries
+            may be printed independently. The default is True.
         over_dispersion : bool, optional
             Retained for API compatibility. This flag is unused: Weibull shape
             and scale already determine the conditional variance. No separate
@@ -716,7 +784,6 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
         Returns
         -------
         None.
-
         """
         self.C = C
         self.start = start
@@ -797,6 +864,7 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
         shape = self.predict_shape(X)
         mean = self.predict(X)
         variance = self.predict_variance(X)
+        # Complete times use Weibull standard deviations; a censored time is not a completed response.
         residuals = np.where(events, (times-mean)/np.sqrt(variance), np.nan)
         deviance_residuals = _weibull_deviance_residuals(times, shape, self.scale_, events)
         deviance = np.sum(weights[positive]*deviance_residuals[positive]**2)
@@ -807,7 +875,9 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
         log_likelihood = np.sum(weights[positive]*log_values[positive])
         chi2 = np.sum(weights[positive]*residuals[positive]**2)
         observations = np.count_nonzero(positive)
+        # The mean depends on the shape coefficients, intercept, and shared scale.
         degrees = observations-self.coef_.size-2
+        # The Pearson sum per residual df is an empirical variance-inflation diagnostic.
         dispersion = chi2/degrees if degrees > 0 else np.nan
         return dict(deviance_=deviance, null_deviance_=null, deviance_residuals_=deviance_residuals,
                     pearson_residuals_=residuals, pearson_chi2_=chi2, variance_=variance,
@@ -816,14 +886,56 @@ class BayesWeibullRegressor(RegressorMixin, BaseEstimator):
                     dispersion_scale_=dispersion, dispersion_scale_sqrt_=np.sqrt(dispersion))
         
     def adjust_params_(self, new_param_summary):
-        """Update coefficients and scale with a new posterior summary."""
+        r"""This method is intended to update the aggregated parameters with a new
+        summary as defined in new_param_summary. For example, if someone wanted
+        to switch from `coef_` representing the mean to `coef_` representing
+        the median, they could use this function to do so.
+
+        Parameters
+        ----------
+        new_param_summary : str
+            The method of aggregating the MCMC chain parameters (either mean,
+            median, mode_kde, mode_histogram, or last_value).
+
+        Returns
+        -------
+        self
+            Updates the `coef_`, `intercept_`, and `extra_params_sum_` attributes.
+
+        Notes
+        -----
+        The scale is exp(the summarized log-scale parameter). Predictions use the
+        new shape coefficients and this shared scale. No MCMC chain is rerun.
+        """
         self.coef_, self.intercept_, self.extra_params_sum_ = self._create_coefs(
             self.mcmc_params, new_param_summary, self.extra_params)
         self.scale_ = float(np.exp(self.extra_params_sum_[-1]))
         return self
     
     def fit(self, X, y, status=None):
-        """Fit covariate-dependent Weibull shape and one shared positive scale."""
+        r"""Fit the model
+
+        Parameters
+        ----------
+        X : numpy array
+            The feature (or design) matrix.
+        y : array-like
+            Positive event or right-censoring times, in the same row order as X.
+        status : array-like of zero or one, optional
+            One indicates an observed event; zero indicates right censoring.
+            If None, all times are treated as observed events.
+
+        Returns
+        -------
+        self
+            Updates internal attributes, such as `coef_` and `intercept_`.
+
+        Notes
+        -----
+        The model estimates log shape as intercept + X @ coefficients and samples
+        one shared log scale. The reported prediction is the conditional Weibull
+        mean. Use predict_shape to obtain the positive shape parameter.
+        """
         return _fit_bayesian(self, X, y, 'weibull', status=status)
     
     def predict(self, X):
@@ -891,7 +1003,27 @@ class LogReg(ClassifierMixin, BaseEstimator):
         
         
     def fit(self, X, y):
-        """Minimize the penalized binary logistic negative log likelihood."""
+        r"""Fit the model
+
+        Parameters
+        ----------
+        X : numpy array
+            The feature (or design) matrix.
+        y : numpy array
+            The response variable.
+
+        Returns
+        -------
+        self
+            Updates internal attributes, such as ``coef_`` and ``intercept_``.
+
+        Notes
+        -----
+        Exactly two target classes are required. Labels are encoded for the binary
+        likelihood, and predictions use the original class labels. The fit adds
+        a leading intercept column unless has_constant=True, in which case the
+        supplied first column is treated as the intercept column.
+        """
         X, y = validate_data(self, X, y, dtype=float)
         self.classes_, y = np.unique(y, return_inverse=True)
         if len(self.classes_) != 2:
@@ -915,10 +1047,30 @@ class LogReg(ClassifierMixin, BaseEstimator):
 
     def predict(self, X):
         """Return the class with probability at least one half."""
+        # The linear predictor is log(p/(1-p)); zero gives probability one half.
+        # The selected class index maps back to classes_, including custom labels.
+        # The tie rule assigns probability one half to the second class.
         return self.classes_[(self.decision_function(X) >= 0).astype(int)]
     
     def predict_proba(self, X):
-        """Return binary probabilities with the logistic link."""
+        r"""Generate predicted probability.
+
+        Parameters
+        ----------
+        X : numpy array
+            Feature (or design) matrix.
+
+        Returns
+        -------
+        numpy array (float)
+            The predicted probabilities.
+
+        Notes
+        -----
+        The two columns follow ``classes_``. The second-class probability is
+        expit(intercept + X @ coefficients), matching the fitted Bernoulli link.
+        A probability of one half is assigned to the second class by predict.
+        """
         positive = expit(self.decision_function(X))
         return np.column_stack([1-positive, positive])
     

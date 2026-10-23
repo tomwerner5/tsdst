@@ -386,26 +386,30 @@ def mode_kde(data, kde_args=None):
 
 
 def norm(x, p, use_expo=False):
-    """
-    Calculate LP norm of a vector.
+    r"""Calculate a power sum, an Lp norm, or the conventional L0 count.
 
     Parameters
     ----------
-    data : numpy array
-        A 1D numpy array of values.
+    x : numpy.ndarray
+        Values whose norm or power sum is required.
     p : int
-        The LP norm specification (1,2,3, ...).
+        Norm order: zero, one, or an order of at least two. Zero returns the
+        number of nonzero entries, including negative entries.
     use_expo : bool, optional
-        Use final exponentiation in norm calculation. Particularily for the 
-        L2 norm, regularization applications will use the square of the norm,
-        so in the L2 case, when use_expo=True, a 1/p exponent is
-        added to the final result.
+        Apply the final 1/p exponent for a positive order when True. If False,
+        return sum(abs(x)**p), as commonly used in regularization penalties.
+        The default is False. The option does not affect the L0 count.
 
     Returns
     -------
-    numeric
-        Value of the LP norm on the vector.
+    value : numeric
+        Power sum, rooted norm, or nonzero count.
 
+    Notes
+    -----
+    Ridge regularization commonly uses the squared L2 norm, so this helper
+    omits the square root by default. L0 is the conventional sparsity count;
+    it is not a mathematical norm because it does not satisfy homogeneity.
     """
     if p == 0:
         return np.count_nonzero(x)
@@ -417,12 +421,10 @@ def norm(x, p, use_expo=False):
             norm = np.sum(x**p)
         else:
             norm = np.sum(np.abs(x)**p)
-        # Regression applications with L2 penalty often dismiss the full norm,
-        # particularily in L2 regularization. I'll note here that there is no added benefit
-        # to using norms higher than 2 in those cases. Odd norms (L3 and higher) are non-differntiable at the origin
-        # and they behave the same as L1. L4 and higher norms have the same 
-        # local meaning are differentiable, thus providing no additional useful
-        # information in regularization.
+        # Regularization often uses the power sum without the final root.
+        # For p>1, abs(x)**p is differentiable at zero; L1 has a kink there.
+        # Higher powers change sensitivity to large coefficients and are not
+        # interchangeable with L1 or L2 penalties.
         if use_expo:
             return norm**expo
         else:
@@ -432,12 +434,11 @@ def norm(x, p, use_expo=False):
         
         
 def norm_der(x, p, use_expo=False):
-    """
-    Calculate LP norm derivative of a vector.
+    r"""Calculate LP norm derivative of a vector.
 
     Parameters
     ----------
-    data : numpy array
+    x : numpy array
         A 1D numpy array of values.
     p : int
         The LP norm specification (1,2,3, ...).
@@ -452,6 +453,10 @@ def norm_der(x, p, use_expo=False):
     numeric
         Value of the LP norm derivative on the vector.
 
+    Notes
+    -----
+    This derivative is intended for positive p. L0 is discontinuous at zero
+    and has no ordinary gradient there.
     """
     norm_der = (p*np.abs(x)**(p-1))*np.sign(x)
     if use_expo:

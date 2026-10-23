@@ -1,0 +1,29 @@
+tsdst.nn.model.NeuralNetwork
+============================
+
+.. currentmodule:: tsdst.nn.model
+
+.. autoclass:: NeuralNetwork
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree: ./
+   
+      ~NeuralNetwork.__init__
+      ~NeuralNetwork.back_prop
+      ~NeuralNetwork.draw_predictive_samples
+      ~NeuralNetwork.fit
+      ~NeuralNetwork.forward_prop
+      ~NeuralNetwork.initialize_wb
+      ~NeuralNetwork.predict
+      ~NeuralNetwork.score
+   
+   
+
+   
+   
+   

@@ -208,6 +208,7 @@ def scoreModel(X, Y, model, metrics=None,
 def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=True, avg='weighted'):
     """Return the legacy score fields with corrected classification counts."""
     if mtype == 'classification':
+        # Keep the historical output fields, including four likelihood-based pseudo-R2 values.
         metrics = ['Accuracy', 'F1', 'Sens/Recall', 'Specificity', 'PPV', 'NPV',
                    'Confusion Matrix', 'AUC', 'McFadden R2', 'Tjur R2',
                    'Nagelkerke R2', 'Cox/Snell R2']
@@ -222,6 +223,8 @@ def scoreModel_legacy(X, Y, model, thres=None, mtype='classification', print_=Tr
         centered = truth - truth.mean()
         total = np.sum(centered**2)
         explained = np.sum((predicted - truth.mean())**2)
+        # This legacy ratio is SSR/SST. Equality with 1-SSE/SST and squared
+        # correlation requires the usual fitted OLS conditions and need not hold out of sample.
         rsquared = explained / total if total else np.nan
         result = {'Bias': bias(truth, predicted), 'RPMSE': rpmse(truth, predicted),
                   'R2': rsquared,
@@ -553,7 +556,35 @@ def crossVal(X, Y, cv_iterations, model, method='k-fold',
 # where the dictionary key is the new label, and the dictionary value
 # is the current class value
 def prettyConfMat(Ytrue, Ypred, print_=True, margins=True, labels=None):
-    """Return a confusion table with Actual and Predicted column groups."""
+    r"""Return and optionally print a labeled confusion matrix with margins.
+
+    Parameters
+    ----------
+    Ytrue : array-like
+        Actual class labels.
+    Ypred : array-like
+        Predicted class labels, in the same observation order as Ytrue.
+    print_ : bool, optional
+        Print the result table. The default is True.
+    margins : bool, optional
+        Include row totals, column totals, and a grand total. The default is True.
+    labels : dict, optional
+        Map displayed names to observed class values. Dictionary insertion order
+        controls both axes. If None, sorted observed class values are used.
+
+    Returns
+    -------
+    confmat : pandas.DataFrame
+        Actual classes are rows and predicted classes are columns. Each axis
+        has a corresponding Actual or Predicted group label. Optional margins
+        use the label Total.
+
+    Notes
+    -----
+    For binary class values ordered [0, 1], the cells are [[TN, FP], [FN, TP]].
+    Custom display names and a different requested class order change the
+    labels and ordering together; they do not transpose the matrix.
+    """
     truth, prediction = np.asarray(Ytrue).ravel(), np.asarray(Ypred).ravel()
     if labels is None:
         values = list(np.unique(np.r_[truth, prediction]))
@@ -577,14 +608,63 @@ def prettyConfMat(Ytrue, Ypred, print_=True, margins=True, labels=None):
   
 def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, lamda=0,
                    *, covariance='sampling', penalize_intercept=False):
-    """Return coefficient covariance, its unscaled form, noise variance, and beta.
+    r"""Calculate coefficient covariance for linear or binary logistic regression.
 
-    With information S and penalty matrix P, A=S+lamda*P. Sampling covariance
-    uses A^-1 S A^-1; curvature uses A^-1. Linear regression multiplies either
-    matrix by an OLS estimate of noise variance. Logistic regression uses
-    S=X.T @ diag(p*(1-p)) @ X and unit dispersion. Its covariance is a local
-    asymptotic approximation. A separately fitted intercept is unpenalized
-    unless penalize_intercept=True. lamda must match the fitted L2 penalty.
+    Parameters
+    ----------
+    X : array-like, shape (n_samples, n_features)
+        Training feature matrix. A separately fitted intercept is added to the
+        internal design matrix.
+    Y : array-like
+        Training response values.
+    fit_mod : fitted estimator
+        A linear or binary logistic model with ``coef_`` and ``intercept_``. Models
+        with fit_intercept=False use their supplied design without another
+        intercept column.
+    logit : bool, optional
+        Use logistic information when True, or linear information when False.
+        The default is True.
+    low_memory : bool, optional
+        Retained argument. Both paths use weighted matrix products and avoid
+        allocating an n by n diagonal weight matrix. The default is False.
+    lamda : float, optional
+        Nonnegative effective L2 Hessian penalty, matching the fitted model.
+        The default is zero. This is a ridge/Gaussian-prior penalty, not an L1
+        or Laplace-prior penalty.
+    covariance : {'sampling', 'curvature'}, optional
+        Sampling uses A^-1 S A^-1, where S is the unpenalized information and
+        A=S+lamda*P. Curvature uses A^-1. The default is 'sampling'.
+    penalize_intercept : bool, optional
+        Include a separately fitted intercept in P when True. The default is
+        False. Match this setting to the actual fit.
+
+    Returns
+    -------
+    cov : numpy.ndarray
+        Coefficient covariance. Its diagonal contains coefficient variances.
+    base : numpy.ndarray or None
+        The selected unscaled linear covariance matrix. For ordinary least
+        squares this is (X.T @ X)^-1 for the internal design. Logistic returns
+        None in this slot.
+    sigma2 : float or None
+        OLS noise-variance estimate RSS/(n-p), where p includes a fitted
+        intercept. Logistic regression returns None and uses unit dispersion.
+    betas : numpy.ndarray
+        Coefficients as a column vector, with a separately fitted intercept first.
+
+    Notes
+    -----
+    Logistic information uses Bernoulli variance p*(1-p). Linear covariance
+    multiplies its base matrix by sigma2. The linear noise estimate comes from
+    OLS so that ridge shrinkage bias does not inflate residual variance.
+    RSS/n is the corresponding maximum-likelihood variance estimate.
+
+    With no penalty, both covariance choices reduce to inverse information.
+    With a penalty, sampling covariance describes variation around the
+    shrunken estimator's sampling mean. Curvature describes a local Gaussian
+    approximation with the matching Gaussian-prior scale convention. These
+    are model-based calculations; a misspecification-robust covariance would
+    require a different variance estimate. Standard errors are sqrt(diag(cov)).
     """
     original_X = X
     X, Y = np.asarray(X, dtype=float), np.asarray(Y, dtype=float).ravel()
@@ -608,6 +688,7 @@ def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, lamda=0,
         probabilities = np.asarray(fit_mod.predict_proba(original_X))
         if probabilities.shape != (len(X), 2):
             raise ValueError('Logistic covariance requires a binary probability model')
+        # For binary probabilities the product is p*(1-p), the Bernoulli variance function.
         weights = np.prod(probabilities, axis=1)
         information = design.T @ (weights[:, None]*design)
         inverse = np.linalg.inv(information+lamda*penalty)
@@ -619,15 +700,54 @@ def GenerateRegCov(X, Y, fit_mod, logit=True, low_memory=False, lamda=0,
     information = design.T @ design
     # Estimate noise from OLS so shrinkage bias does not inflate residual variance.
     ordinary = np.linalg.solve(information, design.T @ Y)
+    # RSS/(n-p) estimates noise variance; p includes an estimated intercept.
     variance = np.sum((Y-design @ ordinary)**2)/degrees
     inverse = np.linalg.inv(information+lamda*penalty)
+    # The sampling choice is the ridge sandwich covariance before multiplying by sigma2.
     base = inverse @ information @ inverse if covariance == 'sampling' else inverse
     return variance*base, base, variance, beta[:, None]
   
 
 def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, lamda=0,
                  *, covariance='sampling', penalize_intercept=False):
-    """Return coefficient standard errors and the selected covariance quantities."""
+    r"""Calculate regression coefficient standard errors and covariance quantities.
+
+    Parameters
+    ----------
+    X : array-like
+        Training feature matrix.
+    Y : array-like
+        Training response values.
+    fit_mod : fitted estimator
+        Linear or binary logistic model.
+    logit : bool, optional
+        Calculate logistic standard errors when True. The default is True.
+    low_memory : bool, optional
+        Retained argument passed to GenerateRegCov. The default is False.
+    lamda : float, optional
+        Effective L2 penalty matching the fit. The default is zero.
+    covariance : {'sampling', 'curvature'}, optional
+        Covariance interpretation passed to GenerateRegCov. Sampling is the default.
+    penalize_intercept : bool, optional
+        Match the fit's intercept penalty. The default is False.
+
+    Returns
+    -------
+    se : numpy.ndarray
+        Standard errors, sqrt(diag(cov)).
+    cov : numpy.ndarray
+        Selected coefficient covariance matrix.
+    base : numpy.ndarray or None
+        Unscaled linear covariance matrix; None for logistic regression.
+    sigma2 : float or None
+        OLS error-variance estimate; None for logistic regression.
+    betas : numpy.ndarray
+        Coefficient column vector, including a separately fitted intercept first.
+
+    See Also
+    --------
+    GenerateRegCov : Covariance definitions and assumptions.
+    """
     cov, base, sigma2, betas = GenerateRegCov(X, Y, fit_mod, logit, low_memory, lamda,
         covariance=covariance, penalize_intercept=penalize_intercept)
     return np.sqrt(np.diag(cov)), cov, base, sigma2, betas
@@ -636,15 +756,58 @@ def RegressionSE(X, Y, fit_mod, logit=True, low_memory=False, lamda=0,
 def predict(X_test, X_train, Y_train, fit_mod, logit=True, interval='prediction',
             low_memory=False, lamda=0, level=0.95, logit_transform=False,
             logit_se_method='wald', *, covariance='sampling', penalize_intercept=False):
-    """Return predictions with confidence or prediction intervals.
+    r"""Calculate regression predictions with confidence or prediction intervals.
 
-    OLS intervals use Student t critical values and estimated residual variance.
-    Logistic intervals use asymptotic normal Wald bounds on the linear predictor.
-    A requested logistic prediction interval returns a probability confidence
-    interval, not a binary outcome interval. Intervals with an L2 penalty are
-    local approximations; sampling covariance measures variation of the shrunken
-    estimator and does not remove its bias for unpenalized population parameters.
-    Curvature intervals use the separately requested Gaussian-prior interpretation.
+    Parameters
+    ----------
+    X_test : array-like
+        Feature rows where predictions are required.
+    X_train : array-like
+        Training feature matrix used to estimate coefficient covariance.
+    Y_train : array-like
+        Training response values.
+    fit_mod : fitted estimator
+        Linear or binary logistic model.
+    logit : bool, optional
+        Use logistic calculations when True. The default is True.
+    interval : {'prediction', 'confidence'}, optional
+        Linear prediction intervals include error variance for a new response;
+        confidence intervals describe the fitted mean. The default is 'prediction'.
+        For logistic regression, 'prediction' emits a warning and returns a
+        confidence interval for the response probability.
+    low_memory : bool, optional
+        Retained argument passed to GenerateRegCov. The default is False.
+    lamda : float, optional
+        Effective L2 penalty matching the fit. The default is zero.
+    level : float, optional
+        Interval coverage level between zero and one. The default is 0.95.
+    logit_transform : bool, optional
+        Transform logistic predictions and both endpoints to probabilities.
+        Otherwise return log-odds. The default is False.
+    logit_se_method : {'wald'}, optional
+        Logistic interval method. The default is 'wald'. A delta-method
+        interval is not implemented.
+    covariance : {'sampling', 'curvature'}, optional
+        Covariance interpretation. The default is 'sampling'.
+    penalize_intercept : bool, optional
+        Match the fitted model's intercept penalty. The default is False.
+
+    Returns
+    -------
+    result : pandas.DataFrame
+        Columns yhat, lower_int, and upper_int contain predictions and bounds.
+
+    Notes
+    -----
+    OLS intervals use Student t critical values with n-p residual degrees of
+    freedom. Logistic Wald intervals use normal critical values on the linear
+    predictor. Transforming both endpoints through the inverse logit gives
+    probability confidence bounds.
+
+    Intervals for penalized fits are approximations. Sampling covariance
+    describes variation of the shrunken estimator and does not remove its bias
+    for unpenalized population parameters. Curvature intervals use a local
+    Gaussian-prior interpretation with an estimated noise scale when needed.
     """
     if interval not in ('prediction', 'confidence') or not 0 < level < 1:
         raise ValueError('Supply a valid interval type and a level between zero and one')
@@ -667,6 +830,7 @@ def predict(X_test, X_train, Y_train, fit_mod, logit=True, interval='prediction'
     margin = critical*np.sqrt(np.maximum(prediction_variance, 0))
     result = np.column_stack([estimate, estimate-margin, estimate+margin])
     if logit and logit_transform:
+        # The inverse logit is monotone, so transform the Wald endpoints with the prediction.
         result = sigmoid(result)
     return pd.DataFrame(result, columns=['yhat', 'lower_int', 'upper_int'])
 
@@ -1141,7 +1305,7 @@ def BPCA_dostep(M, y):
 
 # assumes no rows of all NaNs
 def bPCA(data, k=None, maxepoch=200, stepsize=10, dtau_tol=1e-8):
-    """An algorithm to compute missing values using Bayesian PCA. Translated from
+    r"""An algorithm to compute missing values using Bayesian PCA. Translated from
     MATLAB code by Shigeyuki OBA, 2002 May. 5th.
 
     Parameters
@@ -1168,24 +1332,22 @@ def bPCA(data, k=None, maxepoch=200, stepsize=10, dtau_tol=1e-8):
             - yest : The original data matrix with missing values imputed
             - mu : The estimated mean row vector
             - W : The estimated principal axis matrix
-            - tau : The estimated precision (inverse variance) of the residual \
-                 error
+            - tau : The estimated precision (inverse variance) of the residual error
 
     Examples
     --------
     >>> import numpy as np
     >>> from tsdst.modeling import bPCA
-    >>> X = np.array([[1,2,3],
-    >>>               [4,5,6],
-    >>>               [7,np.nan,9],
-    >>>               [10,11,12]])
-    >>>
-    >>> M = bPCA(X, dtau_tol=1e-6, maxepoch=1000, stepsize=10)
-    >>> print(M['yest'])
-    [[ 1.          2.          3.          ]
-     [ 4.          5.          6.          ]
-     [ 7.          7.46614942  9.          ]
-     [ 10.         11.         12.         ]]
+    >>> X = np.array([[1, 2, 3],
+    ...               [4, 5, 6],
+    ...               [7, np.nan, 9],
+    ...               [10, 11, 12]])
+    >>> M = bPCA(X, maxepoch=5, stepsize=10)  # doctest: +ELLIPSIS
+    epoch=0, dtau=...
+    >>> bool(np.isfinite(M['yest']).all())
+    True
+    >>> bool(np.allclose(M['yest'][~np.isnan(X)], X[~np.isnan(X)]))
+    True
     """
     N, d = data.shape
     if k is None:

@@ -10,10 +10,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
+from pathlib import Path
 import sphinx_bootstrap_theme
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 # -- Project information -----------------------------------------------------
 
@@ -24,6 +24,7 @@ author = 'Tom Werner'
 # The full version, including alpha/beta/rc tags
 from tsdst import __version__
 release = __version__
+version = release
 
 
 # -- General configuration ---------------------------------------------------
@@ -48,7 +49,7 @@ extensions = [
 templates_path = ['_templates']
 
 # other configurations
-source_suffix = '.rst'
+source_suffix = {'.rst': 'restructuredtext'}
 master_doc = 'index'
 
 # List of patterns, relative to source directory, that match files and
@@ -63,7 +64,7 @@ exclude_patterns = ['_build']
 # a list of builtin themes.
 #
 html_theme = 'bootstrap'
-html_sytle = 'custom.css'
+html_css_files = ['custom.css']
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # numpydoc options
@@ -93,12 +94,14 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/{.major}".format(sys.version_info), None),
     "numpy": ("https://numpy.org/doc/stable", None),
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
-    "matplotlib": ("https://matplotlib.org/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
     "scikit-learn": ("https://scikit-learn.org/stable", None)
 }
+intersphinx_timeout = 15
+
 # copybutton options
 copybutton_prompt_text = ">>> "
 
@@ -110,5 +113,3 @@ mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-def setup(app):
-    app.add_css_file('custom.css')

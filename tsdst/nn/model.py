@@ -36,7 +36,7 @@ class NeuralNetwork(object):
                  shuffle=False,
                  print_cost=True,
                  random_state=42):
-        """The constructor for the NeuralNetwork class.
+        r"""The constructor for the NeuralNetwork class.
 
         Parameters
         ----------
@@ -44,10 +44,10 @@ class NeuralNetwork(object):
             A dictionary containing the model components, layers, and other
             specifications. The dictionary should have the following general
             structure:
-            
+
             .. highlight:: python
             .. code-block:: python
-            
+
                 {
                  'hidden0': {'depth': 10,
                              'activation': 'relu',
@@ -84,16 +84,16 @@ class NeuralNetwork(object):
                             'use_batch_norm': False
                             }
                  }
-            
+
             Each layer should have the components defined above, however, not
             every component needs to be used (for example, setting
             dropout_keep_prob = 1 disables dropout). There can be as many
             hidden layers as desired (including none). Simply copy the
-            'hidden1' sub-dictionary before the output layer to add a new
+            'hidden0' sub-dictionary before the output layer to add a new
             hidden layer. However, the network must have an output layer
             defined. The key names for the layers can be anything, but the
             output layer must be positioned last.
-            
+
             A description of each layer key is defined below:
 
                 - activation (str or function): The activation function to be
@@ -159,9 +159,9 @@ class NeuralNetwork(object):
                                                 current layer.
                 - lambda (dict) : A dictionary containing the regularization 
                                 penalties for each type of regularization.
-                                
+
                                 The options are:
-                                
+
                                     - Weight (float) : The kernel or weight
                                                      regularizer
                                                      (recommended for use)
@@ -174,15 +174,12 @@ class NeuralNetwork(object):
                                                    (not recommended for use for
                                                    theoretical reasons, but
                                                    should be correct to use)
-                                
-                                A value of zero for any of the lambdas will \
-                                that regularization type for that layers.
-                - lp_norm (dict) : A dictionary containing the regularization \
-                                 norm funcitons for each type \
-                                 regularization.
-                                 
+
+                                A value of zero disables that regularization type for the layer.
+                - lp_norm (dict) : A dictionary containing the regularization                                  norm funcitons for each type                                  regularization.
+
                                  The options are:
-                                 
+
                                     - Weight (int) : The lp-norm for the weight
                                                    or kernel regularizer
                                     - activity (int) : The lp-norm for the
@@ -195,7 +192,7 @@ class NeuralNetwork(object):
                                         is placed before the activation
                                         function and before dropout (if used
                                         together)
-                
+
         eval_size : int, optional
             The number of model evaluations to perform before printing
             an output. It is recommended that this number be
@@ -211,11 +208,8 @@ class NeuralNetwork(object):
             The type of optimizer to use for gradient descent.
             The default is 'adam'.
         optimizer_args : dict, optional
-            Optional arguments to send to the optimizer (learning rate, etc.). 
-            The default is {'learning_rate': 0.001,
-                            'beta1': 0.9,
-                            'beta2': 0.999,
-                            'eps': 1e-8}.
+            Arguments passed to the selected optimizer. If None, use
+            ``learning_rate=0.001``, ``beta1=0.9``, ``beta2=0.999``, and ``eps=1e-8``.
         m_scale : float, optional
             An optional scaling parameter to scale up or down the cost and
             gradient values. For example, m_scale=2 will multiply the cost
@@ -456,7 +450,47 @@ class NeuralNetwork(object):
         return hz, zs, batch_norm, hzs, dropout, regularizers
         
     def back_prop(self, X, Y, wb, zs, batch_norm, hzs, dropout):
-        """Differentiate the recorded average loss, penalties, dropout, and batch norm."""
+        r"""Differentiate the recorded network loss with respect to all fitted parameters.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Feature batch; rows are observations.
+        Y : numpy.ndarray
+            True output values for the batch.
+        wb : dict
+            Layer weights, biases, and any batch-normalization gamma/beta parameters.
+        zs : dict
+            Raw affine values returned by forward_prop. Retained in this interface;
+            activation derivatives use batch_norm's norm_z values because batch
+            normalization precedes activation.
+        batch_norm : dict
+            Recorded normalization means, variances, standardized values, standard
+            deviations, and activation inputs for this forward pass.
+        hzs : dict
+            Layer activations, including hidden-layer dropout scaling.
+        dropout : dict
+            Hidden-layer masks from the same forward pass.
+
+        Returns
+        -------
+        dwdb : dict
+            Gradients with the same parameter names and shapes as wb, including
+            normalization gamma/beta when present.
+
+        Notes
+        -----
+        The differentiated objective is (summed data loss plus the configured
+        weight, activity, and bias penalties)/(batch_size*m_scale). The output
+        loss derivative introduces that normalization once. Hidden layers propagate
+        it through their activation, dropout, and normalization steps; they do not
+        divide the data gradient by batch size again.
+
+        Activity penalties are differentiated at the stored activation, before
+        propagating through dropout and activation. Weight and bias penalties use
+        the configured lambda/p scaling. Batch-normalization derivatives use the
+        recorded standardized inputs and statistics from the same training pass.
+        """
         gradients = {}
         normalizer = X.shape[0]*self.m_scale
         keys = list(self.model)
@@ -498,7 +532,10 @@ class NeuralNetwork(object):
                 gradients['gamma'+index] = np.sum(dZ*xhat, axis=0, keepdims=True)
                 gradients['beta'+index] = np.sum(dZ, axis=0, keepdims=True)
                 scaled = dZ*wb['gamma'+index]
+                # Propagate through the recorded batch-normalization transform.
                 dZ = (scaled-scaled.mean(axis=0)-xhat*np.mean(scaled*xhat, axis=0))/batch_norm['std'+index]
+            # The data gradient already includes the batch mean from the loss derivative.
+            # Apply that normalization once; weight and bias penalties carry their own scale.
             previous = X if i == 0 else hzs['hz'+str(i-1)]
             for parameter, data_gradient in (('Weight', previous.T @ dZ), ('bias', np.sum(dZ, axis=0, keepdims=True))):
                 power = layer['lp_norm'][parameter]
@@ -648,17 +685,57 @@ class NeuralNetwork(object):
         return self
     
     def predict(self, X):
-        """Return predictions using fixed batch-normalization statistics."""
+        r"""Predict output values for the supplied feature rows.
+
+        Parameters
+        ----------
+        X : array-like
+            Feature matrix in the fitted column order.
+
+        Returns
+        -------
+        hz : numpy.ndarray
+            Output activations. Classification outputs are probabilities; linear
+            outputs retain the fitted response scale.
+
+        Notes
+        -----
+        Prediction uses the stored running batch-normalization statistics and
+        turns off dropout. Temporary forward-pass values do not modify the stored
+        normalization dictionary, and deterministic inference does not draw dropout
+        masks from the RNG.
+        """
         from copy import deepcopy
         output, _, _, _, _, _ = self.forward_prop(np.asarray(X), self.wb, deepcopy(self.batch_norm),
                                                  train=False, sample=False)
         return output
 
     def draw_predictive_samples(self, X, n_samples=1000, n_outputs=None):
-        """Draw dropout predictions using fixed batch-normalization statistics.
+        r"""Draw repeated predictions with dropout enabled during inference.
 
-        Each draw occupies consecutive output columns. By default the output
-        count comes from the fitted network; an explicit count must match it.
+        Parameters
+        ----------
+        X : array-like
+            Feature rows in fitted column order.
+        n_samples : int, optional
+            Positive number of dropout draws. The default is 1000.
+        n_outputs : int, optional
+            Expected output width. If supplied, it must match the fitted network.
+            None infers the width from the fitted output layer. The default is None.
+
+        Returns
+        -------
+        draws : numpy.ndarray
+            Shape (n_observations, n_samples*n_outputs). Consecutive output columns
+            belong to one draw. Each draw keeps the original observation order.
+
+        Notes
+        -----
+        Hidden-layer dropout masks vary between draws. The stored training
+        normalization statistics stay fixed, as in predict. This method samples
+        the dropout approximation to predictive model uncertainty; it does not add
+        observation noise or sample arbitrary response distributions. With dropout
+        keep probability one, repeated predictions are deterministic.
         """
         from copy import deepcopy
         if not isinstance(n_samples, (int, np.integer)) or n_samples < 1:

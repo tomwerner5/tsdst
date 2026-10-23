@@ -1,7 +1,11 @@
 # Changes
 
-## Unreleased audit corrections
+## 2.1.0
 
+- Restored factual docstrings, parameter descriptions, and explanatory comments.
+- Clarified spectral covariance, sampled parameter scales, and covariance interpretations.
+- Rebuilt the Sphinx documentation and completed the public API index.
+- Added a docs dependency group and corrected documentation rendering and links.
 - Corrected overdispersed Poisson mean predictions and aligned the adaptive likelihood.
 - Kept covariate-dependent Weibull shape and a shared sampled scale.
 - Added Weibull shape, variance, censored-likelihood, and survival-deviance outputs.

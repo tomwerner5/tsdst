@@ -391,7 +391,46 @@ def _calcForwardAICs(X, Y, model, metric, family):
 def _doParallelForward(save_path, save_name, save_ext, metric, model, target_var,
                        new_predictor, use_probabilities, mod_cols, family,
                        Yprob=None, serialize_flavor='feather'):
-    """Read a temporary dataframe and score one forward-selection candidate."""
+    r"""Read a shared temporary table and score one forward-selection candidate.
+
+    Parameters
+    ----------
+    save_path : str
+        Temporary directory containing the table.
+    save_name : str
+        Temporary file name without its extension.
+    save_ext : str
+        Feather or Parquet extension.
+    metric : str
+        Information criterion passed to _calcForwardAICs.
+    model : estimator
+        Estimator specification. Each candidate is fitted on its own clone.
+    target_var : str
+        Response column in the temporary table.
+    new_predictor : str or list of str
+        Candidate predictor column or columns.
+    use_probabilities : bool
+        Use a supplied previous-model probability column with the new candidate.
+    mod_cols : list of str
+        Previously selected predictors when probability compression is not used.
+    family : str
+        Binomial, Poisson, or Gaussian response family.
+    Yprob : array-like, optional
+        Previous-model second-class probabilities in table row order.
+    serialize_flavor : {'feather', 'parquet'}, optional
+        Temporary table format. The default is 'feather'.
+
+    Returns
+    -------
+    score : float
+        Candidate information criterion; lower is better.
+
+    Notes
+    -----
+    Workers receive table paths instead of pickled copies of a large dataframe.
+    Feather and Parquet require the optional PyArrow dependency. These are
+    short-lived working tables rather than a model archive.
+    """
     if serialize_flavor not in ('feather', 'parquet'):
         raise ValueError('Serialization must use feather or parquet')
     data = getattr(pd, 'read_' + serialize_flavor)(save_path + save_name + save_ext)
@@ -404,10 +443,31 @@ def _doParallelForward(save_path, save_name, save_ext, metric, model, target_var
     return _calcForwardAICs(predictors, data[target_var], model, metric, family)
 
 def _prepare_for_parallel(XY, serialize_flavor='feather'):
-    """Write a temporary dataframe for process workers.
+    r"""Save a dataframe for forward-selection workers to read.
 
-    Feather and Parquet require the optional PyArrow dependency.
-    The caller must remove the returned file and directory after use.
+    Parameters
+    ----------
+    XY : pandas.DataFrame
+        Predictors and response in one table.
+    serialize_flavor : {'feather', 'parquet'}, optional
+        Temporary file format. Both require PyArrow. The default is 'feather'.
+
+    Returns
+    -------
+    save_name : str
+        File name stem within the temporary directory.
+    save_path : str
+        Newly created temporary directory.
+    save_ext : str
+        File extension matching the chosen format.
+    num_chunks : None
+        Retained return slot. One complete columnar table is written.
+
+    Notes
+    -----
+    The caller owns the returned temporary file and directory and must remove
+    them after the search. MessagePack storage from older pandas is no longer
+    supported; the current formats are Feather and Parquet.
     """
     import tempfile
     if serialize_flavor not in ('feather', 'parquet'):
@@ -422,12 +482,71 @@ def forwardSelection(XY, target_var, model, metric='bic', family='gaussian',
                      verbose=True, n_jobs=1, early_stop=False, perc_min=0.01,
                      stop_at_p=1000, stop_when=5, use_probabilities=False,
                      return_type='all', serialize_flavor='feather', use_threads=True):
-    """Add the feature that gives the lowest information criterion at each step.
+    r"""Select predictors greedily by an information criterion.
 
-    Stop when no candidate improves the criterion. With early_stop=True,
-    also apply the feature limit and the consecutive small-improvement limit.
-    Each candidate gets a separate estimator. Parallel workers use a temporary
-    Feather or Parquet file. The function removes that file after the search.
+    Each step fits every remaining candidate with the previously selected
+    predictors and chooses the lowest criterion. The first step selects the
+    best single predictor. Later steps stop when the criterion does not improve.
+    This is a greedy search; an exhaustive search would consider the powerset
+    of predictors and has exponential cost.
+
+    Parameters
+    ----------
+    XY : pandas.DataFrame
+        Combined predictors and response, with named columns.
+    target_var : str
+        Response column.
+    model : estimator
+        An unfitted estimator with fit and predict, plus predict_proba for a
+        binomial family. Candidate fits and the returned fit use separate clones.
+    metric : {'aic', 'aicc', 'bic', 'ebic'}, optional
+        Information criterion; lower is better. The default is 'bic'.
+    family : {'gaussian', 'binomial', 'poisson'}, optional
+        Likelihood family. The default is 'gaussian'.
+    verbose : bool, optional
+        Print selected predictors and progress. The default is True.
+    n_jobs : int, optional
+        Positive worker count. One runs serially. The default is 1.
+    early_stop : bool, optional
+        Also apply stop_at_p and consecutive-small-improvement stopping.
+        The default is False.
+    perc_min : float, optional
+        Minimum relative criterion improvement before a step counts as small.
+        Improvement is (previous-current)/max(abs(previous), 1).
+        Used with early_stop=True. The default is 0.01.
+    stop_at_p : int, optional
+        Maximum selected feature count with early stopping. The default is 1000.
+    stop_when : int, optional
+        Consecutive small improvements allowed with early stopping.
+        The default is 5.
+    use_probabilities : bool, optional
+        For binomial selection, compress the previous selected model to its
+        second-class probability column when at least two predictors have
+        already been selected. The final returned model is fitted to the
+        selected original predictors. The default is False.
+    return_type : {'list', 'model', 'data', 'all'}, optional
+        Return selected names, the fitted model, selected predictor data, or all
+        three as a tuple. The default is 'all'.
+    serialize_flavor : {'feather', 'parquet'}, optional
+        Temporary worker table format. PyArrow is required for parallel work.
+        The default is 'feather'.
+    use_threads : bool, optional
+        Use threads when True or processes when False. Process callables and
+        estimators must be pickleable. The default is True.
+
+    Returns
+    -------
+    result : list, estimator, pandas.DataFrame, or tuple
+        Objects selected by return_type. The input estimator and dataframe are
+        not mutated. A tie in criterion improvement stops the search.
+
+    Notes
+    -----
+    Information criteria use unpenalized likelihoods and include an estimated
+    intercept and Gaussian noise variance in the parameter count. AICc is
+    undefined when n <= k+1 and then returns infinity. Relative stopping is an
+    optional computational choice and does not replace the information criterion.
+    Temporary worker tables are removed in the search cleanup path.
     """
     if target_var not in XY or n_jobs < 1:
         raise ValueError('Supply a target column and a positive job count')
@@ -452,6 +571,7 @@ def forwardSelection(XY, target_var, model, metric='bic', family='gaussian',
         for step in range(limit):
             probability = None
             if use_probabilities and len(selected) > 1:
+                # Fit the current selected model before compressing it to a probability feature.
                 previous = clone(model).fit(XY[selected], XY[target_var])
                 probability = previous.predict_proba(XY[selected])[:, 1]
             if n_jobs > 1:
@@ -472,6 +592,7 @@ def forwardSelection(XY, target_var, model, metric='bic', family='gaussian',
             current = scores[winner]
             if selected and current >= best:
                 break
+            # The optional relative-improvement rule limits expensive sequences of small gains.
             improvement = (best-current)/max(abs(best), 1) if np.isfinite(best) else np.inf
             small_steps = small_steps + 1 if improvement < perc_min else 0
             selected.append(remaining.pop(winner))

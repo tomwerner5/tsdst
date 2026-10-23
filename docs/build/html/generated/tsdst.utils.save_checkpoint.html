@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>tsdst.utils.save_checkpoint &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=062ca7a5" />
+    <script src="../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tsdst.utils.updateProgBar" href="tsdst.utils.updateProgBar.html" />
+    <link rel="prev" title="tsdst.utils.print_time" href="tsdst.utils.print_time.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../eda.html">Automatic EDA</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">tsdst.utils.save_checkpoint</a><ul>
+<li><a class="reference internal" href="#tsdst.utils.save_checkpoint"><code class="docutils literal notranslate"><span class="pre">save_checkpoint()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="tsdst.utils.print_time.html" title="Previous Chapter: tsdst.utils.print_time"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.utils.p...</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.utils.updateProgBar.html" title="Next Chapter: tsdst.utils.updateProgBar"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.utils.u... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.utils.save_checkpoint.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">tsdst.utils.save_checkpoint</a><ul>
+<li><a class="reference internal" href="#tsdst.utils.save_checkpoint"><code class="docutils literal notranslate"><span class="pre">save_checkpoint()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="tsdst.utils.print_time.html" title="Previous Chapter: tsdst.utils.print_time"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; tsdst.utils.p...</span>
+    </a>
+  </li>
+  <li>
+    <a href="tsdst.utils.updateProgBar.html" title="Next Chapter: tsdst.utils.updateProgBar"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">tsdst.utils.u... &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="../_sources/generated/tsdst.utils.save_checkpoint.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <section id="tsdst-utils-save-checkpoint">
+<h1>tsdst.utils.save_checkpoint<a class="headerlink" href="#tsdst-utils-save-checkpoint" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="tsdst.utils.save_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">tsdst.utils.</span></span><span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">te</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decimals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_realtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backsn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'checkpoints'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'chkpnt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pkl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wb'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tsdst/utils.html#save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tsdst.utils.save_checkpoint" title="Link to this definition">¶</a></dt>
+<dd><p>Save a python object to a pickle file as a checkpoint. Log message as 
+logfile with the export.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>obj</strong><span class="classifier">any python object (must be pickleable)</span></dt><dd><p>The object to pickle.</p>
+</dd>
+<dt><strong>msg</strong><span class="classifier">str</span></dt><dd><p>The message you want to print.</p>
+</dd>
+<dt><strong>ts</strong><span class="classifier">float</span></dt><dd><p>Start time in seconds, or elapsed time if te is None.</p>
+</dd>
+<dt><strong>te</strong><span class="classifier">float, optional</span></dt><dd><p>End time in seconds. The default is None.</p>
+</dd>
+<dt><strong>decimals</strong><span class="classifier">int, optional</span></dt><dd><p>The number of decimal places to use for tracking miliseconds.
+The default is 0</p>
+</dd>
+<dt><strong>display_realtime</strong><span class="classifier">bool, optional</span></dt><dd><p>Display the system (calendar) time as part of the output.
+The default is True.</p>
+</dd>
+<dt><strong>backsn</strong><span class="classifier">bool, optional</span></dt><dd><p>Add ‘n’. The default is False.</p>
+</dd>
+<dt><strong>log</strong><span class="classifier">bool, optional</span></dt><dd><p>Save message to a log file. The default is False.</p>
+</dd>
+<dt><strong>log_dir</strong><span class="classifier">str, optional</span></dt><dd><p>The directory for the log file. The default is “log”.</p>
+</dd>
+<dt><strong>log_filename</strong><span class="classifier">str, optional</span></dt><dd><p>The name of the logfile. The default is “pmwt.log”.</p>
+</dd>
+<dt><strong>log_args</strong><span class="classifier">str, optional</span></dt><dd><p>The read/write specification, for example, wb, w, a, etc.
+The default is “a” for append. See open function in python for more
+details.</p>
+</dd>
+<dt><strong>time_first</strong><span class="classifier">bool, optional</span></dt><dd><p>Place time at the begininng of the message. The default is False.</p>
+</dd>
+<dt><strong>checkpoint_dir</strong><span class="classifier">str, optional</span></dt><dd><p>The directory to save the checkpoint. The default is “checkpoints”.</p>
+</dd>
+<dt><strong>checkpoint_filename</strong><span class="classifier">str, optional</span></dt><dd><p>The filename for the checkpoint. The default is “chkpnt”.</p>
+</dd>
+<dt><strong>checkpoint_extension</strong><span class="classifier">str, optional</span></dt><dd><p>The file extension for the checkpoint. The default is “pkl”.</p>
+</dd>
+<dt><strong>checkpoint_args</strong><span class="classifier">str, optional</span></dt><dd><p>The read/write specification, for example, wb, w, a, etc.
+See open function in python for more details.
+The default is “wb” for write binary.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None.</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

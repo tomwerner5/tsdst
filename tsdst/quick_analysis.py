@@ -73,9 +73,40 @@ def calcAICsLasso(penalty, Xtrain, Ytrain, sample_size, unreg_full_mod=None,
 def parallel_AIC_data_retriever(save_path, save_name, num_chunks, sample_size,
                                 unreg_full_mod, random_state, target_var,
                                 cur_pred_list, penalty):
-    """Read a Feather file and evaluate one L1 penalty.
+    r"""Utility function for QuickAnalysis. Not to be used externally.
 
-    num_chunks is unused. The reader loads one dataframe.
+    Parameters
+    ----------
+    save_path : str
+        Directory containing the temporary Feather file.
+    save_name : str
+        File stem used with the .fth extension.
+    num_chunks : int or None
+        Retained argument. The reader loads one complete Feather table.
+    sample_size : int
+        The number of observations.
+    unreg_full_mod : sklearn object, or similar
+        Unregularized full model.
+    random_state : int
+        Random seed for the process.
+    target_var : str
+        The name of the target variable.
+    cur_pred_list : list
+        The list of current predictors in the model.
+    penalty : float
+        Inverse regularization strength C for the L1 logistic fit.
+
+    Returns
+    -------
+    res : tuple
+        Tuple of results (non-zero coefficients and aic values).
+
+    Notes
+    -----
+    This worker reads the shared table and selects predictors and response in
+    their original row order. It returns the nonzero coefficient count and the
+    information-criterion array from calcAICsLasso. Parallel execution passes a
+    file path rather than another pickled dataframe copy.
     """
     data = pd.read_feather(save_path + save_name + '.fth')
     return calcAICsLasso(penalty, data[cur_pred_list], data[target_var], sample_size,
@@ -210,15 +241,55 @@ class QuickAnalysis(object):
         sorted_corrs_with_y = []
     
     def genHighCorrs(self, corr_cutoff):
-        """Find correlated predictors and keep the response out of removal decisions."""
+        r"""Generate a list of variables that are highly correlated with one
+        another.
+
+        Parameters
+        ----------
+        corr_cutoff : float
+            Cutoff value to determine high correlations.
+
+        Returns
+        -------
+        None.
+
+        Notes
+        -----
+        Only current predictor columns are considered. Correlation with the response
+        is reported separately and does not make the response a removal candidate.
+        """
         self.highCorr = getHighCorrs(self.corr_mat.loc[self.cur_pred_list, self.cur_pred_list], corr_cutoff)
     
     def calcAICs(self, num_cs, try_parallel, n_jobs, random_state, remove_msg, chunk):
-        """Evaluate all penalty values and store their information criteria.
+        r"""Calculate AIC values for the models to prepare for comparison.
 
-        Parallel workers read a temporary Feather file. If remove_msg=True,
-        remove the file and its directory after the evaluation.
-        Set chunk=True to submit at most n_jobs penalties in each batch.
+        Parameters
+        ----------
+        num_cs : int, optional
+            number of penalty values to test (i.e. number of models to evaluate
+            during AIC calculations).
+        try_parallel : bool
+            Whether to try running the operation in parallel.
+        n_jobs : int
+            Number of parallel processes to run.
+        random_state : int
+            Random seed for the process.
+        remove_msg : bool
+            Remove the temporary Feather file and its directory after
+            calculation, including error cleanup.
+        chunk : bool
+            Evaluate at most n_jobs penalties per submitted batch when True.
+            Every batch contributes to the stored results.
+
+        Returns
+        -------
+        None.
+
+        Notes
+        -----
+        The penalty count must match self.reduction. Results populate nonzero_coefs
+        and aics in penalty order. A worker exception is raised rather than treated
+        as a completed score. Parallel workers share a short-lived Feather table.
         """
         import tempfile
         if num_cs != len(self.reduction) or n_jobs < 1:
@@ -735,8 +806,7 @@ class QuickAnalysis(object):
                         num_cs=100, red_metric='bic', red_log_low=-5,
                         red_log_high=1, n_jobs=1, remove_msg=True,
                         chunk=False):
-        """
-        Performs a quick analysis by first considering which features/variables
+        r"""Performs a quick analysis by first considering which features/variables
         may be uninformative predictors based on preliminary models. Then,
         it performs a very basic forward selection procedure to limit
         predictors in the final model. Currently, this only supports
@@ -745,7 +815,7 @@ class QuickAnalysis(object):
         Parameters
         ----------
         freshStart : bool, optional
-            Whether to use a previous result, or start from scrath.
+            Whether to use a previous result, or start from scratch.
             The default is True.
         downsample : bool, optional
             Whether or not to downsample the majority class.
@@ -792,14 +862,13 @@ class QuickAnalysis(object):
         n_jobs : int, optional
             The number of processes to attempt. The default is 1.
         remove_msg : bool, optional
-            Remove messagepacks. The default is True.
+            Remove the temporary Feather table and directory. The default is True.
         chunk : bool, optional
-            Evaluate penalties in batches? The default is False.
+            Evaluate penalties in batches of at most n_jobs? The default is False.
 
         Returns
         -------
         None.
-
         """
         t0 = dt()
         self._full_analysis_arglist = {'freshStart': freshStart,

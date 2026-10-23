@@ -204,8 +204,7 @@ def mcfadden_r2(ll_est, ll_null):
 
 
 def number_of_nonzero_coef(X, model):
-    """
-    Calculates the number of non-zero coefficients in a model. Useful for
+    r"""Calculates the number of non-zero coefficients in a model. Useful for
     evaluating models with an L1 penalty.
 
     Parameters
@@ -213,13 +212,12 @@ def number_of_nonzero_coef(X, model):
     X : numpy array or pandas dataframe
         The design or feature matrix.
     model : sklearn object, or similar
-        The model, which needs to have a coef_ attribute.
+        The model, which needs to have a ``coef_`` attribute.
 
     Returns
     -------
     num_coef : int
         Number of non-zero coefficients.
-
     """
     num_coef = None
     try:
@@ -520,17 +518,57 @@ def aicCalc(loglike, num_model_params, sample_size, c=2, metric="aicc"):
 
 def glm_regularized_AIC(X, Y, reg_mod, unreg_mod, tol=1e-6,
                         method='kawano', family='binomial'):
-    """Calculate regularized GLM AIC from active coefficients.
+    r"""Calculate AIC for a generalized linear model estimated with regularization.
 
-    The Kawano binomial and Poisson correction is twice trace(J^-1 I),
-    with both information matrices restricted to nonzero coefficients,
-    including a nonzero intercept. This follows the authors' sAIC package.
-    A singular active information matrix raises an error instead of silently
-    replacing the published inverse with a pseudoinverse.
+    The binomial and Poisson Kawano correction follows Ninomiya and Kawano's
+    2016 paper, AIC for the Lasso in generalized linear models, and the authors'
+    sAIC R package. The alternative active-coefficient correction follows the
+    Gaussian Lasso degrees-of-freedom argument of Zou, Hastie, and Tibshirani.
 
-    The Hastie option counts active coefficients. Gaussian regression uses
-    the active coefficient count plus one estimated variance parameter and
-    the maximum-likelihood residual variance, RSS/n, for both method names.
+    Parameters
+    ----------
+    X : array-like
+        Feature matrix without an intercept column.
+    Y : array-like
+        Response values. Binomial responses are zero or one; Poisson responses
+        are nonnegative integers; Gaussian responses are real values.
+    reg_mod : fitted estimator
+        Regularized model with ``coef_``, ``intercept_``, and the appropriate prediction
+        method. Binomial uses predict_proba; Poisson predictions are count means
+        after the inverse log link.
+    unreg_mod : fitted estimator
+        Corresponding unregularized model used for the binomial or Poisson
+        information comparison. The Gaussian branch ignores this argument.
+    tol : float, optional
+        Nonnegative cutoff for active coefficients, abs(coefficient) > tol.
+        The same cutoff applies to the intercept. The default is 1e-6.
+    method : {'kawano', 'hastie'}, optional
+        Kawano uses the information-matrix correction. Hastie counts active
+        coefficients. Names are case-insensitive. The default is 'kawano'.
+    family : {'binomial', 'poisson', 'gaussian'}, optional
+        Response family. The default is 'binomial'.
+
+    Returns
+    -------
+    aic : float
+        Minus twice the unpenalized log likelihood plus the selected correction.
+
+    Raises
+    ------
+    ValueError
+        If the family, method, tolerance, response, or coefficient layout is invalid.
+    numpy.linalg.LinAlgError
+        If the active information matrix is singular.
+
+    Notes
+    -----
+    For binomial and Poisson Kawano AIC, let X_A contain active columns of the
+    intercept-augmented design. J=X_A.T @ W_fit @ X_A and I=X_A.T @ W_unreg @ X_A.
+    The correction is 2*trace(solve(J, I)). The ordinary solve follows the named
+    criterion; replacing it with a pseudoinverse would define a different rule.
+    For the active-coefficient alternative, the correction is twice the active
+    count. Gaussian regression uses this active count plus one estimated noise
+    variance parameter, with maximum-likelihood variance RSS/n, for both names.
     """
     original_X = X
     X, Y = np.asarray(X, dtype=float), np.asarray(Y, dtype=float).ravel()
@@ -569,12 +607,14 @@ def glm_regularized_AIC(X, Y, reg_mod, unreg_mod, tol=1e-6,
         return 2*(nll + np.count_nonzero(active) + 1)
     else:
         raise ValueError('Family must be binomial, poisson, or gaussian')
+    # Both information matrices use the same active design columns.
     if method == 'kawano' and np.any(active):
         selected = design[:, active]
         fisher = selected.T @ (np.asarray(weights)[:, None]*selected)
         fisher0 = selected.T @ (np.asarray(weights0)[:, None]*selected)
         degrees = np.trace(np.linalg.solve(fisher, fisher0))
     else:
+        # The alternative correction counts active coefficients, not their average.
         degrees = np.count_nonzero(active)
     return 2*(nll + degrees)
 

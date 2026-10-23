@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>tsdst.optimization &#8212; tsdst 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css?v=4468db6d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=062ca7a5" />
+    <script src="../../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=4ea706d9"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          tsdst</a>
+        <span class="navbar-text navbar-version pull-left"><b>2.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../eda.html">Automatic EDA</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+              
+                
+              
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary">
+<form action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <h1>Source code for tsdst.optimization</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numdifftools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">norm</span>
+
+
+<div class="viewcode-block" id="sign">
+<a class="viewcode-back" href="../../generated/tsdst.optimization.sign.html#tsdst.optimization.sign">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sign</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the sign of x, either -1 or 1. It is assumed 0 is a sign of 1."""</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="signIntervals">
+<a class="viewcode-back" href="../../generated/tsdst.optimization.signIntervals.html#tsdst.optimization.signIntervals">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">signIntervals</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mi">50</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">fun_args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">curvature</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns the boundaries of all possible roots in a function. Works well</span>
+<span class="sd">    with Brent root method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fun : function</span>
+<span class="sd">        The function to find the roots of.</span>
+<span class="sd">    lower : float, optional</span>
+<span class="sd">        The minimum value to investigate. The default is -50.</span>
+<span class="sd">    upper : float, optional</span>
+<span class="sd">        The maximum value to investigate. The default is 50.</span>
+<span class="sd">    step : float, optional</span>
+<span class="sd">        The interval between values in (lower, upper) to investigate.</span>
+<span class="sd">        The default is 0.01.</span>
+<span class="sd">    fun_args : dict, optional</span>
+<span class="sd">        Optional arguments to pass to fun.</span>
+<span class="sd">    curvature : bool, optional</span>
+<span class="sd">        Assuming `fun` is a derivative of some function `Fun`, True will return</span>
+<span class="sd">        whether each root is a minimum or a maximum in `Fun`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bounds : list</span>
+<span class="sd">        A list of tuples containing the upper and lower bounds of possible</span>
+<span class="sd">        roots.</span>
+<span class="sd">    concavity : list, optional</span>
+<span class="sd">        A list of strings, either "minimum" or "maximum", depending on the</span>
+<span class="sd">        curvature of the integral of `fun` in the given bounds.</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">fun_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fun_args</span> <span class="o">=</span> <span class="p">{}</span>
+        
+    <span class="n">x_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+    <span class="n">fx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x_s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">current_sign</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">lower_bound_index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">curves</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x_s</span><span class="p">):</span>
+        <span class="n">fx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">current_sign</span> <span class="o">=</span> <span class="n">sign</span><span class="p">(</span><span class="n">fx</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            
+        <span class="k">if</span> <span class="n">sign</span><span class="p">(</span><span class="n">fx</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">!=</span> <span class="n">current_sign</span><span class="p">:</span>
+            <span class="n">bounds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x_s</span><span class="p">[</span><span class="n">lower_bound_index</span><span class="p">],</span> <span class="n">x</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">current_sign</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">curves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"minimum"</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">curves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"maximum"</span><span class="p">)</span>
+            <span class="n">lower_bound_index</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">current_sign</span> <span class="o">=</span> <span class="n">sign</span><span class="p">(</span><span class="n">fx</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">curvature</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">curves</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">bounds</span></div>
+
+
+
+<div class="viewcode-block" id="Brent_1DRoot">
+<a class="viewcode-back" href="../../generated/tsdst.optimization.Brent_1DRoot.html#tsdst.optimization.Brent_1DRoot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">Brent_1DRoot</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fun_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""Brent Method for Roots</span>
+
+<span class="sd">    Use signIntervals to locate intervals that bracket a root. For example:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from tsdst.optimization import signIntervals, Brent_1DRoot</span>
+
+<span class="sd">        def objective(x):</span>
+<span class="sd">            return x**2 - 5</span>
+
+<span class="sd">        bounds = signIntervals(objective)</span>
+<span class="sd">        roots = [Brent_1DRoot(objective, opt={'bounds': interval}, print_=False)['root']</span>
+<span class="sd">                 for interval in bounds]</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fun : function</span>
+<span class="sd">        The function to find the roots of.</span>
+<span class="sd">    opt : dict, optional</span>
+<span class="sd">        Optional arguments for the optimization. The default is None.</span>
+<span class="sd">    print_ : bool, optional</span>
+<span class="sd">        Print Results. The default is True.</span>
+<span class="sd">    fun_args : dict</span>
+<span class="sd">        Optional arguments to pass to fun.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Raised if there are invalid bounds, or no valid root.</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        Raised if bounds is not a valid type.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    final_res : dict</span>
+<span class="sd">        A dictionary containing the results.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">fun_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fun_args</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="n">fun_args</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">fun_args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fun_args</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">opt</span>
+    <span class="n">dom_tol</span> <span class="o">=</span> <span class="mf">1e-8</span>
+    <span class="n">maxiter</span> <span class="o">=</span> <span class="mi">10000</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">10000.0</span><span class="p">,</span> <span class="mf">10000.0</span><span class="p">]</span>
+    <span class="n">fun_tol</span> <span class="o">=</span> <span class="mf">1e-8</span>
+    <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">opt_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="s1">'dom_tol'</span> <span class="ow">in</span> <span class="n">opt_keys</span><span class="p">:</span>
+            <span class="n">dom_tol</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'dom_tol'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'maxiter'</span> <span class="ow">in</span> <span class="n">opt_keys</span><span class="p">:</span>
+            <span class="n">maxiter</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'maxiter'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'bounds'</span> <span class="ow">in</span> <span class="n">opt_keys</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'bounds'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'fun_tol'</span> <span class="ow">in</span> <span class="n">opt_keys</span><span class="p">:</span>
+            <span class="n">fun_tol</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'fun_tol'</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Bounds option must be of length 2"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"must be array or list-like "</span>
+                            <span class="s2">"(np.ndarray, tuple, or list"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">10000.0</span><span class="p">,</span> <span class="mf">10000.0</span><span class="p">]</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
+    <span class="n">fa</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">fa</span><span class="o">*</span><span class="n">fb</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Root is not bracketed, or root does not exist. "</span>
+                         <span class="s2">"(try changing the interval)"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">fa</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">fb</span><span class="p">):</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span>
+        <span class="n">fa</span><span class="p">,</span> <span class="n">fb</span> <span class="o">=</span> <span class="n">fb</span><span class="p">,</span> <span class="n">fa</span>
+
+    <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">fc</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fa</span><span class="p">)</span>
+    <span class="n">mflag</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">cur_iter</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">dom_tol</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cur_iter</span> <span class="o">&lt;</span> <span class="n">maxiter</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">fa</span> <span class="o">-</span> <span class="n">fc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">dom_tol</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">fb</span> <span class="o">-</span> <span class="n">fc</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">dom_tol</span><span class="p">:</span>
+            <span class="c1"># inverse quadratic interpolation</span>
+            <span class="n">q1</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">fb</span><span class="o">*</span><span class="n">fc</span> <span class="o">/</span> <span class="p">((</span><span class="n">fa</span> <span class="o">-</span> <span class="n">fb</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">fa</span> <span class="o">-</span> <span class="n">fc</span><span class="p">))</span>
+            <span class="n">q2</span> <span class="o">=</span> <span class="n">b</span><span class="o">*</span><span class="n">fa</span><span class="o">*</span><span class="n">fc</span> <span class="o">/</span> <span class="p">((</span><span class="n">fb</span> <span class="o">-</span> <span class="n">fa</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">fb</span> <span class="o">-</span> <span class="n">fc</span><span class="p">))</span>
+            <span class="n">q3</span> <span class="o">=</span> <span class="n">c</span><span class="o">*</span><span class="n">fa</span><span class="o">*</span><span class="n">fb</span> <span class="o">/</span> <span class="p">((</span><span class="n">fc</span> <span class="o">-</span> <span class="n">fa</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">fc</span> <span class="o">-</span> <span class="n">fb</span><span class="p">))</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">q1</span> <span class="o">+</span> <span class="n">q2</span> <span class="o">+</span> <span class="n">q3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># secant method</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">b</span> <span class="o">-</span> <span class="n">fb</span><span class="o">*</span><span class="p">((</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">fb</span> <span class="o">-</span> <span class="n">fa</span><span class="p">))</span>
+
+        <span class="n">delta</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">fun_tol</span><span class="o">*</span><span class="nb">abs</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(((</span><span class="n">s</span> <span class="o">-</span> <span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="o">-</span><span class="n">b</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span>
+           <span class="p">(</span><span class="n">mflag</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">c</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="ow">or</span>
+           <span class="p">(</span><span class="ow">not</span> <span class="n">mflag</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="n">d</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="ow">or</span>
+           <span class="p">(</span><span class="n">mflag</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">c</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">delta</span><span class="p">))</span> <span class="ow">or</span>
+           <span class="p">(</span><span class="ow">not</span> <span class="n">mflag</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="n">d</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">delta</span><span class="p">))):</span>
+            <span class="c1"># bisection method</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+            <span class="n">mflag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mflag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">fs</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fa</span><span class="o">*</span><span class="n">fs</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="n">fb</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="n">fa</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">fa</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">fb</span><span class="p">):</span>
+            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span>
+            <span class="n">fa</span><span class="p">,</span> <span class="n">fb</span> <span class="o">=</span> <span class="n">fb</span><span class="p">,</span> <span class="n">fa</span>
+        <span class="n">cur_iter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">cur_iter</span> <span class="o">&gt;=</span> <span class="n">maxiter</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">'Warning: May not have found roots. Number of'</span> <span class="o">+</span>
+                          <span class="s1">'iterations exceeded maximum'</span><span class="p">,</span> <span class="ne">Warning</span><span class="p">)</span>
+
+    <span class="n">final_res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'root'</span><span class="p">:</span> <span class="n">a</span><span class="p">,</span>
+                 <span class="s1">'Final Function Value'</span><span class="p">:</span> <span class="n">fa</span><span class="p">,</span>
+                 <span class="s1">'Domain Tolerances'</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">),</span>
+                 <span class="s1">'Iterations'</span><span class="p">:</span> <span class="n">cur_iter</span><span class="p">,</span>
+                 <span class="s1">'a:b:s'</span><span class="p">:</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">s</span><span class="p">)}</span>
+    <span class="k">if</span> <span class="n">print_</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Inputs: </span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">Final Results</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">final_res</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">final_res</span></div>
+
+
+
+<div class="viewcode-block" id="AdaptiveNMorBrent">
+<a class="viewcode-back" href="../../generated/tsdst.optimization.AdaptiveNMorBrent.html#tsdst.optimization.AdaptiveNMorBrent">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">AdaptiveNMorBrent</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fun_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Nelder-Mead Method and Brent method (if one-dimensional) for finding the</span>
+<span class="sd">    minimum of a function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fun : function</span>
+<span class="sd">        The function to find the roots of.</span>
+<span class="sd">    start : numpy array</span>
+<span class="sd">        The starting values for the optimization. Must be equal in length to</span>
+<span class="sd">        the number of parameters being optimized.</span>
+<span class="sd">    opt : dict, optional</span>
+<span class="sd">        Optional arguments for the optimization. The default is None.</span>
+<span class="sd">    print_ : bool, optional</span>
+<span class="sd">        Print Results. The default is True.</span>
+<span class="sd">    fun_args : dict</span>
+<span class="sd">        Optional arguments to pass to fun.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Raised if there are invalid bounds, or no valid root.</span>
+<span class="sd">    TypeError</span>
+<span class="sd">        Raised if bounds is not a valid type.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    final_res : dict</span>
+<span class="sd">        A dictionary containing the results.</span>
+
+<span class="sd">    """</span>
+    <span class="n">fun_args</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">fun_args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fun_args</span>
+    <span class="n">opt</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">opt</span>
+    <span class="n">dom_tol</span> <span class="o">=</span> <span class="mf">1e-8</span>
+    <span class="n">maxiter</span> <span class="o">=</span> <span class="mi">10000</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">10000.0</span><span class="p">,</span> <span class="mf">10000.0</span><span class="p">]</span>
+    <span class="n">fun_tol</span> <span class="o">=</span> <span class="mf">1e-8</span>
+    <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">opt_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">opt</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="s1">'dom_tol'</span> <span class="ow">in</span> <span class="n">opt_keys</span><span class="p">:</span>
+            <span class="n">dom_tol</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'dom_tol'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'maxiter'</span> <span class="ow">in</span> <span class="n">opt_keys</span><span class="p">:</span>
+            <span class="n">maxiter</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'maxiter'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'bounds'</span> <span class="ow">in</span> <span class="n">opt_keys</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'bounds'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'fun_tol'</span> <span class="ow">in</span> <span class="n">opt_keys</span><span class="p">:</span>
+            <span class="n">fun_tol</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'fun_tol'</span><span class="p">]</span>
+    
+
+    <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Continue with Brent Method</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="s1">'bounds'</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Bounds option must be of length 2"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"must be array or list-like "</span>
+                                <span class="s2">"(np.ndarray, tuple, or list)"</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">10000.0</span><span class="p">,</span> <span class="mf">10000.0</span><span class="p">]</span>
+        <span class="c1"># 1/(phi^2) where phi is the golden ratio</span>
+        <span class="n">golden</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">5</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">max_x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
+        <span class="n">min_x</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">bounds</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">w</span> <span class="o">=</span> <span class="n">v</span> <span class="o">=</span> <span class="n">max_x</span>
+        <span class="n">fw</span> <span class="o">=</span> <span class="n">fv</span> <span class="o">=</span> <span class="n">fx</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">delta2</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">cur_iter</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">while</span><span class="p">(</span><span class="n">cur_iter</span> <span class="o">&lt;=</span> <span class="n">maxiter</span><span class="p">):</span>
+            <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">min_x</span> <span class="o">+</span> <span class="n">max_x</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="p">(</span><span class="n">dom_tol</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">dom_tol</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">f1</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">mid</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">f2</span> <span class="o">-</span> <span class="p">(</span><span class="n">max_x</span> <span class="o">-</span> <span class="n">min_x</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">):</span>
+                <span class="k">break</span>
+
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">delta2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">f1</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">fx</span> <span class="o">-</span> <span class="n">fv</span><span class="p">)</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">v</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">fx</span> <span class="o">-</span> <span class="n">fw</span><span class="p">)</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">v</span><span class="p">)</span> <span class="o">*</span> <span class="n">q</span> <span class="o">-</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="n">r</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">q</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="o">-</span><span class="n">p</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+                <span class="n">td</span> <span class="o">=</span> <span class="n">delta2</span>
+                <span class="n">delta2</span> <span class="o">=</span> <span class="n">delta</span>
+                <span class="k">if</span> <span class="p">((</span><span class="nb">abs</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">q</span> <span class="o">*</span> <span class="n">td</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="ow">or</span>
+                   <span class="p">(</span><span class="n">p</span> <span class="o">&lt;=</span> <span class="n">q</span> <span class="o">*</span> <span class="p">(</span><span class="n">min_x</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span> <span class="ow">or</span>
+                   <span class="p">(</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="n">q</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_x</span> <span class="o">-</span> <span class="n">x</span><span class="p">))):</span>
+                    <span class="n">delta2</span> <span class="o">=</span> <span class="n">min_x</span> <span class="o">-</span> <span class="n">x</span> <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">mid</span><span class="p">)</span> <span class="k">else</span> <span class="n">max_x</span> <span class="o">-</span> <span class="n">x</span>
+                    <span class="n">delta</span> <span class="o">=</span> <span class="n">golden</span> <span class="o">*</span> <span class="n">delta2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">delta</span> <span class="o">=</span> <span class="n">p</span> <span class="o">/</span> <span class="n">q</span>
+                    <span class="n">u</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">delta</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="n">min_x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">f2</span> <span class="ow">or</span> <span class="p">(</span><span class="n">max_x</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">f2</span><span class="p">:</span>
+                        <span class="n">delta</span> <span class="o">=</span> <span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">mid</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">delta2</span> <span class="o">=</span> <span class="n">min_x</span> <span class="o">-</span> <span class="n">x</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="n">mid</span> <span class="k">else</span> <span class="n">max_x</span> <span class="o">-</span> <span class="n">x</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="n">golden</span> <span class="o">*</span> <span class="n">delta2</span>
+
+            <span class="n">u</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">delta</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">f1</span>
+                 <span class="k">else</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span> <span class="k">if</span> <span class="n">delta</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">x</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f1</span><span class="p">)))</span>
+            <span class="n">fu</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">fu</span> <span class="o">&lt;=</span> <span class="n">fx</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">u</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">:</span>
+                    <span class="n">min_x</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">max_x</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">w</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">u</span>
+                <span class="n">fv</span> <span class="o">=</span> <span class="n">fw</span>
+                <span class="n">fw</span> <span class="o">=</span> <span class="n">fx</span>
+                <span class="n">fx</span> <span class="o">=</span> <span class="n">fu</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">:</span>
+                    <span class="n">min_x</span> <span class="o">=</span> <span class="n">u</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">max_x</span> <span class="o">=</span> <span class="n">u</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">fu</span> <span class="o">&lt;=</span> <span class="n">fw</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">w</span> <span class="o">==</span> <span class="n">x</span><span class="p">):</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">w</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="n">u</span>
+                    <span class="n">fv</span> <span class="o">=</span> <span class="n">fw</span>
+                    <span class="n">fw</span> <span class="o">=</span> <span class="n">fu</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">fu</span> <span class="o">&lt;=</span> <span class="n">fv</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="n">w</span><span class="p">):</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">u</span>
+                    <span class="n">fv</span> <span class="o">=</span> <span class="n">fu</span>
+            <span class="n">cur_iter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">cur_iter</span> <span class="o">&gt;=</span> <span class="n">maxiter</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">'Warning: May not have converged. Number of'</span> <span class="o">+</span>
+                          <span class="s1">'iterations exceeded maximum'</span><span class="p">,</span> <span class="ne">Warning</span><span class="p">)</span>
+
+        <span class="n">final_res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Minimum'</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+                     <span class="s1">'Final Function Value'</span><span class="p">:</span> <span class="n">fx</span><span class="p">,</span>
+                     <span class="s1">'Domain Tolerances'</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">min_x</span><span class="p">),</span>
+                     <span class="s1">'Iterations'</span><span class="p">:</span> <span class="n">cur_iter</span><span class="p">,</span>
+                     <span class="s1">'Method'</span><span class="p">:</span> <span class="s2">"Brent"</span><span class="p">}</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">num_parms</span> <span class="o">=</span> <span class="n">start</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">/</span> <span class="n">num_parms</span><span class="p">)</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.75</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_parms</span><span class="p">))</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">num_parms</span><span class="p">)</span>
+
+        <span class="c1"># intialize simplex, function values, and centroid</span>
+
+        <span class="n">h_j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">start</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.00025</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">e_j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">num_parms</span><span class="p">)</span>
+
+        <span class="n">simplex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="p">(</span><span class="n">h_j</span> <span class="o">*</span> <span class="n">e_j</span><span class="p">)),</span>
+                                 <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">sx_w_fval</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">simplex</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">num_parms</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))),</span>
+                                   <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># sx_w_fval[:, -1] = np.nan</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_parms</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">sx_w_fval</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">simplex</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+
+        <span class="c1"># initial sort</span>
+        <span class="n">sx_w_fval</span> <span class="o">=</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="n">sx_w_fval</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()]</span>
+
+        <span class="c1"># when stdev between vertices is small</span>
+        <span class="n">domain_conv</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># when the function evaluations between vertices is small</span>
+        <span class="n">funval_conv</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># when the loop reaches a max number of iterations</span>
+        <span class="n">cur_iter</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="n">cur_iter</span> <span class="o">&lt;</span> <span class="n">maxiter</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">funval_conv</span> <span class="ow">and</span> <span class="n">domain_conv</span><span class="p">):</span>
+            <span class="n">shrink</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">centroid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sx_w_fval</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># Reflection</span>
+            <span class="n">x_r</span> <span class="o">=</span> <span class="n">centroid</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="n">centroid</span> <span class="o">-</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">f_x_r</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">f_x_r</span> <span class="o">&lt;</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">f_x_r</span> <span class="o">&gt;=</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="c1"># if reflected is better than worst, replace</span>
+                <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">x_r</span><span class="p">,</span> <span class="n">f_x_r</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">f_x_r</span> <span class="o">&lt;</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="c1"># Expansion</span>
+                <span class="c1"># if reflected point is best yet, try expanding</span>
+                <span class="n">x_e</span> <span class="o">=</span> <span class="n">centroid</span> <span class="o">+</span> <span class="n">beta</span><span class="o">*</span><span class="p">(</span><span class="n">x_r</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">)</span>
+                <span class="n">f_x_e</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">x_e</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">f_x_e</span> <span class="o">&lt;</span> <span class="n">f_x_r</span><span class="p">:</span>
+                    <span class="c1"># if expanded is better, replace with expanded</span>
+                    <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">x_e</span><span class="p">,</span> <span class="n">f_x_e</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># replace with reflected</span>
+                    <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">x_r</span><span class="p">,</span> <span class="n">f_x_r</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Contraction</span>
+                <span class="c1"># First, check outside contraction</span>
+                <span class="c1"># if reflected value is between 2nd worst and worst</span>
+                <span class="k">if</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">f_x_r</span> <span class="ow">and</span> <span class="n">f_x_r</span> <span class="o">&lt;</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">x_c_o</span> <span class="o">=</span> <span class="n">centroid</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">*</span><span class="p">(</span><span class="n">x_r</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">)</span>
+                    <span class="n">f_x_c_o</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">x_c_o</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">f_x_c_o</span> <span class="o">&lt;=</span> <span class="n">f_x_r</span><span class="p">:</span>
+                        <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">x_c_o</span><span class="p">,</span> <span class="n">f_x_c_o</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">shrink</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Check inside contraction</span>
+                    <span class="n">x_c_i</span> <span class="o">=</span> <span class="n">centroid</span> <span class="o">-</span> <span class="n">gamma</span><span class="o">*</span><span class="p">(</span><span class="n">x_r</span> <span class="o">-</span> <span class="n">centroid</span><span class="p">)</span>
+                    <span class="n">f_x_c_i</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="n">x_c_i</span><span class="p">,</span> <span class="o">**</span><span class="n">fun_args</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">f_x_c_i</span> <span class="o">&lt;</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">sx_w_fval</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">x_c_i</span><span class="p">,</span> <span class="n">f_x_c_i</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">shrink</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="k">if</span> <span class="n">shrink</span><span class="p">:</span>
+                    <span class="n">shrunk_vals</span> <span class="o">=</span> <span class="p">(</span><span class="n">sx_w_fval</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
+                                   <span class="n">delta</span><span class="o">*</span><span class="p">(</span><span class="n">sx_w_fval</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span>
+                                          <span class="n">sx_w_fval</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_parms</span><span class="p">):</span>
+                        <span class="n">sx_w_fval</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">shrunk_vals</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span>
+                                                         <span class="n">fun</span><span class="p">(</span><span class="n">shrunk_vals</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span>
+                                                         <span class="o">**</span><span class="n">fun_args</span><span class="p">)))</span>
+
+            <span class="n">sx_w_fval</span> <span class="o">=</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="n">sx_w_fval</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()]</span>
+
+            <span class="n">std_dom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">sx_w_fval</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_parms</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">std_dom</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span> <span class="o">&lt;</span> <span class="n">dom_tol</span><span class="p">):</span>
+                <span class="n">domain_conv</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">sx_w_fval</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span> <span class="o">&lt;</span> <span class="n">fun_tol</span><span class="p">:</span>
+                <span class="n">funval_conv</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">cur_iter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Successful"</span>
+        <span class="k">if</span> <span class="n">cur_iter</span> <span class="o">&gt;=</span> <span class="n">maxiter</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">'Warning: May not have converged. Number of'</span> <span class="o">+</span> \
+                          <span class="s1">'iterations exceeded maximum'</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">Warning</span><span class="p">)</span>
+
+        <span class="n">final_params</span> <span class="o">=</span> <span class="n">sx_w_fval</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="n">final_res</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Parameters'</span><span class="p">:</span> <span class="n">final_params</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                     <span class="s1">'Final Function Value'</span><span class="p">:</span> <span class="n">final_params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                     <span class="s1">'Domain Tolerances'</span><span class="p">:</span> <span class="n">std_dom</span><span class="p">,</span>
+                     <span class="s1">'Function Value Tolerance'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">sx_w_fval</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                                                        <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                     <span class="s1">'Iterations'</span><span class="p">:</span> <span class="n">cur_iter</span><span class="p">,</span>
+                     <span class="s1">'Message'</span><span class="p">:</span> <span class="n">msg</span><span class="p">,</span>
+                     <span class="s1">'Method'</span><span class="p">:</span> <span class="s2">"NM"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">print_</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Final Results</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">final_res</span><span class="p">,</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">final_res</span></div>
+
+
+
+<div class="viewcode-block" id="max_like">
+<a class="viewcode-back" href="../../generated/tsdst.optimization.max_like.html#tsdst.optimization.max_like">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">max_like</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">lf</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">like_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Compute maximum likelihood estimation of a function and it's parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start : numpy array</span>
+<span class="sd">        The starting values for the optimization.</span>
+<span class="sd">    lf : function</span>
+<span class="sd">        The likelihood function. An array of the parameters for the function</span>
+<span class="sd">        must be the first argument.</span>
+<span class="sd">    opt : dict, optional</span>
+<span class="sd">        Optional arguments for the optimization. The default is None.</span>
+<span class="sd">    print_ : bool, optional</span>
+<span class="sd">        Print the results. The default is True.</span>
+<span class="sd">    fun_args : dict</span>
+<span class="sd">        Optional arguments to pass to fun.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    params : list</span>
+<span class="sd">        A list containing the parameter MLEs, the standard error, and </span>
+<span class="sd">        95% CI for the parameters (each row is a parameter).</span>
+
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">opt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'dom_tol'</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="s1">'maxiter'</span><span class="p">:</span> <span class="mi">500</span><span class="p">}</span>
+    <span class="c1"># initialize variables</span>
+    <span class="n">param_res</span> <span class="o">=</span> <span class="n">se</span> <span class="o">=</span> <span class="n">params_ci</span> <span class="o">=</span> <span class="n">hess</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># log(start) may be used here aswell because optimization</span>
+    <span class="c1"># will perform better with log</span>
+    
+    <span class="k">if</span> <span class="n">like_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">like_args</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">mle_res</span> <span class="o">=</span> <span class="n">AdaptiveNMorBrent</span><span class="p">(</span><span class="n">lf</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">print_</span><span class="p">,</span> <span class="n">fun_args</span><span class="o">=</span><span class="n">like_args</span><span class="p">)</span>
+    <span class="c1"># note: Hessian needs to be given the parameters</span>
+    <span class="c1"># in the same scale as the optimization</span>
+    <span class="c1"># to be able to find the correct derivative</span>
+    <span class="n">param_res</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">mle_res</span><span class="p">[</span><span class="s1">'Method'</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Brent"</span><span class="p">:</span>
+        <span class="n">param_res</span> <span class="o">=</span> <span class="n">mle_res</span><span class="p">[</span><span class="s2">"Minimum"</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">param_res</span> <span class="o">=</span> <span class="n">mle_res</span><span class="p">[</span><span class="s2">"Parameters"</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">hess</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">Hessian</span><span class="p">(</span><span class="n">lf</span><span class="p">)(</span><span class="n">param_res</span><span class="p">,</span> <span class="o">**</span><span class="n">like_args</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">hess</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">LinAlgError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">'Singular matrix'</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">):</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">hess</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">hess</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="n">hess</span><span class="p">)))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># se = sqrt(diagonal(covariance matrix)), or,</span>
+    <span class="c1"># se = sqrt(diagonal(inv(hessian)))</span>
+    <span class="c1">#</span>
+    <span class="c1"># ci = estimate +- N(confidence limit,0,1)*se</span>
+    <span class="c1">#</span>
+    <span class="c1"># note: when minimizing negative log liklihood in MLE,</span>
+    <span class="c1"># use the sqrt of the diagonal of the inverse of the Hessian matrix.</span>
+    <span class="c1"># If maximizing log-likelihood, use negative hessian instead to find</span>
+    <span class="c1"># standard errors</span>
+    <span class="c1">#</span>
+    <span class="c1"># other note: if you perform a log-transformation on the parameters</span>
+    <span class="c1"># during MLE optimization, you must multiply standard error</span>
+    <span class="c1"># by exp(paramaters), as well as exponentiate the CI limits.</span>
+
+    <span class="n">num_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">param_res</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">h</span><span class="p">:</span>
+        <span class="n">se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">hess</span><span class="p">)))</span>
+        <span class="n">params_ci</span> <span class="o">=</span> <span class="p">(</span><span class="n">param_res</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.95</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">se</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_params</span><span class="p">)))</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">se</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">params_ci</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">param_res</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">params_ci</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">params</span></div>
+
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2020 - present, Tom Werner.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 9.1.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
