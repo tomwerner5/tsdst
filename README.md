@@ -35,6 +35,27 @@ conda install -c tomwerner5 tsdst
 
 After installing, simply import to your module with `import tsdst`. A detailed description of each module/function/class (with examples) can be found on the documentation page. Documentation can be found [here:](https://tomwerner5.github.io/tsdst/Descriptions.html)
 
+## Automatic EDA
+
+Use `auto_eda` to explore a dataset without a response variable.
+Supply an output path to save an HTML report with its plots:
+
+```python
+from tsdst.eda import auto_eda
+
+report = auto_eda(data, output_file="reports/eda.html")
+report.variables
+report.high_correlations
+report.alerts
+```
+
+The report includes missing values, duplicate rows, variable summaries,
+distributions, and numeric correlations. Use `plots=False` to compute tables
+only. Use `plot_pairs=True` to add a scatter matrix with row and column limits.
+If you have a response variable, use `response="column_name"` to compare it
+with the features. The analysis keeps the input unchanged and does not fit
+a model. See [the EDA guide](docs/source/eda.rst) for types and output options.
+
 ## Licensing
 
 I am feeling pretty liberal with what can/can't be done with this project, so I have provisioned it with an MIT license. If anyone does end up using this for something cool, I wouldn't mind a name drop :)

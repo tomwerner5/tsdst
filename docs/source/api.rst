@@ -5,6 +5,18 @@
 API reference
 =============
 
+Automatic EDA
+-------------
+
+Explore tabular data without a response variable. See :doc:`eda` for examples.
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    eda.auto_eda
+    eda.EDAReport
+
 .. _distributions_api:
 
 Distributions

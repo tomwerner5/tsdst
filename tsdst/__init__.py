@@ -1,5 +1,6 @@
 import os
 from . import distributions
+from . import eda
 from . import estimators
 from . import feature_selection
 from . import mcmc
@@ -16,6 +17,7 @@ from . import nn
 __version__ = '1.0.11'
 
 __all__ = ['distributions',
+           'eda',
            'estimators',
            'feature_selection',
            'mcmc',
